@@ -7,4 +7,10 @@
         <RootNamespace>WebAPI</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\GameLogic\GameLogic.csproj" />
+      <ProjectReference Include="..\RoomSevice\RoomSevice.csproj" />
+      <ProjectReference Include="..\UserManagement\UserManagement.csproj" />
+    </ItemGroup>
+
 </Project>
