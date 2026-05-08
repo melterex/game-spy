@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spy Game - Room</title>
+    <link rel="stylesheet" href="css/room.css">
+</head>
+<body>
+
+<div class="game-area">
+    <div class="top-ui">
+        <div id="timer" class="timer">05:00</div>
+        <button class="exit-btn" onclick="exitRoom()">ВЫЙТИ</button>
+    </div>
+
+    <div class="side-players left" id="leftSide"></div>
+
+    <div class="center-box">
+        <div class="game-info">
+            <div class="info-item">
+                <span class="label">ТЕМА:</span>
+                <span id="themeValue" class="value"></span>
+            </div>
+            <div class="info-item">
+                <span class="label">ВАШЕ СЛОВО:</span>
+                <span id="wordValue" class="value"></span>
+            </div>
+        </div>
+        <div class="chat-area" id="chatArea">
+            <div class="message"><span>Система:</span> Ожидание начала...</div>
+        </div>
+        <div class="chat-input-wrap">
+            <input type="text" id="chatInput" placeholder="Ваше сообщение...">
+            <button onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <div class="side-players right" id="rightSide"></div>
+</div>
+
+<script src="js/room.js"></script>
+</body>
+</html>
