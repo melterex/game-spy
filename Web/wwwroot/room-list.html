@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spy Game - Lobby</title>
+    <link rel="stylesheet" href="css/room-list.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Доступные комнаты</h1>
+        <button class="create-btn" onclick="openModal('createModal')">Создать комнату</button>
+    </div>
+
+    <div class="room-list" id="roomsContainer"></div>
+</div>
+
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <h2>Новая комната</h2>
+        <input type="text" id="roomNameInput" placeholder="Название комнаты">
+
+        <label for="playerLimit">Количество игроков:</label>
+        <select id="playerLimit">
+            <option value="5">5 человек</option>
+            <option value="6">6 человек</option>
+            <option value="7">7 человек</option>
+            <option value="8">8 человек</option>
+            <option value="9">9 человек</option>
+            <option value="10">10 человек</option>
+        </select>
+
+        <button class="confirm-btn" onclick="createNewRoom()">СОЗДАТЬ</button>
+        <div class="cancel-link" onclick="closeModal('createModal')">Отмена</div>
+    </div>
+</div>
+
+<div id="joinModal" class="modal">
+    <div class="modal-content">
+        <h2 id="joinRoomTitle">Название</h2>
+        <p id="joinRoomDesc"></p>
+        <button class="confirm-btn" onclick="enterRoom()">ВОЙТИ</button>
+        <div class="cancel-link" onclick="closeModal('joinModal')">Назад</div>
+    </div>
+</div>
+
+<script src="js/room-list.js"></script>
+</body>
+</html>
