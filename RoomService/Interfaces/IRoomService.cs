@@ -8,5 +8,5 @@ namespace RoomService
         Room? GetRoomByUserId(UserId id);
         Room? GetRoomByRoomId(Guid id);
         IReadOnlyDictionary<Guid, Room> GetRooms();
-    } 
+    }
 }
