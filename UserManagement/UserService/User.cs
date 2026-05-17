@@ -9,9 +9,14 @@ public class UserId
         Id = id;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is UserId id && id.Id == Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
     }
 
     public override string ToString()

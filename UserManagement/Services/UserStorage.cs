@@ -1,28 +1,61 @@
+using Microsoft.Data.Sqlite;
+
 namespace authorization;
 
 public static class UserStorage
 {
-    private static readonly List<User> _users = new();
-    private static readonly Dictionary<string, string> _passwords = new(); 
-    private static long _nextId = 1;
+    private static readonly string _connectionString = "Data Source=users.db";
+    private static readonly IPasswordHasher _hasher = new BCryptPasswordHasher();
+
+    static UserStorage()
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+            CREATE TABLE IF NOT EXISTS Users (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Username TEXT NOT NULL UNIQUE,
+                PasswordHash TEXT NOT NULL
+            )
+        ";
+        command.ExecuteNonQuery();
+    }
 
     public static User? FindByUsername(string username)
     {
-        foreach (var user in _users)
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT Id, Username FROM Users WHERE Username = $username";
+        command.Parameters.AddWithValue("$username", username);
+        
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
         {
-            if (user.Username == username)
-                return user;
+            return new User(reader.GetString(1), new UserId(reader.GetInt64(0)));
         }
+        
         return null;
     }
 
     public static User? FindById(UserId id)
     {
-        foreach (var user in _users)
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT Id, Username FROM Users WHERE Id = $id";
+        command.Parameters.AddWithValue("$id", id.Id);
+        
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
         {
-            if (user.Id.Equals(id))
-                return user;
+            return new User(reader.GetString(1), new UserId(reader.GetInt64(0)));
         }
+        
         return null;
     }
 
@@ -33,19 +66,53 @@ public static class UserStorage
 
     public static void Add(User user, string password)
     {
-        _users.Add(user);
-        _passwords[user.Username] = password;
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+            INSERT INTO Users (Username, PasswordHash)
+            VALUES ($username, $passwordHash)
+        ";
+        command.Parameters.AddWithValue("$username", user.Username);
+        command.Parameters.AddWithValue("$passwordHash", _hasher.Hash(password));
+        
+        command.ExecuteNonQuery();
     }
 
     public static bool CheckPassword(string username, string password)
     {
-        if (_passwords.ContainsKey(username))
-            return _passwords[username] == password;
-        return false;
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT PasswordHash FROM Users WHERE Username = $username";
+        command.Parameters.AddWithValue("$username", username);
+        
+        var result = command.ExecuteScalar();
+        if (result == null || result == DBNull.Value)
+        {
+            return false;
+        }
+        
+        string? hash = result.ToString();
+        if (string.IsNullOrEmpty(hash))
+        {
+            return false;
+        }
+        
+        return _hasher.Verify(password, hash);
     }
     
     public static long GetNextId()
     {
-        return _nextId++;
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT COALESCE(MAX(Id), 0) FROM Users";
+        var result = command.ExecuteScalar();
+        long maxId = Convert.ToInt64(result);
+        return maxId + 1;
     }
 }
