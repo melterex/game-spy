@@ -3,14 +3,20 @@ namespace authorization;
 public class UserId
 {
     public long Id { get; }
-    UserId(long id)
+    
+    public UserId(long id)
     {
         Id = id;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is UserId id && id.Id == Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
     }
 
     public override string ToString()
@@ -24,11 +30,11 @@ public class UserId
     }
 }
 
-
 public class User
 {
     public string Username { get; }
     public UserId Id { get; }
+    
     public User(string name, UserId id)
     {
         Username = name;

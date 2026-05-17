@@ -1,6 +1,6 @@
 namespace authorization;
 
-interface IGetUser
+public interface IGetUser
 {
     User? GetUser(UserId id);
 }

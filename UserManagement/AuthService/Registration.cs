@@ -12,7 +12,7 @@ public class RegistrationData
     public string Username { get;}
     public string Password { get;}
 
-    RegistrationData(string username, string password)
+    public RegistrationData(string username, string password)
     {
         Username = username;
         Password = password;
