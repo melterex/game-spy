@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-namespace RoomService
+namespace CardsService
 {
-    internal class ThemesJsonParser() : IParser
+    public class ThemesJsonParser() : IParser
     {
 
         public IReadOnlyDictionary<string, List<string>> Parse()
@@ -18,7 +18,6 @@ namespace RoomService
             }
             else
             {
-                Logger.Log($"Directory Data doesn`t exist");
                 throw new FileNotFoundException($"Directory {dataPath} doesn`t exist");
             }
 
@@ -36,7 +35,6 @@ namespace RoomService
 
                 else
                 {
-                    Logger.Log("Failed to parse JSON");
                     throw new JsonException("Failed to parse JSON");
                 }
             }

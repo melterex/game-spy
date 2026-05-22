@@ -1,6 +1,6 @@
-namespace RoomService
+namespace CardsService
 {
-    internal class ThemesService : IThemesService
+    public class ThemesService : IThemesService
     {
         private IReadOnlyDictionary<string, List<string>> _themes;
 
@@ -11,16 +11,12 @@ namespace RoomService
             if (_themes.TryGetValue(theme, out var words))
                 return words.ElementAt(Random.Shared.Next(words.Count));
 
-            Logger.Log($"Data have no theme {theme}");
             return null;
         }
         public string GetRandomTheme()
         {
             if (_themes.Count == 0)
-            {
-                Logger.Log("Couldn`t open Data files");
                 throw new InvalidOperationException("Data files are empty");
-            }
 
             return _themes.Keys.ElementAt(Random.Shared.Next(_themes.Count));
         }

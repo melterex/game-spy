@@ -1,4 +1,4 @@
-namespace RoomService
+namespace CardsService
 {
     public interface IThemesService
     {
