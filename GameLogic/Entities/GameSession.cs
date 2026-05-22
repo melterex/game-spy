@@ -14,7 +14,7 @@ namespace GameLogic
         public GameStage CurrentStage { get; set; }
         public Int32 CurrentRound { get; set; }
         public String CurrentWord { get; set; }
-        public List<Messages> MessagesList { get; set; }
+        public List<Message> MessagesList { get; set; }
         public GameSettings GameSettings { get; set; }
     }
 }
