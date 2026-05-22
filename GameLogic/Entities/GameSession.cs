@@ -1,10 +1,11 @@
 ﻿using authorization;
 using GameLogic.Enums;
+using GameLogic.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GameLogic.Entities
+namespace GameLogic
 {
     public abstract class GameSession
     {
