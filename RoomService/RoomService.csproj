@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\CardsService\CardsService.csproj" />
       <ProjectReference Include="..\GameLogic\GameLogic.csproj" />
       <ProjectReference Include="..\UserManagement\UserManagement.csproj" />
     </ItemGroup>

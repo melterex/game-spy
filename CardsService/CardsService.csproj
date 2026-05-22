@@ -6,9 +6,4 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\CardsService\CardsService.csproj" />
-      <ProjectReference Include="..\UserManagement\UserManagement.csproj" />
-    </ItemGroup>
-
 </Project>
