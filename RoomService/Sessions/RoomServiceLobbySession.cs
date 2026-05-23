@@ -1,5 +1,8 @@
 using System.Collections.Concurrent;
 using authorization;
+using GameLogic;
+using GameLogic.Entities;
+using GameLogic.Interfaces;
 
 namespace RoomService
 {
@@ -8,9 +11,9 @@ namespace RoomService
         private ConcurrentDictionary<UserId, User> _players = new();
         private Dictionary<UserId, PlayerStatus> _statuses = new();
 
-        public RoomServiceGameSession GameSession { get; } = new();
         public UserId CreatorId { get; private set; } = creatorId;
         public bool IsStartingNewGame { get; private set; } = false;
+        public GameSession? Session { get; private set; }
         public event Action? OnGameStarted;
 
         public LobbySettings Settings { get; set; } = new(
@@ -51,20 +54,31 @@ namespace RoomService
             return false;
         }
 
-        public RoomServiceGameSession StartGame()
+        public GameSession? StartGame(IGameService gameService)
         {
+            var gameSettings = new GameSettings { Theme = Settings.Theme };
+            var guid = gameService.CreateGameSession(_players.Keys.ToList(), gameSettings);
+
+            Session = gameService.GetGameSessionById(guid);
+
             foreach (var status in _statuses.Values)
                 if (status != PlayerStatus.Ready)
                 {
                     IsStartingNewGame = false;
-                    return GameSession;
+                    return Session;
                 }
 
             IsStartingNewGame = true;
             Settings = new LobbySettings(Settings.MaxPlayers, RoomStatus.InGame, Settings.Theme);
             OnGameStarted?.Invoke();
 
-            return GameSession;
+            return Session;
+        }
+
+        public void EndGame()
+        {
+            foreach (var player in _statuses.Keys)
+                _statuses[player] = PlayerStatus.Waiting;
         }
 
         public bool ChangePlayerStatus(UserId id, PlayerStatus status)

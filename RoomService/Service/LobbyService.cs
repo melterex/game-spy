@@ -1,9 +1,10 @@
 using authorization;
 using GameLogic;
+using GameLogic.Interfaces;
 
 namespace RoomService
 {
-    public class LobbyService : ILobbyService
+    public class LobbyService(IGameService gameService) : ILobbyService
     {
         public bool PlayerIsReady(UserId id, LobbySession session)
         {
@@ -20,17 +21,20 @@ namespace RoomService
             var serviceSession = GetSession(session);
 
             if (serviceSession.IsAllPlayersReady() && !serviceSession.IsStartingNewGame)
-                return serviceSession.StartGame();
+                return serviceSession.StartGame(gameService);
 
             Logger.Log($"Not all players ready or already ingame");
             return null;
         }
 
+        public void EndGame(LobbySession session) => 
+            GetSession(session).EndGame();
+    
         public bool IsStartingNewGame(LobbySession session) => 
             GetSession(session).IsStartingNewGame;
 
-        public GameSession GetGameSession(LobbySession session) => 
-            GetSession(session).GameSession;
+        public GameSession? GetGameSession(LobbySession session) => 
+            GetSession(session).Session;
 
         public bool TryToEnter(LobbySession session, User user) =>
             GetSession(session).AddPlayerByUser(user);
@@ -40,6 +44,12 @@ namespace RoomService
 
         public LobbySettings GetLobbySettings(LobbySession session) =>
             GetSession(session).Settings;
+        
+        public bool MakeReady(UserId id, LobbySession session) => 
+            GetSession(session).ChangePlayerStatus(id, PlayerStatus.Ready);
+
+        public bool KickUserByUserId(UserId id, LobbySession session) =>
+            GetSession(session).KickPlayer(id);
 
         public bool SetLobbySettings(LobbySettings settings, LobbySession session)
         {
@@ -64,5 +74,6 @@ namespace RoomService
                 $"LobbyService expects LobbySession, but got {session.GetType().Name}",
                 nameof(session));
         }
+
     }
 }
