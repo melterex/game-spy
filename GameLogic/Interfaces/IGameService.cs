@@ -19,5 +19,7 @@ namespace GameLogic.Interfaces
         GameSession GetGameSessionById (Guid GameSessionId);
         void StartVoting (GameSession session);
         List<UserId> GetPlayerOrder(GameSession session);
+        DateTime GetCurrentTurnStartTime(GameSession session);
+        DateTime GetVotingStartTime(GameSession session);
     }
 }
