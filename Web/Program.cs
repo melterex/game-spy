@@ -1,11 +1,25 @@
 using System.Text;
+using authorization;
+using CardsService;
+using GameLogic.Interfaces;
+using GameLogic.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using RoomService;
 using WebAPI.API.V1;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
+builder.Services.AddSingleton<IRoomService, RoomService.RoomService>();
+builder.Services.AddTransient<ILobbyService, LobbyService>();
+builder.Services.AddTransient<CardsService.IThemesService, ThemesService>();
+builder.Services.AddTransient<IVotingService, VotingService>();
+builder.Services.AddTransient<IGameService, GameService>();
+builder.Services.AddTransient<IParser, ThemesJsonParser>();
+builder.Services.AddTransient<IRegistrationService, RegistrationService>();
+builder.Services.AddTransient<ILoginService, LoginService>();
+builder.Services.AddTransient<IGetUser, GetUserService>();
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -13,7 +27,7 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Description = "Enter your JWT token in the format: Bearer {your token}",
+        Description = "JWT token",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
@@ -23,7 +37,7 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecuritySchemeReference("bearer"), 
+            new OpenApiSecuritySchemeReference("bearer", document),
             new List<string>()
         }
     });

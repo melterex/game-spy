@@ -76,20 +76,18 @@ public class RoomController : ControllerBase
 {
     private readonly IRoomService roomService;
     private readonly ILobbyService lobbyService;
-    private readonly IThemesService themesService;
     private readonly IGameService gameService;
     private readonly IGetUser getUserService;
 
-    public RoomController(IRoomService _roomService, ILobbyService _lobbyService, IThemesService _themesService,
+    public RoomController(IRoomService _roomService, ILobbyService _lobbyService,
         IGameService _gameService, IGetUser _getUserService)
     {
         roomService = _roomService;
         lobbyService = _lobbyService;
-        themesService = _themesService;
         gameService = _gameService;
         getUserService = _getUserService;
     }
-    [HttpGet("rooms-list")]
+    [HttpGet]
     public ActionResult<Room[]> RoomList()
     {
         var roomsDictionary = roomService.GetRooms();
@@ -108,10 +106,10 @@ public class RoomController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("room-create")]
+    [HttpPost]
     public IActionResult RoomCreate([FromBody] RoomSettings roomSettings)
     {
-        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdString))
         {
             return Unauthorized();
@@ -132,15 +130,15 @@ public class RoomController : ControllerBase
         return Ok(newRoom.RoomId.ToString());
     }
 
-    [HttpPost("room-enter")]
-    public IActionResult RoomEnter([FromBody] RoomId roomId)
+    [HttpPost("{roomId}/enter")]
+    public IActionResult RoomEnter(RoomId roomId)
     {
         var room = roomService.GetRoomByRoomId(Guid.Parse(roomId.Id));
         if (room == null)
         {
             return BadRequest();
         }
-        var user = getUserService.GetUser(UserId.FromString(User.FindFirstValue(JwtRegisteredClaimNames.Sub)));
+        var user = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
         var stat = lobbyService.TryToEnter(room.Session, user);
         if (stat == false)
         {
@@ -152,25 +150,47 @@ public class RoomController : ControllerBase
         }
     }
 
-    [HttpGet("in-game")]
-    public ActionResult<bool> InGame([FromQuery] string roomid)
+    [HttpGet("my-room/status")]
+    public ActionResult<string> InGame()
     {
-        var room = roomService.GetRoomByRoomId(Guid.Parse(roomid));
+        var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+        var room = roomService.GetRoomByUserId(user_req.Id);
         if (room == null)
         {
             return BadRequest();
         }
-        return Ok(room.Status == RoomService.RoomStatus.InGame);
+
+        switch (room.Status)
+        {
+            case RoomService.RoomStatus.Closed:
+            {
+                return Ok("closed");
+            }
+            case RoomService.RoomStatus.InGame:
+            {
+                return Ok("ingame");
+            }
+            case RoomService.RoomStatus.Waiting:
+            {
+                return Ok("waiting");
+            }
+            default:
+                return BadRequest();
+        }
     }
-    [HttpGet("lobby-status")]
-    public ActionResult<LobbyStatus> RoomStatus()
+    [HttpGet("my-room/lobby")]
+    public ActionResult<LobbyStatus> RoomStatus(string roomId)
     {
-        var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(JwtRegisteredClaimNames.Sub)));
+        var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
         
         var room = roomService.GetRoomByUserId(user_req.Id);
         if (room == null)
         {
             return NotFound();
+        }
+        if (room.Status != RoomService.RoomStatus.Waiting)
+        {
+            return BadRequest();
         }
 
         if (room.Status != RoomService.RoomStatus.Waiting)
@@ -211,10 +231,10 @@ public class RoomController : ControllerBase
         return Ok(lobbyStatus);
     }
 
-    [HttpGet("game-status")]
-    public ActionResult<GameStatus> GameStatus()
+    [HttpGet("my-room/game")]
+    public ActionResult<GameStatus> GameStatus(string roomId)
     {
-        var userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var currentUserId = UserId.FromString(userIdString);
 
 
@@ -223,11 +243,15 @@ public class RoomController : ControllerBase
         {
             return BadRequest();
         }
+        if (room.Status != RoomService.RoomStatus.InGame)
+        {
+            return BadRequest();
+        }
 
         var gameSession = lobbyService.GetGameSession(room.Session);
 
         var playersList = new List<PlayerData>();
-        foreach (var pId in gameSession.playersIDs)
+        foreach (var pId in gameSession.PlayersIDs)
         {
             var user = getUserService.GetUser(pId);
             if (user != null)
@@ -278,8 +302,8 @@ public class RoomController : ControllerBase
         {
             Players = playersList.ToArray(),
             IsVoting = gameSession.CurrentStage == GameStage.Voting,
-            TimeToVote = 0,
-            TimeToMakeTurn = 0,
+            TimeToVote = (int)((gameService.GetVotingStartTime(gameSession) + TimeSpan.FromMinutes(5)) - DateTime.Now).TotalSeconds,
+            TimeToMakeTurn = (int)((gameService.GetCurrentTurnStartTime(gameSession) + TimeSpan.FromSeconds(60)) - DateTime.Now).TotalSeconds,
             TurnPlayerId = gameService.WhoseTurn(gameSession)?.ToString() ?? string.Empty,
             Card = userCardWord,
             Theme = lobbySettings?.Theme ?? string.Empty,

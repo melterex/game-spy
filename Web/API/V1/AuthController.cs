@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,6 +20,11 @@ public class RegisterData
     public string Password { get; set; }
 }
 
+public class User
+{
+    public string Id { get; set; }
+    public string Username { get; set; }
+}
 [ApiController]
 [Route("api/v1/auth")]
 public class AuthController : ControllerBase
@@ -26,11 +32,13 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly ILoginService _loginService;
     private readonly IRegistrationService _registrationService;
-    public AuthController(IConfiguration configuration,  ILoginService loginService, IRegistrationService registrationService)
+    private readonly IGetUser _getUser;
+    public AuthController(IConfiguration configuration,  ILoginService loginService, IRegistrationService registrationService, IGetUser getUser)
     {
         _configuration = configuration;
         _loginService = loginService;
         _registrationService = registrationService;
+        _getUser = getUser;
     }
 
     [HttpPost("login")]
@@ -67,6 +75,14 @@ public class AuthController : ControllerBase
                 return BadRequest();
             }
         }
+    }
+
+    [Authorize]
+    [HttpGet("/me")]
+    public ActionResult<User> GetMe()
+    {
+        var user = _getUser.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+        return Ok(new User{Id = user.Id.ToString(), Username = user.Username});
     }
     
     private string GenerateJwtToken(string id)
