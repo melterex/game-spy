@@ -56,7 +56,7 @@ public class RoomHub : Hub
         }
 
         lobbyService.MakeReady(userId, room.Session);
-        await Clients.Group("roomId").SendAsync("Ready", userId.ToString(), true);
+        await Clients.Group(room.RoomId.ToString()).SendAsync("Ready", userId.ToString(), true);
     }
     public async Task KickUser(string userId)
     {
@@ -211,7 +211,7 @@ public class RoomHub : Hub
             users.Add(i.Key.ToString());
             votes.Add(i.Value);
         }
-        await Clients.Group("roomId").SendAsync("VoteChange", users, votes);
+        await Clients.Group(room.RoomId.ToString()).SendAsync("VoteChange", users, votes);
     }
 
 }
