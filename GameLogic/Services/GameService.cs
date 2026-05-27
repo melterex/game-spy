@@ -36,6 +36,7 @@ namespace GameLogic.Services
                 CurrentStage = GameStage.Round,
                 MessagesList = new List<Message>(),
                 PlayerCards = new Dictionary<UserId, Card>(),
+                CurrentTurnStartTime = DateTime.Now,
             };
             AssignCards(session);
             sessions[session.GameId] = session;
