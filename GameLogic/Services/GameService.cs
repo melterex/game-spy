@@ -37,6 +37,7 @@ namespace GameLogic.Services
                 MessagesList = new List<Message>(),
                 PlayerCards = new Dictionary<UserId, Card>(),
                 CurrentTurnStartTime = DateTime.Now,
+                CurrentTurnNumber = 0,
             };
             AssignCards(session);
             sessions[session.GameId] = session;
@@ -96,6 +97,7 @@ namespace GameLogic.Services
 
             session.MessagesList.Add(new Message(currentPlayerId, message));
             session.CurrentPlayerIndex++;
+            session.CurrentTurnNumber++;
             session.CurrentTurnStartTime = DateTime.Now;
             
             if (session.CurrentPlayerIndex >= session.PlayersIDs.Count())
@@ -129,6 +131,11 @@ namespace GameLogic.Services
         public DateTime GetVotingStartTime(GameSession session)
         {
             return session.VotingStartTime;
+        }
+
+        public int GetCurrentTurnNumnber(GameSession session)
+        {
+            return session.CurrentTurnNumber;
         }
     }
 }
