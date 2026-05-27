@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосование</title>
+    <link rel="stylesheet" href="../css/vote.css">
+</head>
+<body>
+
+<div class="voting-container">
+    <div class="timer-section">
+        <span class="timer-label">Осталось времени:</span>
+        <div class="timer-badge" id="timer">00:30</div>
+    </div>
+
+    <h2 class="voting-title">Кто шпион? Выберите игрока:</h2>
+
+    <div class="users-grid" id="usersGrid"></div>
+
+</div>
+
+<script src="../js/voting.js"></script>
+<script src="../js/room-logic/render-room.js"></script>
+<script src="../js/room-logic/start-game.js"></script>
+<script src="../js/room-logic/timer.js"></script>
+<script src="../js/room-logic/room.js"></script>
+<script src="../js/room-logic/chat/chat.js"></script>
+<script src="../js/voting/render-voting.js"></script>
+</body>
+</html>

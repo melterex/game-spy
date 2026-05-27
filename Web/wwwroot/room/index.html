@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spy Game - Room</title>
+    <link rel="stylesheet" href="../css/room.css">
+</head>
+<body>
+
+<div class="game-area">
+    <div class="top-ui">
+        <div id="timer" class="timer">05:00</div>
+        <button class="exit-btn" onclick="exitRoom()">ВЫЙТИ</button>
+    </div>
+
+    <div class="side-players left" id="leftSide"></div>
+
+    <div class="center-box">
+        <div class="game-info">
+            <div class="info-item hidden" id="themeBlock">
+                <span class="label">ТЕМА:</span>
+                <span id="themeValue" class="value"></span>
+            </div>
+            <div class="info-item hidden" id="wordBlock">
+                <span class="label">ВАШЕ СЛОВО:</span>
+                <span id="wordValue" class="value"></span>
+            </div>
+
+            <button id="readyBtn" class="ready-btn">ГОТОВ</button>
+            <button id="startGameBtn" class="ready-btn" disabled style="background: #28a745; margin-top: 10px; opacity: 0.5;">СТАРТ ИГРЫ</button>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message"><span>Система:</span> Ожидание начала...</div>
+        </div>
+        <div class="chat-input-wrap">
+            <label for="chatInput"><input type="text" id="chatInput" placeholder="Ваше сообщение..."></label>
+            <button onclick="sendMessage()">➤</button>
+        </div>
+    </div>
+
+    <div class="side-players right" id="rightSide"></div>
+</div>
+
+<script src="../js/config.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+<script src="../js/signalr-init.js"></script>
+
+<script src="../js/room-logic/myId.js"></script>
+<script src="../js/room-logic/render-room.js"></script>
+<script src="../js/room-logic/start-game.js"></script>
+<script src="../js/room-logic/timer.js"></script>
+<script src="../js/room-logic/room.js"></script>
+<script src="../js/room-logic/chat/chat.js"></script>
+<script src="../js/room-logic/ready-button.js"></script>
+</body>
+</html>

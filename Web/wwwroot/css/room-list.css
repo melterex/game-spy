@@ -1,0 +1,148 @@
+:root {
+    --bg-color: #0f0f0f;
+    --card-bg: #1a1a1a;
+    --accent-color: #ff4d4d;
+    --text-color: #ffffff;
+    --border-color: #333;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    padding: 40px 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 20px;
+}
+
+.create-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.room-list {
+    display: grid;
+    gap: 15px;
+}
+
+.room-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.room-card:hover {
+    border-color: var(--accent-color);
+    background: #222;
+}
+
+.room-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
+/* Модалка создания комнаты */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+}
+
+.modal-content {
+    background: var(--card-bg);
+    margin: 15% auto;
+    padding: 30px;
+    width: 300px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+}
+
+input, select {
+    margin: 10px 0 20px;
+    padding: 12px;
+    background: #000;
+    border: 1px solid var(--border-color);
+    color: white;
+}
+
+.confirm-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 15px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.cancel-link {
+    text-align: center;
+    margin-top: 15px;
+    color: #666;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.exit-btn {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    color: var(--text-color);
+
+
+    padding: 10px 24px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 4px;
+
+
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+}
+
+.exit-btn:hover {
+    background: var(--accent-color);
+    color: #ffffff;
+
+    box-shadow: 0 0 12px rgba(255, 77, 77, 0.4);
+    transform: translateY(-1px);
+}
+
+.exit-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 5px rgba(255, 77, 77, 0.2);
+}
