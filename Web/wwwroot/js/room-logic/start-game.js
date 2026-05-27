@@ -13,7 +13,7 @@ if (startBtn) {
 
 async function startGame() {
     const selectedRoom = localStorage.getItem('selected_room_id');
-    const url = `/api/v1/rooms/my-room/game?roomId=${encodeURIComponent(selectedRoom)}`;
+    const url = `/api/v1/rooms/my-room/game`;
     console.log(url);
     const response = await fetch(url, {
         method: 'GET',

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('jwt_token');
     const selectedRoom = localStorage.getItem('selected_room_id');
 
-    let url = `/api/v1/rooms/my-room/lobby?roomId=${encodeURIComponent(selectedRoom)}`;
+    let url = `/api/v1/rooms/my-room/lobby`;
 
     if (window.isBackendReady && token) {
         console.log(token);
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (response.ok) {
                 let vsp = await response.text();
                 if (vsp === 'ingame'){
-                    url = `/api/v1/rooms/my-room/game?roomId=${encodeURIComponent(selectedRoom)}`;
+                    url = `/api/v1/rooms/my-room/game`;
                 }
             }
         }

@@ -18,7 +18,6 @@ async function enterRoom() {
                 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
             },
             body: JSON.stringify({
-                id: selectedRoom
             })
         });
         if (response.ok) {
