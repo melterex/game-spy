@@ -1,5 +1,10 @@
-async function renderRoom(players) {
+const startGameBtn = document.getElementById('startGameBtn');
 
+async function renderRoom(players) {
+    if (roomStatus === 'ingame') {
+        startGameBtn.disabled = true;
+        startGameBtn.style.display = 'none';
+    }
     const leftContainer = document.getElementById('leftSide');
     const rightContainer = document.getElementById('rightSide');
 
@@ -19,42 +24,44 @@ async function renderRoom(players) {
 
     const createTag = (playerData) => {
         const tag = document.createElement('div');
-        tag.className = 'player-tag';
 
         const nickname = playerData.player?.nickname ?? playerData.nickname ?? "Аноним";
         const playerId = playerData.player?.id ?? playerData.id;
+        const isHisTurn = roomStatus === 'ingame' && (typeof idTurn !== 'undefined') && playerId === idTurn;
+
+        tag.className = `player-tag ${isHisTurn ? 'current-turn' : ''}`;
+
         if (roomStatus === 'waiting') {
             const isReady = playerData.ready === true;
-
             const icon = isReady ? '●' : '';
             const statusClass = isReady ? 'is-ready' : 'not-ready';
 
             tag.innerHTML = `
-            <span class="player-name">${nickname}</span>
-            <div class="player-status-wrapper">
-                <span class="ready-icon ${statusClass}" title="${isReady ? 'Готов' : 'Не готов'}">
-                    ${icon}
-                </span>
+                <span class="player-name">${nickname}</span>
+                <div class="player-status-wrapper">
+                    <span class="ready-icon ${statusClass}" title="${isReady ? 'Готов' : 'Не готов'}">
+                        ${icon}
+                    </span>
                 </div>
-        `;
-        }
-        else{
-            tag.innerHTML = `<span class="player-name">${nickname}</span>`;
+            `;
+        } else {
+            tag.innerHTML = `
+                <span class="player-name">
+                    ${nickname} ${isHisTurn ? '<span class="turn-dot">●</span>' : ''}
+                </span>
+            `;
         }
 
         tag.dataset.id = playerId;
         return tag;
     };
-    if (roomStatus === 'ingame') {
-        const readyBtn = document.getElementById('readyBtn');
-        if (readyBtn) readyBtn.style.display = 'none';
-        const startBtn = document.getElementById('startGameBtn');
-        if (startBtn) readyBtn.style.display = 'none';
-        setGameData(roomData.theme, roomData.card);
-    }
+
 
     leftPlayers.forEach(item => leftContainer.appendChild(createTag(item)));
     rightPlayers.forEach(item => rightContainer.appendChild(createTag(item)));
+
+    updateTurnStatusLabel(players);
+
     checkEveryoneReady(players);
 }
 
@@ -67,18 +74,48 @@ function setGameData(theme, word) {
 }
 
 function checkEveryoneReady(players) {
-    const startGameBtn = document.getElementById('startGameBtn');
     if (!startGameBtn) return;
+
+    if (roomStatus === 'ingame') return;
 
     const isEveryoneReady = players.length > 0 && players.every(p => p.ready === true);
 
     if (isEveryoneReady) {
         startGameBtn.disabled = false;
-        startGameBtn.style.opacity = "1"; // Делаем кнопку яркой
+        startGameBtn.style.opacity = "1";
         startGameBtn.style.cursor = "pointer";
     } else {
         startGameBtn.disabled = true;
-        startGameBtn.style.opacity = "0.5"; // Делаем кнопку блеклой
+        startGameBtn.style.opacity = "0.5";
         startGameBtn.style.cursor = "not-allowed";
+    }
+}
+
+function updateTurnStatusLabel(players) {
+    const banner = document.getElementById('turnStatus');
+    if (!banner) return;
+
+    if (roomStatus !== 'ingame') {
+        banner.classList.add('hidden');
+        return;
+    }
+
+    banner.classList.remove('hidden');
+
+    if (typeof idTurn === 'undefined' || !idTurn) {
+        banner.innerText = "Ожидание распределения ходов...";
+        banner.classList.remove('my-turn-bg');
+        return;
+    }
+
+    const activePlayer = players.find(p => (p.player?.id ?? p.id) === idTurn);
+    const nickname = activePlayer ? (activePlayer.player?.nickname ?? activePlayer.nickname) : "Неизвестно";
+
+    if (idTurn === window.myId) {
+        banner.innerText = "ВАШ ХОД! Напишите сообщение в чат!";
+        banner.classList.add('my-turn-bg');
+    } else {
+        banner.innerText = `Ход игрока: ${nickname}`;
+        banner.classList.remove('my-turn-bg');
     }
 }

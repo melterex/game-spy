@@ -260,3 +260,49 @@ body {
     opacity: 0.5;
     transform: none !important; /* Отключаем увеличение при наведении */
 }
+/* Главный баннер хода */
+.turn-status-banner {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background-color: #1e1e24;
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+}
+
+/* Если ход твой — перекрашиваем в яркий цвет (можешь заменить на свой var(--accent)) */
+.turn-status-banner.my-turn-bg {
+    background-color: #ffcc00;
+    color: #111;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+}
+
+/* Скрытие элементов */
+.turn-status-banner.hidden {
+    display: none;
+}
+
+/* Подсветка карточки игрока в списке, который сейчас ходит */
+.player-tag.current-turn {
+    border: 2px solid #ffcc00 !important;
+    background-color: rgba(255, 204, 0, 0.08) !important;
+    transform: scale(1.03);
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.15);
+}
+
+/* Мигающая точка около никнейма */
+.turn-dot {
+    color: #28a745;
+    margin-left: 6px;
+    animation: pulse-dot 1.2s infinite alternate;
+}
+
+@keyframes pulse-dot {
+    from { opacity: 0.3; }
+    to { opacity: 1; }
+}

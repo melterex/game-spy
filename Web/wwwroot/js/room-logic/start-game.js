@@ -36,9 +36,9 @@ async function startGame() {
     if (wordBlock) wordBlock.classList.remove('hidden');
 
     roomData.players.forEach(p => p.ready = "NotReady");
+    idTurn = roomData.turnPlayerId;
     renderRoom(roomData.players);
     setGameData(roomData.theme, roomData.card);
     startTimer(roomData.timeToMakeTurn);
-    idTurn = roomData.turnPlayerId;
 }
 
