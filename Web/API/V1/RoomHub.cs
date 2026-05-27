@@ -27,6 +27,30 @@ public class RoomHub : Hub
         this.getUserService = getUserService;
         this.scopeFactory = scopeFactory;
         this.hubContext = hubContext;
+        changeTurn = (UserId id, int order) =>
+        {
+            var userId = id;
+            return async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(60));
+                using var scope = scopeFactory.CreateScope();
+
+                var roomService = scope.ServiceProvider.GetRequiredService<IRoomService>();
+                var lobbyService = scope.ServiceProvider.GetRequiredService<ILobbyService>();
+                var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
+                var room = roomService.GetRoomByUserId(userId);
+                var gameSession = lobbyService.GetGameSession(room.Session);
+                if (gameService.GetCurrentTurnNumnber(gameSession) == order)
+                {
+                    gameService.MessageReceived(gameSession, "No message was provided");
+                    await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", userId.ToString(),
+                        false, String.Empty, gameService.WhoseTurn(gameSession) != null,
+                        gameService.WhoseTurn(gameSession) != null
+                            ? gameService.WhoseTurn(gameSession).ToString()
+                            : String.Empty);
+                }
+            };
+        };
     }
     public async Task EnterRoom()
     {
@@ -99,8 +123,10 @@ public class RoomHub : Hub
         {
             await Clients.Group(room.RoomId.ToString()).SendAsync("StartGame");
         }
+        Task.Run(changeTurn(userId, gameService.GetCurrentTurnNumnber(lobbyService.GetGameSession(room.Session))));
     }
 
+    private Func<UserId, int, Func<Task>> changeTurn; 
     public async Task MakeTurn(string message)
     {
         var userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -125,26 +151,7 @@ public class RoomHub : Hub
             gameService.WhoseTurn(gameSession) != null ? gameService.WhoseTurn(gameSession).ToString() : "");
         if (gameService.WhoseTurn(gameSession) != null)
         {
-            Task.Run(async () =>
-            {
-                await Task.Delay(TimeSpan.FromSeconds(60));
-                using var scope = scopeFactory.CreateScope();
-            
-                var roomService = scope.ServiceProvider.GetRequiredService<IRoomService>();
-                var lobbyService = scope.ServiceProvider.GetRequiredService<ILobbyService>();
-                var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
-                var room =  roomService.GetRoomByUserId(userId);
-                var gameSession =  lobbyService.GetGameSession(room.Session);
-                if (gameService.GetCurrentTurnStartTime(gameSession) == curTime)
-                {
-                    gameService.MessageReceived(gameSession, "No message was provided");
-                    await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", userId.ToString(),
-                        false, String.Empty, gameService.WhoseTurn(gameSession) != null,
-                        gameService.WhoseTurn(gameSession) != null
-                            ? gameService.WhoseTurn(gameSession).ToString()
-                            : String.Empty);
-                }
-            });
+            Task.Run(changeTurn(userId, gameService.GetCurrentTurnNumnber(lobbyService.GetGameSession(room.Session))));
         }
         else
         {
