@@ -11,6 +11,7 @@ public abstract class GameSession
     public Int32 CurrentRound { get; set; }
     internal List<UserId> CurrentPlayerOrder { get; set; }
     public String CurrentWord { get; set; }
+    public Int32 CurrentTurnNumber { get; set; }
     public List<Message> MessagesList { get; set; }
     public GameSettings GameSettings { get; set; }
     public Int32 CurrentPlayerIndex { get; set; }

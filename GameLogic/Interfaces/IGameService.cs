@@ -21,5 +21,6 @@ namespace GameLogic.Interfaces
         List<UserId> GetPlayerOrder(GameSession session);
         DateTime GetCurrentTurnStartTime(GameSession session);
         DateTime GetVotingStartTime(GameSession session);
+        Int32 GetCurrentTurnNumnber(GameSession session);
     }
 }
