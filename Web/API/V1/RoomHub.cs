@@ -147,7 +147,7 @@ public class RoomHub : Hub
         }
         gameService.MessageReceived(gameSession, message);
         var curTime = gameService.GetCurrentTurnStartTime(gameSession);
-        await Clients.Group("roomId").SendAsync("TurnMade", userId.ToString(), true, message, gameService.WhoseTurn(gameSession) != null,
+        await Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", userId.ToString(), true, message, gameService.WhoseTurn(gameSession) != null,
             gameService.WhoseTurn(gameSession) != null ? gameService.WhoseTurn(gameSession).ToString() : "");
         if (gameService.WhoseTurn(gameSession) != null)
         {

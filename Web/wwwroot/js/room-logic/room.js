@@ -1,18 +1,6 @@
 let roomData;
-let gameData = {players: [],
-    isVoting: true,
-    timeToVote: 0,
-    timeToMakeTurn: 0,
-    turnPlayerId: 0,
-    card: '',
-    theme:'',
-    messages: [],
-    round: 0,
-    voteStatistics: [],
-    isAmogus: false,
-};
-
 let roomStatus;
+let idTurn;
 
 function exitRoom() {
     if (confirm("Выйти из комнаты?")) {
@@ -28,7 +16,6 @@ window.addEventListener('resize', () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('jwt_token');
-    const selectedRoom = localStorage.getItem('selected_room_id');
 
     let url = `/api/v1/rooms/my-room/lobby`;
 
@@ -101,8 +88,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const input = document.getElementById('chatInput');
     if (input) {
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage(); //TODO(заглушка)
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
     }
 });

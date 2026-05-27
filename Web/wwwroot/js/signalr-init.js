@@ -59,8 +59,17 @@ async function startSignalR(token) {
     // TurnMade(string userId, bool hasMessage, string message, bool hasNextUser, string nextUserId)
     window.connection.on("TurnMade", (userId, hasMessage, message, hasNextUser, nextUserId) => {
         if (hasMessage){
-            addMessage(userId, message); //TODO: зачем мне nextUserId и тд
+            addMessage(userId, message);
         }
+        if (hasNextUser){
+            idTurn = nextUserId;
+        }
+        else{
+            window.location.href = "../voting/index.html";
+        }
+        console.log("TurnMade", idTurn, nextUserId);
+        renderRoom(roomData.players);
+        startTimer(roomData.timeToMakeTurn);
     });
 
     // VoteChange(string userId1, int newValue1, string userId2, int newValue2)

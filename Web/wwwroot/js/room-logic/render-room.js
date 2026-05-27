@@ -45,6 +45,13 @@ async function renderRoom(players) {
         tag.dataset.id = playerId;
         return tag;
     };
+    if (roomStatus === 'ingame') {
+        const readyBtn = document.getElementById('readyBtn');
+        if (readyBtn) readyBtn.style.display = 'none';
+        const startBtn = document.getElementById('startGameBtn');
+        if (startBtn) readyBtn.style.display = 'none';
+        setGameData(roomData.theme, roomData.card);
+    }
 
     leftPlayers.forEach(item => leftContainer.appendChild(createTag(item)));
     rightPlayers.forEach(item => rightContainer.appendChild(createTag(item)));

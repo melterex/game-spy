@@ -13,7 +13,6 @@ if (startBtn) {
 
 async function startGame() {
     roomStatus = 'ingame';
-    const selectedRoom = localStorage.getItem('selected_room_id');
     const url = `/api/v1/rooms/my-room/game`;
     console.log(url);
     const response = await fetch(url, {
@@ -31,6 +30,7 @@ async function startGame() {
     const wordBlock = document.getElementById('wordBlock');
 
     if (readyBtn) readyBtn.style.display = 'none';
+    if (startBtn) readyBtn.style.display = 'none';
 
     if (themeBlock) themeBlock.classList.remove('hidden');
     if (wordBlock) wordBlock.classList.remove('hidden');
@@ -39,5 +39,6 @@ async function startGame() {
     renderRoom(roomData.players);
     setGameData(roomData.theme, roomData.card);
     startTimer(roomData.timeToMakeTurn);
+    idTurn = roomData.turnPlayerId;
 }
 
