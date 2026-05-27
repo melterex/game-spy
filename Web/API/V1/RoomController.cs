@@ -131,9 +131,9 @@ public class RoomController : ControllerBase
     }
 
     [HttpPost("{roomId}/enter")]
-    public IActionResult RoomEnter(RoomId roomId)
+    public IActionResult RoomEnter(string roomId)
     {
-        var room = roomService.GetRoomByRoomId(Guid.Parse(roomId.Id));
+        var room = roomService.GetRoomByRoomId(Guid.Parse(roomId));
         if (room == null)
         {
             return BadRequest();
@@ -179,7 +179,7 @@ public class RoomController : ControllerBase
         }
     }
     [HttpGet("my-room/lobby")]
-    public ActionResult<LobbyStatus> RoomStatus(string roomId)
+    public ActionResult<LobbyStatus> RoomStatus()
     {
         var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
         
@@ -232,7 +232,7 @@ public class RoomController : ControllerBase
     }
 
     [HttpGet("my-room/game")]
-    public ActionResult<GameStatus> GameStatus(string roomId)
+    public ActionResult<GameStatus> GameStatus()
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var currentUserId = UserId.FromString(userIdString);
