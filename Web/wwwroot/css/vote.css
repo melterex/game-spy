@@ -1,0 +1,150 @@
+/* Общие настройки сцены */
+body {
+    background-color: #1a1a1e;
+    color: #e4e4e7;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Главный контейнер */
+.voting-container {
+    width: 100%;
+    max-width: 650px;
+    background: #27272a;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Верхняя панель с таймером */
+.timer-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #18181b;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #3f3f46;
+}
+
+.timer-label {
+    font-size: 1rem;
+    color: #a1a1aa;
+}
+
+.timer-badge {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ef4444; /* Красный цвет для напряжения */
+    font-variant-numeric: tabular-nums; /* Чтобы цифры не прыгали при тиканье */
+}
+
+/* Заголовок */
+.voting-title {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #f4f4f5;
+}
+
+/* Сетка карточек */
+.users-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Базовая карточка игрока */
+.user-card {
+    display: flex;
+    align-items: center;
+    background: #3f3f46;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+}
+
+/* Эффект наведения */
+.user-card:hover {
+    background: #52525b;
+    transform: translateY(-2px);
+}
+
+/* Состояние, когда игрок выбран текущим пользователем */
+.user-card.selected {
+    background: #2e3e30;
+    border-color: #22c55e; /* Зеленая подсветка */
+}
+
+/* Аватарка (заглушка) */
+.avatar-placeholder {
+    font-size: 1.5rem;
+    background: #18181b;
+    padding: 10px;
+    border-radius: 50%;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+/* Информация об игроке */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.username {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.user-status {
+    font-size: 0.85rem;
+    color: #a1a1aa;
+    margin-top: 2px;
+}
+
+/* Счетчик голосов справа */
+.votes-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #18181b;
+    min-width: 65px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #52525b;
+}
+
+.votes-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #3b82f6; /* Синий акцент для цифры */
+}
+
+.user-card.selected .votes-count {
+    color: #22c55e; /* Зеленый акцент, если это твой выбор */
+}
+
+.votes-label {
+    font-size: 0.7rem;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
