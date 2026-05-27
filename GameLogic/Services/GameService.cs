@@ -36,7 +36,6 @@ namespace GameLogic.Services
                 CurrentStage = GameStage.Round,
                 MessagesList = new List<Message>(),
                 PlayerCards = new Dictionary<UserId, Card>(),
-                CurrentTurnStartTime = DateTime.Now,
                 CurrentTurnNumber = 0,
             };
             AssignCards(session);
@@ -137,7 +136,10 @@ namespace GameLogic.Services
         {
             return session.VotingStartTime;
         }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 996d7e5 (Added CurrentTurnNumber method)
         public int GetCurrentTurnNumnber(GameSession session)
         {
             return session.CurrentTurnNumber;
