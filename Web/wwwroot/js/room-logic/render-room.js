@@ -1,19 +1,4 @@
 async function renderRoom(players) {
-    let isInGame = false;
-    try{
-        const response = await fetch(`/api/v1/rooms/my-room/status`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`            }
-        });
-        if (response.ok) {
-            let vsp = await response.text();
-            if (vsp === 'ingame'){
-                isInGame = true;
-            }
-        }
-    }
-    catch(err){}
 
     const leftContainer = document.getElementById('leftSide');
     const rightContainer = document.getElementById('rightSide');
@@ -38,7 +23,7 @@ async function renderRoom(players) {
 
         const nickname = playerData.player?.nickname ?? playerData.nickname ?? "Аноним";
         const playerId = playerData.player?.id ?? playerData.id;
-        if (!isInGame) {
+        if (roomStatus === 'waiting') {
             const isReady = playerData.ready === true;
 
             const icon = isReady ? '●' : '';
@@ -78,7 +63,6 @@ function checkEveryoneReady(players) {
     const startGameBtn = document.getElementById('startGameBtn');
     if (!startGameBtn) return;
 
-    // Проверяем, что в комнате есть хотя бы кто-то, и у ВСЕХ статус ready равен true
     const isEveryoneReady = players.length > 0 && players.every(p => p.ready === true);
 
     if (isEveryoneReady) {

@@ -1,14 +1,11 @@
 async function createNewRoom() {
-    const nameInput = document.getElementById('roomNameInput');
+    const selectTheme = document.getElementById('roomTheme');
     const limitSelect = document.getElementById('playerLimit');
 
-    const roomName = nameInput ? nameInput.value.trim() : "";
+    const roomTheme = selectTheme.value;
     const maxCount = limitSelect ? parseInt(limitSelect.value) : 10;
-    if (!roomName) {
-        alert("Пожалуйста, введите название комнаты!");
-        return;
-    }
-    console.log(roomName);
+
+    console.log(roomTheme);
     console.log(maxCount);
 
     let createdRoom = [];
@@ -22,7 +19,7 @@ async function createNewRoom() {
                     'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
                 },
                 body: JSON.stringify({
-                    theme: roomName,
+                    theme: roomTheme,
                     userMaxCount: maxCount,
                 })
             });
@@ -43,7 +40,7 @@ async function createNewRoom() {
         }
     }
     else{
-        createdRoom = {name: roomName, id: lst.toString(), usersCount: 0, userMaxCount: maxCount};
+        createdRoom = {theme: roomTheme, id: lst.toString(), usersCount: 0, userMaxCount: maxCount};
         lst += 1;
         rooms.push(createdRoom);
 

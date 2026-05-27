@@ -12,6 +12,7 @@ if (startBtn) {
 }
 
 async function startGame() {
+    roomStatus = 'ingame';
     const selectedRoom = localStorage.getItem('selected_room_id');
     const url = `/api/v1/rooms/my-room/game`;
     console.log(url);

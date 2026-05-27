@@ -7,16 +7,14 @@ if (readyBtn) {
     readyBtn.addEventListener('click', async () => {
         if (window.isBackendReady && window.connection) {
             try {
-                readyBtn.disabled = true; // Сразу выключаем, чтобы не спамили
+                readyBtn.disabled = true;
 
-                // Отправляем строго true, как просит бэкенд
                 await window.connection.invoke("MakeReady", true);
 
                 window.curStatus = true;
                 updateReadyButtonVisual(true);
             } catch (err) {
                 console.error("Ошибка отправки статуса готовности:", err);
-                // Если произошла сетевая ошибка (не Unsupported), возвращаем кнопку
                 if (!window.curStatus) {
                     readyBtn.disabled = false;
                     readyBtn.innerText = "ГОТОВ";

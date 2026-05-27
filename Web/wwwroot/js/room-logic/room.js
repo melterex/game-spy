@@ -12,6 +12,8 @@ let gameData = {players: [],
     isAmogus: false,
 };
 
+let roomStatus;
+
 function exitRoom() {
     if (confirm("Выйти из комнаты?")) {
         localStorage.removeItem('selected_room_id');
@@ -41,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             if (response.ok) {
                 let vsp = await response.text();
+                roomStatus = vsp;
                 if (vsp === 'ingame'){
                     url = `/api/v1/rooms/my-room/game`;
                 }
@@ -73,14 +76,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             return String(id) === String(window.myId);
         });
 
-        console.log(myProfile, "aaaa");
-
         if (myProfile && myProfile.ready === true) {
             const readyBtn = document.getElementById('readyBtn');
             if (readyBtn) {
                 readyBtn.innerText = "ОЖИДАНИЕ ИГРОКОВ...";
-                readyBtn.disabled = true; // Замораживаем, так как бэкенд не поддерживает отмену
-                readyBtn.classList.add('active'); // На случай, если у тебя есть CSS-стиль для нажатой кнопки
+                readyBtn.disabled = true;
+                readyBtn.classList.add('active');
             }
         }
 
