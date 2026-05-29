@@ -15,7 +15,7 @@ namespace RoomService
     LobbySettings GetLobbySettings(LobbySession session);
     bool SetLobbySettings(LobbySettings settings, LobbySession session);
     bool MakeReady(UserId id, LobbySession session);
-    bool KickUserByUserId(UserId id, LobbySession session);
+    bool KickUserByUserId(UserId initiator, UserId target, LobbySession session);
     void EndGame(LobbySession session);
 }
 }

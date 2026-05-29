@@ -48,8 +48,16 @@ namespace RoomService
         public bool MakeReady(UserId id, LobbySession session) => 
             GetSession(session).ChangePlayerStatus(id, PlayerStatus.Ready);
 
-        public bool KickUserByUserId(UserId id, LobbySession session) =>
-            GetSession(session).KickPlayer(id);
+        public bool KickUserByUserId(UserId initiator, UserId target, LobbySession session)
+        {
+            var serviceSession = GetSession(session);
+
+            if (serviceSession.CreatorId != initiator || initiator == target)
+                return false;
+
+            serviceSession.KickPlayer(target);
+            return true;
+        }
 
         public bool SetLobbySettings(LobbySettings settings, LobbySession session)
         {
