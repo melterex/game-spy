@@ -24,4 +24,8 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DatabaseConnection\DatabaseConnection.csproj" />
+    </ItemGroup>
+
 </Project>
