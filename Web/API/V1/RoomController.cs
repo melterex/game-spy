@@ -136,7 +136,7 @@ public class RoomController : ControllerBase
         var room = roomService.GetRoomByRoomId(Guid.Parse(roomId));
         if (room == null)
         {
-            return BadRequest();
+            return NotFound();
         }
         var user = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
         var stat = lobbyService.TryToEnter(room.Session, user);
@@ -150,6 +150,25 @@ public class RoomController : ControllerBase
         }
     }
 
+    [HttpGet("my-room")]
+    public ActionResult<Room> MyRoom()
+    {
+        var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+        var room = roomService.GetRoomByUserId(user_req.Id);
+        if (room == null)
+        {
+            return NotFound();
+        }
+        var playerStatuses = lobbyService.GetPlayersStatuses(room.Session);
+        var lobbySettings = lobbyService.GetLobbySettings(room.Session);
+        return new Room
+        {
+            Id = room.RoomId.ToString(),
+            Name = room.Title,
+            UsersCount = playerStatuses?.Count ?? 0,
+            UserMaxCount = lobbySettings?.MaxPlayers ?? 0 
+        };
+    }
     [HttpGet("my-room/status")]
     public ActionResult<string> InGame()
     {
@@ -157,7 +176,7 @@ public class RoomController : ControllerBase
         var room = roomService.GetRoomByUserId(user_req.Id);
         if (room == null)
         {
-            return BadRequest();
+            return NotFound();
         }
 
         switch (room.Status)
@@ -241,7 +260,7 @@ public class RoomController : ControllerBase
         var room = roomService.GetRoomByUserId(currentUserId);
         if (room == null)
         {
-            return BadRequest();
+            return NotFound();
         }
         if (room.Status != RoomService.RoomStatus.InGame)
         {
