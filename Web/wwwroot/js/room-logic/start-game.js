@@ -6,39 +6,50 @@ if (startBtn) {
                 startBtn.disabled = true;
                 await window.connection.invoke("StartGame");
             } catch (err) {
+                console.error("Ошибка старта игры:", err);
             }
         }
     });
 }
 
-async function startGame() {
-    roomStatus = 'ingame';
-    const url = `/api/v1/rooms/my-room/game`;
-    console.log(url);
-    const response = await fetch(url, {
+async function fetchGameData() {
+    const response = await fetch(`/api/v1/rooms/my-room/game`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
         }
     });
     if (response.ok) {
-        roomData = await response.json();
+        return await response.json();
     }
+    return null;
+}
 
+function hideLobbyControls() {
     const readyBtn = document.getElementById('readyBtn');
     const themeBlock = document.getElementById('themeBlock');
     const wordBlock = document.getElementById('wordBlock');
 
     if (readyBtn) readyBtn.style.display = 'none';
-    if (startBtn) readyBtn.style.display = 'none';
-
+    if (startBtn) startBtn.style.display = 'none';
     if (themeBlock) themeBlock.classList.remove('hidden');
     if (wordBlock) wordBlock.classList.remove('hidden');
-
-    roomData.players.forEach(p => p.ready = "NotReady");
-    idTurn = roomData.turnPlayerId;
-    renderRoom(roomData.players);
-    setGameData(roomData.theme, roomData.card);
-    startTimer(roomData.timeToMakeTurn);
 }
 
+function applyInGameState(data) {
+    roomStatus = 'ingame';
+    roomData = data;
+    hideLobbyControls();
+    idTurn = data.turnPlayerId;
+    renderRoom(data.players);
+    setGameData(data.theme, data.card);
+    startTimer(data.timeToMakeTurn);
+    loadChatMessages(data.messages);
+}
+
+async function startGame() {
+    const data = await fetchGameData();
+    if (data) {
+        applyInGameState(data);
+    }
+}

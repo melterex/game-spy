@@ -10,8 +10,9 @@ function exitRoom() {
 }
 
 window.addEventListener('resize', () => {
-    console.log('resize');
-    renderRoom(roomData.players);
+    if (roomData?.players) {
+        renderRoom(roomData.players);
+    }
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -20,8 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let url = `/api/v1/rooms/my-room/lobby`;
 
     if (window.isBackendReady && token) {
-        console.log(token);
-        try{
+        try {
             const response = await fetch(`/api/v1/rooms/my-room/status`, {
                 method: 'GET',
                 headers: {
@@ -29,60 +29,64 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
             if (response.ok) {
-                let vsp = await response.text();
-                roomStatus = vsp;
-                if (vsp === 'ingame'){
+                const status = await response.text();
+                roomStatus = status;
+                if (status === 'ingame') {
                     url = `/api/v1/rooms/my-room/game`;
                 }
             }
+        } catch (e) {
+            console.error("Ошибка получения статуса комнаты:", e);
         }
-        catch(e) {}
+
         try {
-            console.log(url);
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            console.log(response);
 
             if (response.ok) {
-                let vsp = await response.json();
-                console.log(vsp);
-                roomData = vsp;
+                roomData = await response.json();
             }
         } catch (err) {
+            console.error("Ошибка загрузки данных комнаты:", err);
         }
-        console.log(roomData);
+
+        if (roomStatus === 'ingame' && roomData?.isVoting) {
+            window.location.href = '../voting/index.html';
+            return;
+        }
 
         await getMyId();
 
-        const myProfile = roomData.players.find(p => {
-            const id = p.player?.id ?? p.id;
-            return String(id) === String(window.myId);
-        });
+        if (roomStatus === 'ingame' && roomData) {
+            applyInGameState(roomData);
+        } else if (roomData?.players) {
+            const myProfile = roomData.players.find(p => {
+                const id = p.player?.id ?? p.id;
+                return String(id) === String(window.myId);
+            });
 
-        if (myProfile && myProfile.ready === true) {
-            const readyBtn = document.getElementById('readyBtn');
-            if (readyBtn) {
-                readyBtn.innerText = "ОЖИДАНИЕ ИГРОКОВ...";
-                readyBtn.disabled = true;
-                readyBtn.classList.add('active');
+            if (myProfile && myProfile.ready === true) {
+                const readyBtn = document.getElementById('readyBtn');
+                if (readyBtn) {
+                    readyBtn.innerText = "ОЖИДАНИЕ ИГРОКОВ...";
+                    readyBtn.disabled = true;
+                    readyBtn.classList.add('active');
+                }
             }
+
+            renderRoom(roomData.players);
         }
 
-        renderRoom(roomData.players);
-
         await startSignalR(token);
-
 
         if (window.connection) {
             await window.connection.invoke("EnterRoom");
         }
-    }
-    else{
-
+    } else if (roomData?.players) {
         renderRoom(roomData.players);
     }
 
