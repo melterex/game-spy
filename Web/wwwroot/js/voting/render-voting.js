@@ -1,17 +1,25 @@
+let votingData = {};
 let myCurrentVote = null;
 
-function renderVoting(players, countVotes = [0, 0, 0, 0, 0, 0, 0 ]) {
+function buildVoteCards(players, voteStats) {
+    if (!players) return [];
+    return players.map(p => ({
+        playerId: p.id,
+        votedForHim: voteStats?.find(item => String(item.playerId) === String(p.id))?.votedForHim ?? 0,
+        nickname: p.nickname
+    }));
+}
+
+function renderVoting(countVotes) {
     const grid = document.getElementById('usersGrid');
     grid.innerHTML = '';
-    console.log(players);
 
-    let i = 0;
-    players.forEach(player => {
+    countVotes.forEach(player => {
         const card = document.createElement('div');
-        card.className = `user-card ${myCurrentVote === player.id ? 'selected' : ''}`;
-        card.id = `card-${player.id}`;
+        card.className = `user-card ${myCurrentVote === player.playerId ? 'selected' : ''}`;
+        card.id = `card-${player.playerId}`;
 
-        card.onclick = () => handleVoteClick(player.id);
+        card.onclick = () => handleVoteClick(player.playerId);
 
         card.innerHTML = `
             <div class="avatar-placeholder">👤</div>
@@ -19,17 +27,16 @@ function renderVoting(players, countVotes = [0, 0, 0, 0, 0, 0, 0 ]) {
                 <span class="username">${player.nickname}</span>
             </div>
             <div class="votes-counter">
-                <span class="votes-count" id="votes-${player.id}">${countVotes[i]}</span>
+                <span class="votes-count" id="votes-${player.playerId}">${player.votedForHim}</span>
                 <span class="votes-label">голосов</span>
             </div>
         `;
 
         grid.appendChild(card);
-        i++;
     });
 }
 
-function handleVoteClick(targetPlayerId) {
+async function handleVoteClick(targetPlayerId) {
     if (myCurrentVote === targetPlayerId) return;
 
     if (myCurrentVote) {
@@ -41,22 +48,51 @@ function handleVoteClick(targetPlayerId) {
     const newCard = document.getElementById(`card-${targetPlayerId}`);
     if (newCard) newCard.classList.add('selected');
 
-    console.log(`Отправляем на бэкенд голос за: ${targetPlayerId}`);
-
-}
-
-
-function updateVotes(votesMap) {
-    for (const [playerId, count] of Object.entries(votesMap)) {
-        const counterElement = document.getElementById(`votes-${playerId}`);
-        if (counterElement) {
-            counterElement.textContent = count;
+    if (window.connection) {
+        try {
+            await window.connection.invoke("MakeVote", targetPlayerId);
+        } catch (error) {
+            console.error("Ошибка голосования:", error);
         }
     }
 }
 
-// Первичный запуск при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    renderVoting(roomData.players);
-    console.log(roomData.players);
+function makingVote(users, counts) {
+    const countVotes = users.map((userId, i) => ({
+        playerId: userId,
+        votedForHim: counts[i]
+    }));
+    renderVoting(buildVoteCards(votingData.players, countVotes));
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('jwt_token');
+
+    try {
+        await startSignalR(token);
+        if (window.connection) {
+            await window.connection.invoke("EnterRoom");
+        }
+    } catch (err) {
+        console.error("Ошибка подключения SignalR:", err);
+    }
+
+    const response = await fetch(`/api/v1/rooms/my-room/game`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) return;
+
+    votingData = await response.json();
+
+    if (!votingData.isVoting) {
+        window.location.href = '../room/index.html';
+        return;
+    }
+
+    renderVoting(buildVoteCards(votingData.players, votingData.voteStatistics));
+    startTimer(votingData.timeToVote);
 });
