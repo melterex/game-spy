@@ -18,8 +18,6 @@ namespace GameLogic.Services
                 throw new ArgumentException("Нельзя голосовать за себя");
             if (!session.PlayersIDs.Contains(targetId))
                 throw new ArgumentException("Игрок не в игре");
-            if (session.Votes.ContainsKey(voterId))
-                throw new InvalidOperationException("Вы уже проголосовали");
 
             session.Votes[voterId] = targetId;
         }
@@ -53,6 +51,16 @@ namespace GameLogic.Services
                     .GroupBy(id => id)
                     .ToDictionary(g => g.Key, g => g.Count())
             );
+        }
+
+        public void SetPlayerReadyToEndVoting(GameSession session, UserId userID, bool isReady)
+        {
+            session.IsPlayerReadyToEndVotingDict[userID] = isReady;
+        }
+
+        public bool IsEveryoneReadyToEndVoting(GameSession session)
+        {
+            return session.IsPlayerReadyToEndVotingDict.Values.All(v => v == true);
         }
     }
 }

@@ -121,6 +121,11 @@ namespace GameLogic.Services
             session.Votes = new Dictionary<UserId, UserId>();
             session.VotingEnded = false;
             session.VotingStartTime = DateTime.Now;
+            session.IsPlayerReadyToEndVotingDict = new Dictionary<UserId, bool>();
+            foreach (UserId userID in session.PlayersIDs)
+            {
+                session.IsPlayerReadyToEndVotingDict[userID] = false;
+            }
         }
 
         public DateTime GetCurrentTurnStartTime(GameSession session)

@@ -19,4 +19,5 @@ public abstract class GameSession
     public bool VotingEnded { get; set; } = false;
     public DateTime CurrentTurnStartTime { get; set; }
     public DateTime VotingStartTime { get; set; }
+    public Dictionary<UserId, bool> IsPlayerReadyToEndVotingDict { get; set; } = new();
 }

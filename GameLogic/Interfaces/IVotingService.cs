@@ -14,5 +14,7 @@ namespace GameLogic.Interfaces
         bool IsVotingEnded(GameSession session);
         VotingResults SummarizeResults(GameSession session);
         VotingReport GetVotingReport(GameSession session);
+        void SetPlayerReadyToEndVoting(GameSession session, UserId userID, bool isReady);
+        bool IsEveryoneReadyToEndVoting(GameSession session);
     }
 }
