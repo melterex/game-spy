@@ -54,14 +54,49 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("Ошибка загрузки данных комнаты:", err);
         }
 
-        if (roomStatus === 'ingame' && roomData?.isVoting) {
+        const votingJustFinished = sessionStorage.getItem('voting_finished') === '1';
+        sessionStorage.removeItem('voting_finished');
+
+        if (roomStatus === 'ingame' && roomData?.isVoting && !votingJustFinished) {
             window.location.href = '../voting/index.html';
             return;
         }
 
         await getMyId();
 
-        if (roomStatus === 'ingame' && roomData) {
+        if (votingJustFinished && roomData) {
+            roomStatus = 'waiting';
+            const players = (roomData.players || []).map(p => ({
+                player: { id: p.id, nickname: p.nickname },
+                ready: false
+            }));
+            roomData = { players };
+
+            const readyBtn = document.getElementById('readyBtn');
+            const startGameBtn = document.getElementById('startGameBtn');
+            const themeBlock = document.getElementById('themeBlock');
+            const wordBlock = document.getElementById('wordBlock');
+            const turnStatus = document.getElementById('turnStatus');
+            const timer = document.getElementById('timer');
+
+            if (readyBtn) {
+                readyBtn.style.display = '';
+                readyBtn.disabled = false;
+                readyBtn.innerText = 'ГОТОВ';
+                readyBtn.classList.remove('active');
+            }
+            if (startGameBtn) {
+                startGameBtn.style.display = '';
+                startGameBtn.disabled = false;
+                startGameBtn.style.opacity = '1';
+            }
+            if (themeBlock) themeBlock.classList.add('hidden');
+            if (wordBlock) wordBlock.classList.add('hidden');
+            if (turnStatus) turnStatus.classList.add('hidden');
+            if (timer) timer.innerText = '';
+
+            renderRoom(players);
+        } else if (roomStatus === 'ingame' && roomData) {
             applyInGameState(roomData);
         } else if (roomData?.players) {
             const myProfile = roomData.players.find(p => {

@@ -1,3 +1,15 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+button {
+    -webkit-appearance: none;
+    appearance: none;
+    font-family: inherit;
+}
+
 /* Общие настройки сцены */
 body {
     background-color: #1a1a1e;
@@ -7,12 +19,15 @@ body {
     padding: 20px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
 }
 
 /* Главный контейнер */
 .voting-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     width: 100%;
     max-width: 650px;
     background: #27272a;
@@ -31,6 +46,7 @@ body {
     border-radius: 12px;
     margin-bottom: 20px;
     border: 1px solid #3f3f46;
+    flex-shrink: 0;
 }
 
 .timer-label {
@@ -41,51 +57,68 @@ body {
 .timer-badge {
     font-size: 1.4rem;
     font-weight: bold;
-    color: #ef4444; /* Красный цвет для напряжения */
-    font-variant-numeric: tabular-nums; /* Чтобы цифры не прыгали при тиканье */
+    color: #ef4444;
+    font-variant-numeric: tabular-nums;
 }
 
 /* Заголовок */
 .voting-title {
     font-size: 1.25rem;
-    margin-bottom: 20px;
+    margin: 0 0 20px;
     text-align: center;
     color: #f4f4f5;
+    flex-shrink: 0;
 }
 
 /* Сетка карточек */
 .users-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: stretch;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.users-grid > .user-card + .user-card {
+    margin-top: 12px;
+}
+
+.users-grid:empty::before {
+    content: 'Загрузка игроков...';
+    display: block;
+    padding: 20px;
+    text-align: center;
+    color: #a1a1aa;
+    background: #18181b;
+    border: 1px dashed #3f3f46;
+    border-radius: 12px;
 }
 
 /* Базовая карточка игрока */
 .user-card {
     display: flex;
     align-items: center;
+    width: 100%;
     background: #3f3f46;
     border: 2px solid transparent;
     border-radius: 12px;
     padding: 14px 20px;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.2s ease-in-out;
     user-select: none;
+    flex-shrink: 0;
 }
 
-/* Эффект наведения */
 .user-card:hover {
     background: #52525b;
     transform: translateY(-2px);
 }
 
-/* Состояние, когда игрок выбран текущим пользователем */
 .user-card.selected {
     background: #2e3e30;
-    border-color: #22c55e; /* Зеленая подсветка */
+    border-color: #22c55e;
 }
 
-/* Аватарка (заглушка) */
 .avatar-placeholder {
     font-size: 1.5rem;
     background: #18181b;
@@ -97,13 +130,14 @@ body {
     justify-content: center;
     width: 40px;
     height: 40px;
+    flex-shrink: 0;
 }
 
-/* Информация об игроке */
 .user-info {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .username {
@@ -118,7 +152,6 @@ body {
     margin-top: 2px;
 }
 
-/* Счетчик голосов справа */
 .votes-counter {
     display: flex;
     flex-direction: column;
@@ -129,16 +162,17 @@ body {
     padding: 6px 10px;
     border-radius: 8px;
     border: 1px solid #52525b;
+    flex-shrink: 0;
 }
 
 .votes-count {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #3b82f6; /* Синий акцент для цифры */
+    color: #3b82f6;
 }
 
 .user-card.selected .votes-count {
-    color: #22c55e; /* Зеленый акцент, если это твой выбор */
+    color: #22c55e;
 }
 
 .votes-label {
@@ -147,4 +181,78 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 2px;
+}
+
+.finish-vote-section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #3f3f46;
+    border-radius: 12px;
+    background: #18181b;
+    flex-shrink: 0;
+}
+
+.finish-vote-hint {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+    color: #a1a1aa;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.finish-vote-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 14px 20px;
+    border: 2px solid #52525b;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    background-color: #22c55e;
+    color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
+    align-self: stretch;
+    flex-shrink: 0;
+}
+
+.finish-vote-btn:hover:not(:disabled) {
+    background-color: #16a34a;
+    border-color: #16a34a;
+    transform: translateY(-1px);
+}
+
+.finish-vote-btn:disabled {
+    width: 100%;
+    background-color: #27272a;
+    border-color: #52525b;
+    color: #d4d4d8;
+    -webkit-text-fill-color: #d4d4d8;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+.finish-vote-btn.active {
+    background-color: #2e3e30;
+    border-color: #22c55e;
+    color: #86efac;
+    -webkit-text-fill-color: #86efac;
+}
+
+.end-vote-ready-badge {
+    font-size: 0.75rem;
+    color: #22c55e;
+    margin-top: 4px;
 }

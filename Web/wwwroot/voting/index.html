@@ -18,12 +18,25 @@
 
     <div class="users-grid" id="usersGrid"></div>
 
+    <div class="finish-vote-section" id="finishVoteSection">
+        <p id="finishVoteHint" class="finish-vote-hint">Проголосуйте за игрока, чтобы подтвердить готовность завершить.</p>
+        <button id="finishVoteBtn" type="button" class="finish-vote-btn" disabled>
+            Готов завершить
+        </button>
+    </div>
+
 </div>
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
 <script src="../js/signalr-init.js"></script>
+<script src="../js/room-logic/myId.js"></script>
 <script src="../js/room-logic/timer.js"></script>
+<script src="../js/voting/voting-state.js"></script>
+<script src="../js/voting/vote-storage.js"></script>
+<script src="../js/voting/finish-vote.js"></script>
 <script src="../js/voting/render-voting.js"></script>
+<script src="../js/voting/cast-vote.js"></script>
+<script src="../js/voting/voting.js"></script>
 </body>
 </html>

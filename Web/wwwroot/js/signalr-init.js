@@ -8,6 +8,14 @@ function isVotingPage() {
     return window.location.pathname.includes('/voting/');
 }
 
+function goToRoomAfterVoting() {
+    sessionStorage.setItem('voting_finished', '1');
+    if (window.myId) {
+        sessionStorage.removeItem(`voting_my_vote_${window.myId}`);
+    }
+    window.location.href = '../room/index.html';
+}
+
 async function startSignalR(token) {
     window.connection = new signalR.HubConnectionBuilder()
         .withUrl("/room_hub", {
@@ -53,10 +61,6 @@ async function startSignalR(token) {
         renderRoom(roomData.players);
     });
 
-    window.connection.on("KickUser", (userId) => {
-        //TODO
-    });
-
     window.connection.on("StartGame", () => {
         if (!isRoomPage()) return;
         startGame();
@@ -86,9 +90,15 @@ async function startSignalR(token) {
         makingVote(users, counts);
     });
 
+    window.connection.on("ReadyEndVote", (id, isReady) => {
+        if (!isVotingPage()) return;
+        updatePlayerEndVoteReady(id, isReady);
+    });
+
     window.connection.on("VoteFinish", (userIdToKick, wasAmogus) => {
         if (!isVotingPage()) return;
-        window.location.href = "../room/index.html";
+
+        goToRoomAfterVoting();
     });
 
     try {

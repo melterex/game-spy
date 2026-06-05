@@ -28,7 +28,6 @@ function startTimer(timeLeft) {
         if (timeLeft <= 0) {
             clearInterval(timerIntervalId);
             timerIntervalId = null;
-            alert("Время вышло!");
         }
     }, 1000);
 }
