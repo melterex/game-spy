@@ -28,7 +28,7 @@ namespace RoomService
         }
 
         public void EndGame(LobbySession session) => 
-            GetSession(session).EndGame();
+            GetSession(session).EndGame(gameService);
     
         public bool IsStartingNewGame(LobbySession session) => 
             GetSession(session).IsStartingNewGame;

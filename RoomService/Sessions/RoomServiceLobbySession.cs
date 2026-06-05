@@ -56,10 +56,7 @@ namespace RoomService
 
         public GameSession? StartGame(IGameService gameService)
         {
-            var gameSettings = new GameSettings { Theme = Settings.Theme };
-            var guid = gameService.CreateGameSession(_players.Keys.ToList(), gameSettings);
-
-            Session = gameService.GetGameSessionById(guid);
+            Session = CreateGameSession(gameService);
 
             foreach (var status in _statuses.Values)
                 if (status != PlayerStatus.Ready)
@@ -75,10 +72,14 @@ namespace RoomService
             return Session;
         }
 
-        public void EndGame()
+        public void EndGame(IGameService gameService)
         {
             foreach (var player in _statuses.Keys)
                 _statuses[player] = PlayerStatus.Waiting;
+
+            IsStartingNewGame = false;
+            Settings = Settings with { Status = RoomStatus.Waiting };
+            Session = CreateGameSession(gameService);
         }
 
         public bool ChangePlayerStatus(UserId id, PlayerStatus status)
@@ -97,6 +98,14 @@ namespace RoomService
                     return false;
 
             return true;
+        }
+
+        private GameSession CreateGameSession(IGameService gameService)
+        {
+            var gameSettings = new GameSettings { Theme = Settings.Theme };
+            var guid = gameService.CreateGameSession(_players.Keys.ToList(), gameSettings);
+
+            return gameService.GetGameSessionById(guid);
         }
 
         public IReadOnlyDictionary<UserId, User> GetPlayers() => _players.AsReadOnly();
