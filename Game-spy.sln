@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardsService", "CardsServic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatabaseConnection", "DatabaseConnection\DatabaseConnection.csproj", "{294D7149-65DB-4B43-9A90-202218146777}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageService", "ImageService\ImageService.csproj", "{7CBB126E-F7E8-42C1-9F22-A6655AF13D8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +44,9 @@ Global
 		{294D7149-65DB-4B43-9A90-202218146777}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{294D7149-65DB-4B43-9A90-202218146777}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{294D7149-65DB-4B43-9A90-202218146777}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CBB126E-F7E8-42C1-9F22-A6655AF13D8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CBB126E-F7E8-42C1-9F22-A6655AF13D8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CBB126E-F7E8-42C1-9F22-A6655AF13D8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CBB126E-F7E8-42C1-9F22-A6655AF13D8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

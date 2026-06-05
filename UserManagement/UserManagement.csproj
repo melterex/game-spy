@@ -13,6 +13,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\DatabaseConnection\DatabaseConnection.csproj" />
+      <ProjectReference Include="..\ImageService\ImageService.csproj" />
     </ItemGroup>
 
 </Project>
