@@ -52,23 +52,25 @@ public class RoomHub : Hub
             };
         };
     }
+
     public async Task EnterRoom()
     {
         var userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var room =  roomService.GetRoomByUserId(userId);
+        var room = roomService.GetRoomByUserId(userId);
         var user = getUserService.GetUser(userId);
         if (room == null)
         {
             throw new HubException("Room not found");
         }
+
         await Groups.AddToGroupAsync(Context.ConnectionId, room.RoomId.ToString());
         await Clients.Group(room.RoomId.ToString()).SendAsync("EnteredRoom", user.Id.ToString(), user.Username);
     }
-    
+
     public async Task MakeReady(bool isReady)
     {
         var userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var room =  roomService.GetRoomByUserId(userId);
+        var room = roomService.GetRoomByUserId(userId);
         if (room == null)
         {
             throw new HubException("Room not found");
@@ -82,10 +84,11 @@ public class RoomHub : Hub
         lobbyService.MakeReady(userId, room.Session);
         await Clients.Group(room.RoomId.ToString()).SendAsync("Ready", userId.ToString(), true);
     }
+
     public async Task KickUser(string userId)
     {
         var adminId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var room =  roomService.GetRoomByUserId(adminId);
+        var room = roomService.GetRoomByUserId(adminId);
         if (room == null)
         {
             throw new HubException("Room not found");
@@ -109,7 +112,7 @@ public class RoomHub : Hub
     public async Task StartGame()
     {
         var userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var room =  roomService.GetRoomByUserId(userId);
+        var room = roomService.GetRoomByUserId(userId);
         if (room == null)
         {
             throw new HubException("Room not found");
@@ -123,18 +126,21 @@ public class RoomHub : Hub
         {
             await Clients.Group(room.RoomId.ToString()).SendAsync("StartGame");
         }
+
         Task.Run(changeTurn(userId, gameService.GetCurrentTurnNumnber(lobbyService.GetGameSession(room.Session))));
     }
 
-    private Func<UserId, int, Func<Task>> changeTurn; 
+    private Func<UserId, int, Func<Task>> changeTurn;
+
     public async Task MakeTurn(string message)
     {
         var userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        var room =  roomService.GetRoomByUserId(userId);
+        var room = roomService.GetRoomByUserId(userId);
         if (room == null)
         {
             throw new HubException("Room not found");
         }
+
         var gameSession = lobbyService.GetGameSession(room.Session);
         if (gameSession == null)
         {
@@ -145,9 +151,11 @@ public class RoomHub : Hub
         {
             throw new HubException("Not your turn");
         }
+
         gameService.MessageReceived(gameSession, message);
         var curTime = gameService.GetCurrentTurnStartTime(gameSession);
-        await Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", userId.ToString(), true, message, gameService.WhoseTurn(gameSession) != null,
+        await Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", userId.ToString(), true, message,
+            gameService.WhoseTurn(gameSession) != null,
             gameService.WhoseTurn(gameSession) != null ? gameService.WhoseTurn(gameSession).ToString() : "");
         if (gameService.WhoseTurn(gameSession) != null)
         {
@@ -160,12 +168,12 @@ public class RoomHub : Hub
             {
                 await Task.Delay(TimeSpan.FromMinutes(5));
                 using var scope = scopeFactory.CreateScope();
-            
+
                 var roomService = scope.ServiceProvider.GetRequiredService<IRoomService>();
                 var lobbyService = scope.ServiceProvider.GetRequiredService<ILobbyService>();
                 var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
-                var room =  roomService.GetRoomByUserId(userId);
-                var gameSession =  lobbyService.GetGameSession(room.Session);
+                var room = roomService.GetRoomByUserId(userId);
+                var gameSession = lobbyService.GetGameSession(room.Session);
                 var votingService = gameService.GetVoteService(gameSession);
                 var votingReport = votingService.GetVotingReport(gameSession);
                 var results = votingService.SummarizeResults(gameSession);
@@ -177,14 +185,52 @@ public class RoomHub : Hub
                 }
                 else
                 {
-                    await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("VoteFinish", maxUserId.ToString(), wasAmogus);
+                    await hubContext.Clients.Group(room.RoomId.ToString())
+                        .SendAsync("VoteFinish", maxUserId.ToString(), wasAmogus);
                 }
+
                 lobbyService.EndGame(room.Session);
             });
         }
     }
 
-    public async Task MakeVote(string userId)
+    public async Task MakeReadyEndVote(bool isReady)
+    {
+        var userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var room = roomService.GetRoomByUserId(userId);
+        if (room == null)
+        {
+            throw new HubException("Room not found");
+        }
+
+        var gameSession = lobbyService.GetGameSession(room.Session);
+        if (gameSession == null)
+        {
+            throw new HubException("Not inside game");
+        }
+        var votingService = gameService.GetVoteService(gameSession);
+        votingService.SetPlayerReadyToEndVoting(gameSession, userId, isReady);
+        if (votingService.IsEveryoneReadyToEndVoting(gameSession))
+        {
+            var votingReport = votingService.GetVotingReport(gameSession);
+            var results = votingService.SummarizeResults(gameSession);
+            var maxUserId = votingReport.Votes.MaxBy(a => a.Value);
+            bool wasAmogus = results == VotingResults.CivilianWins;
+            if (results == VotingResults.Tie)
+            {
+                await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("VoteFinish", "tie", false);
+            }
+            else
+            {
+                await hubContext.Clients.Group(room.RoomId.ToString())
+                    .SendAsync("VoteFinish", maxUserId.ToString(), wasAmogus);
+            }
+
+            lobbyService.EndGame(room.Session);
+        }
+    }
+
+public async Task MakeVote(string userId)
     {
         var _userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
         var room =  roomService.GetRoomByUserId(_userId);
