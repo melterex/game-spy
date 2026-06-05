@@ -28,10 +28,6 @@ function ensureFinishVoteSection() {
     bindFinishVoteButton();
 }
 
-function getEndVoteReadyCount() {
-    return Object.values(endVoteReadyByPlayer).filter(Boolean).length;
-}
-
 function updateFinishButton(countVotes) {
     const btn = document.getElementById('finishVoteBtn');
     const hint = document.getElementById('finishVoteHint');
@@ -50,15 +46,12 @@ function updateFinishButton(countVotes) {
     }
 
     if (hint) {
-        const total = votingData.players?.length ?? 0;
-        const readyCount = getEndVoteReadyCount();
-
         if (myEndVoteReady) {
-            hint.textContent = `Вы готовы завершить. Готовы ${readyCount} из ${total}.`;
+            hint.textContent = 'Вы готовы завершить. Ожидание остальных игроков.';
         } else if (!myCurrentVote) {
             hint.textContent = 'Выберите игрока, за которого голосуете.';
         } else {
-            hint.textContent = `Нажмите, когда будете готовы завершить (${readyCount} из ${total} готовы).`;
+            hint.textContent = 'Нажмите, когда будете готовы завершить.';
         }
     }
 }
