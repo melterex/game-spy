@@ -46,6 +46,11 @@ Called by a player during the voting phase to cast a vote against someone.
     * `userId` (string): The ID of the player being voted for.
 * **Action:** Broadcasts `VoteChange` to all clients.
 
+### `MakeReadyEndVote(isReady: bool)`
+Called to notify that a client is ready to end voting
+* **Parameters:**
+  * `isReady`: Is player ready to end voting
+* **Action**: Broadcasts `VoteFinish` if everybody is ready
 ---
 
 ## Server-to-Client Events
