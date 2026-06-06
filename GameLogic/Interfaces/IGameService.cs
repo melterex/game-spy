@@ -12,6 +12,7 @@ namespace GameLogic.Interfaces
     public interface IGameService
     {
         Dictionary<UserId, Card> AssignCards(GameSession session);
+        Card GetPlayerCardByID(GameSession session, UserId userID);
         UserId WhoseTurn(GameSession session);
         void MessageReceived(GameSession session, String message); // Переключает ход
         IVotingService GetVoteService(GameSession session);

@@ -48,7 +48,7 @@ namespace GameLogic.Services
             var random = new Random();
             int spyIndex = random.Next(session.PlayersIDs.Count);
 
-            string word = _themesService.GetRandomWordByTheme(session.GameSettings.Theme); 
+            string word = _themesService.GetRandomWordByTheme(session.GameSettings.Theme);
 
             session.CurrentWord = word;
 
@@ -99,7 +99,7 @@ namespace GameLogic.Services
             session.CurrentPlayerIndex++;
             session.CurrentTurnNumber++;
             session.CurrentTurnStartTime = DateTime.Now;
-            
+
             if (session.CurrentPlayerIndex >= session.PlayersIDs.Count())
             {
                 if (session.CurrentRound == session.GameSettings.TotalRounds)
@@ -141,6 +141,10 @@ namespace GameLogic.Services
         public int GetCurrentTurnNumnber(GameSession session)
         {
             return session.CurrentTurnNumber;
+        }
+        public Card GetPlayerCardByID(GameSession session, UserId userID)
+        {
+            return session.PlayerCards[userID];
         }
     }
 }
