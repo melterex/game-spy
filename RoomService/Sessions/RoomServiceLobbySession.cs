@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using authorization;
-using GameLogic;
 using GameLogic.Entities;
 using GameLogic.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace RoomService
 {
@@ -14,19 +14,29 @@ namespace RoomService
         public UserId CreatorId { get; private set; } = creatorId;
         public bool IsStartingNewGame { get; private set; } = false;
         public GameSession? Session { get; private set; }
-        public event Action? OnGameStarted;
 
         public LobbySettings Settings { get; set; } = new(
+            Name: "Room" + Guid.NewGuid().ToString()[..4],
+            PasswordHash: "",
             MaxPlayers: 8,
             Status: RoomStatus.Waiting,
-            Theme: "Default"
+            Theme: "Default",
+            Mode: ThemesMode.Fixed,
+            MoveTime: TimeSpan.FromSeconds(30)
         );
 
         public bool HasPlayer(UserId id) => _players.ContainsKey(id);
-
-        public bool AddPlayerByUser(User user)
+        
+        public bool AddPlayerByUser(User user, string inputPassword = "")
         {
-            if (_players.ContainsKey(user.Id))
+            var hasher = new PasswordHasher<User>();
+            var verifyRes = hasher.VerifyHashedPassword(user, Settings.PasswordHash, inputPassword);
+
+            if (
+                _players.ContainsKey(user.Id) ||
+                _players.Keys.Count > Settings.MaxPlayers ||
+                verifyRes != PasswordVerificationResult.Success
+                )
                 return false;
 
             _players[user.Id] = user;
@@ -66,8 +76,7 @@ namespace RoomService
                 }
 
             IsStartingNewGame = true;
-            Settings = new LobbySettings(Settings.MaxPlayers, RoomStatus.InGame, Settings.Theme);
-            OnGameStarted?.Invoke();
+            Settings = Settings with { Status = RoomStatus.InGame };
 
             return Session;
         }

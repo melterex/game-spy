@@ -1,10 +1,9 @@
 using System.Collections.Concurrent;
 using authorization;
-using GameLogic;
 
 namespace RoomService
 {
-    public class RoomService() : IRoomService
+    public class RoomService : IRoomService
     {
         private ConcurrentDictionary<Guid, Room> _rooms = new();
 
@@ -14,8 +13,6 @@ namespace RoomService
             _rooms[room.RoomId] = room;
 
             room.Session.AddPlayerByUser(creator);
-            room.Session.OnGameStarted += () =>
-                { room.ChangeRoomStatus(RoomStatus.InGame); };
         }
 
         public Room? GetRoomByUserId(UserId id)
@@ -36,6 +33,15 @@ namespace RoomService
             Logger.Log($"Haven`t found Room with id {id}");
             return null;
         }
+
+        public bool JoinRoomById(Guid id, User user, string inputPassword)
+        {
+            if (!_rooms.TryGetValue(id, out var room))  
+                return false;
+
+            return room.Session.AddPlayerByUser(user, inputPassword);
+        }
+
         public IReadOnlyDictionary<Guid, Room> GetRooms() => _rooms.AsReadOnly();
     }
 }
