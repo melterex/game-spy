@@ -146,5 +146,25 @@ namespace GameLogic.Services
         {
             return session.PlayerCards[userID];
         }
+
+        public void SetExtraTime(GameSession session, DateTime time)
+        {
+            session.ExtraTime = time;
+        }
+
+        public void SetIsUsingExtraTime(GameSession session, bool isUsing)
+        {
+            session.IsUsingExtraTime = isUsing;
+        }
+
+        public DateTime GetExtraTime(GameSession session)
+        {
+            return session.ExtraTime;
+        }
+
+        public bool GetIsUdingExtraTime(GameSession session)
+        {
+            return session.IsUsingExtraTime;
+        }
     }
 }

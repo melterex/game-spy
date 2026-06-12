@@ -23,5 +23,9 @@ namespace GameLogic.Interfaces
         DateTime GetCurrentTurnStartTime(GameSession session);
         DateTime GetVotingStartTime(GameSession session);
         Int32 GetCurrentTurnNumnber(GameSession session);
+        void SetExtraTime(GameSession session, DateTime time);
+        void SetIsUsingExtraTime(GameSession session, bool isUsing);
+        DateTime GetExtraTime(GameSession session);
+        bool GetIsUdingExtraTime(GameSession session);
     }
 }
