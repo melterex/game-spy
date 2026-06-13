@@ -56,6 +56,10 @@ Called to notify that a client is ready to end voting
 ## Server-to-Client Events
 *Clients must listen (`on`) for these events to update the UI based on server state.*
 
+### `UserEarlyVoteStatusChange(string userId, bool status)`
+
+### `ChangeVoteEnd(int secondsToEnd)`
+
 ### `EnteredRoom(string id, string nickname)`
 Triggered when a player successfully joins the room.
 * **Payload:**

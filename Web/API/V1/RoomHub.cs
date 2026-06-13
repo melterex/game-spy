@@ -157,30 +157,40 @@ public class RoomHub : Hub
         {
             throw new HubException("Not inside game");
         }
+
+        if (room.Status != RoomStatus.InGame)
+        {
+            throw new HubException("Not in game");
+        }
+
         var votingService = gameService.GetVoteService(gameSession);
+        var dict = votingService.GetIsPlayerReadyToEndVotingDict(gameSession);
+        if (dict[userId] == isReady)
+        {
+            return;
+        }
+        if (!isReady && votingService.IsEveryoneReadyToEndVoting(gameSession))
+        {
+            await Clients.Group(room.RoomId.ToString()).SendAsync("ChangeVoteEnd",
+                (int)((gameService.GetVotingStartTime(gameSession) + TimeSpan.FromMinutes(5)) - DateTime.Now)
+                .TotalSeconds);
+            turnStorage.RemoveVotingEnd(room.RoomId);
+            turnStorage.AddVotingEnd(gameService.GetVotingStartTime(gameSession) + TimeSpan.FromMinutes(5),  room.RoomId);
+            gameService.SetIsUsingExtraTime(gameSession, false);
+        }
         votingService.SetPlayerReadyToEndVoting(gameSession, userId, isReady);
+        await Clients.Group(room.RoomId.ToString()).SendAsync("UserEarlyVoteStatusChange", userId.ToString(), isReady);
         if (votingService.IsEveryoneReadyToEndVoting(gameSession))
         {
             turnStorage.RemoveVotingEnd(room.RoomId);
-            var votingReport = votingService.GetVotingReport(gameSession);
-            var results = votingService.SummarizeResults(gameSession);
-            var maxUserId = votingReport.Votes.MaxBy(a => a.Value);
-            bool wasAmogus = results == VotingResults.CivilianWins;
-            if (results == VotingResults.Tie)
-            {
-                await Clients.Group(room.RoomId.ToString()).SendAsync("VoteFinish", "tie", false);
-            }
-            else
-            {
-                await Clients.Group(room.RoomId.ToString())
-                    .SendAsync("VoteFinish", maxUserId.ToString(), wasAmogus);
-            }
-
-            lobbyService.EndGame(room.Session);
+            turnStorage.AddVotingEnd(DateTime.Now + TimeSpan.FromSeconds(10), room.RoomId);
+            await Clients.Group(room.RoomId.ToString()).SendAsync("ChangeVoteEnd", TimeSpan.FromSeconds(10).TotalSeconds);
+            gameService.SetIsUsingExtraTime(gameSession, true);
+            gameService.SetExtraTime(gameSession, DateTime.Now + TimeSpan.FromSeconds(10));
         }
     }
 
-public async Task MakeVote(string userId)
+    public async Task MakeVote(string userId)
     {
         var _userId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
         var room =  roomService.GetRoomByUserId(_userId);
