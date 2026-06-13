@@ -1,4 +1,12 @@
 namespace RoomService
 {
-    public record LobbySettings(int MaxPlayers, RoomStatus Status, string Theme);
+    public record LobbySettings(
+        string Name, 
+        string PasswordHash, 
+        int MaxPlayers, 
+        RoomStatus Status, 
+        string Theme, 
+        ThemesMode Mode,
+        TimeSpan MoveTime
+        );
 }
