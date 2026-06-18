@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace ImageService
 {
-    public class LocalImageProvider : IProvider<ImageModel>
+    public class LocalImageProvider(FileHasher hasher, ImageProcessor processor) : IProvider<ImageModel>
     {
         public int SourceType => 1;
 
-        public async Task<IActionResult> ServeImageAsync(ImageModel image, HttpRequest request)
+        public async Task<IActionResult> ServeImageAsync(ImageModel image, ImageProcessingOptions options)
         {
             var webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var fullPath = Path.Combine(webRoot, image.Path.TrimStart('/'));
@@ -15,13 +17,14 @@ namespace ImageService
             if (!File.Exists(fullPath))
                 return new NotFoundResult();
 
-            var bytes = await File.ReadAllBytesAsync(fullPath);
-            var contentType = GetContentType(image.Extension);
+            var contentType = processor.GetContentType(image.Extension);
+            var originalBytes = await File.ReadAllBytesAsync(fullPath);
+            var finalBytes = await processor.ProcessImageAsync(originalBytes, options);
 
-            return new FileContentResult(bytes, contentType);
+            return new FileContentResult(finalBytes, contentType);
         }
 
-        public async Task<ImageModel?> SaveImageAsync(ImageUploadForm form)
+        public async Task<ImageModel?> CreateImageModelAsync(ImageUploadForm form)
         {
             try
             {
@@ -29,8 +32,13 @@ namespace ImageService
 
                 var fileName = Path.GetFileName(form.File.FileName);
                 var extension = Path.GetExtension(fileName).ToLower();
-                var hash = Guid.NewGuid().ToString("N");
 
+                using var memoryStream = new MemoryStream();
+
+                await form.File.CopyToAsync(memoryStream);
+                byte[] fileBytes = memoryStream.ToArray();
+
+                var hash = hasher.ComputeSha256Hash(fileBytes);
                 var relativePath = $"/samples/{fileName}";
 
                 return new ImageModel
@@ -45,23 +53,6 @@ namespace ImageService
             {
                 return null;
             }
-        }
-
-        private string GetContentType(string extension)
-        {
-            return extension.ToLower().TrimStart('.') switch
-            {
-                "png" => "image/png",
-                "jpg" => "image/jpeg",
-                "jpeg" => "image/jpeg",
-                "gif" => "image/gif",
-                "webp" => "image/webp",
-                "bmp" => "image/bmp",
-                "svg" => "image/svg+xml",
-                "ico" => "image/x-icon",
-                "avif" => "image/avif",
-                _ => "application/octet-stream"
-            };
         }
     }
 }

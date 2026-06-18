@@ -6,7 +6,7 @@ namespace ImageService
     public interface IProvider<T> 
     {
         int SourceType { get; }
-        Task<IActionResult> ServeImageAsync(T image, HttpRequest request);
-        Task<T?> SaveImageAsync(ImageUploadForm form);
+        Task<IActionResult> ServeImageAsync(T image, ImageProcessingOptions options);
+        Task<T?> CreateImageModelAsync(ImageUploadForm form);
     }
 }
