@@ -36,8 +36,8 @@ function updateFinishButton(countVotes) {
     const canPress = myCurrentVote && !myEndVoteReady;
 
     if (myEndVoteReady) {
-        btn.innerText = 'ОЖИДАНИЕ ИГРОКОВ...';
-        btn.disabled = true;
+        btn.innerText = 'Отменить готовность';
+        btn.disabled = false;
         btn.classList.add('active');
     } else {
         btn.innerText = 'Готов завершить';
@@ -47,7 +47,7 @@ function updateFinishButton(countVotes) {
 
     if (hint) {
         if (myEndVoteReady) {
-            hint.textContent = 'Вы готовы завершить. Ожидание остальных игроков.';
+            hint.textContent = 'Вы готовы завершить. Ожидание остальных игроков. Можно отменить готовность.';
         } else if (!myCurrentVote) {
             hint.textContent = 'Выберите игрока, за которого голосуете.';
         } else {
@@ -56,12 +56,24 @@ function updateFinishButton(countVotes) {
     }
 }
 
+function restoreEndVoteReadyState(players) {
+    endVoteReadyByPlayer = {};
+
+    players?.forEach(player => {
+        endVoteReadyByPlayer[String(player.id)] = player.readyToEndVoting === true;
+    });
+
+    myEndVoteReady = endVoteReadyByPlayer[String(window.myId)] === true;
+}
+
 function updatePlayerEndVoteReady(id, isReady) {
     endVoteReadyByPlayer[String(id)] = isReady;
 
     if (String(id) === String(window.myId)) {
         myEndVoteReady = isReady;
     }
+
+    updateFinishButton(lastCountVotes);
 
     if (lastCountVotes.length) {
         renderVoting(lastCountVotes);
@@ -72,7 +84,7 @@ function updatePlayerEndVoteReady(id, isReady) {
 
 async function handleEndVoteReady() {
     const btn = document.getElementById('finishVoteBtn');
-    if (!btn || btn.disabled || myEndVoteReady) return;
+    if (!btn || btn.disabled) return;
     if (!myCurrentVote) return;
 
     if (!window.connection) {
@@ -80,15 +92,11 @@ async function handleEndVoteReady() {
         return;
     }
 
+    const newReady = !myEndVoteReady;
+
     try {
         btn.disabled = true;
-        await window.connection.invoke('MakeReadyEndVote', true);
-        myEndVoteReady = true;
-        endVoteReadyByPlayer[String(window.myId)] = true;
-        updateFinishButton(lastCountVotes);
-        if (lastCountVotes.length) {
-            renderVoting(lastCountVotes);
-        }
+        await window.connection.invoke('MakeReadyEndVote', newReady);
     } catch (error) {
         console.error('Ошибка отправки готовности к завершению:', error);
         updateFinishButton(lastCountVotes);

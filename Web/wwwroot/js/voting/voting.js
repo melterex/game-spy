@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     restoreMyVote(votingData.players);
+    restoreEndVoteReadyState(votingData.players);
     renderVoting(buildVoteCards(votingData.players, votingData.voteStatistics));
     startTimer(votingData.timeToVote);
 });

@@ -90,9 +90,14 @@ async function startSignalR(token) {
         makingVote(users, counts);
     });
 
-    window.connection.on("ReadyEndVote", (id, isReady) => {
+    window.connection.on("UserEarlyVoteStatusChange", (id, isReady) => {
         if (!isVotingPage()) return;
         updatePlayerEndVoteReady(id, isReady);
+    });
+
+    window.connection.on("ChangeVoteEnd", (secondsToEnd) => {
+        if (!isVotingPage()) return;
+        startTimer(secondsToEnd);
     });
 
     window.connection.on("VoteFinish", (userIdToKick, wasAmogus) => {
