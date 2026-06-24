@@ -27,6 +27,13 @@
 
 </div>
 
+<div id="voteResultOverlay" class="vote-result-overlay hidden">
+    <div class="vote-result-modal">
+        <h2 id="voteResultTitle" class="vote-result-title"></h2>
+        <p id="voteResultMessage" class="vote-result-message"></p>
+        <button id="voteResultBtn" type="button" class="finish-vote-btn">В комнату</button>
+    </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
 <script src="../js/signalr-init.js"></script>
@@ -37,6 +44,7 @@
 <script src="../js/voting/finish-vote.js"></script>
 <script src="../js/voting/render-voting.js"></script>
 <script src="../js/voting/cast-vote.js"></script>
+<script src="../js/voting/vote-result.js"></script>
 <script src="../js/voting/voting.js"></script>
 </body>
 </html>

@@ -64,41 +64,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         await getMyId();
 
-        if (votingJustFinished && roomData) {
-            roomStatus = 'waiting';
-            const players = (roomData.players || []).map(p => ({
-                player: { id: p.id, nickname: p.nickname },
-                ready: false
-            }));
-            roomData = { players };
-
-            const readyBtn = document.getElementById('readyBtn');
-            const startGameBtn = document.getElementById('startGameBtn');
-            const themeBlock = document.getElementById('themeBlock');
-            const wordBlock = document.getElementById('wordBlock');
-            const turnStatus = document.getElementById('turnStatus');
-            const timer = document.getElementById('timer');
-
-            if (readyBtn) {
-                readyBtn.style.display = '';
-                readyBtn.disabled = false;
-                readyBtn.innerText = 'ГОТОВ';
-                readyBtn.classList.remove('active');
-            }
-            if (startGameBtn) {
-                startGameBtn.style.display = '';
-                startGameBtn.disabled = false;
-                startGameBtn.style.opacity = '1';
-            }
-            if (themeBlock) themeBlock.classList.add('hidden');
-            if (wordBlock) wordBlock.classList.add('hidden');
-            if (turnStatus) turnStatus.classList.add('hidden');
-            if (timer) timer.innerText = '';
-
-            renderRoom(players);
+        if (votingJustFinished) {
+            applyLobbyAfterVoting(getPlayersAfterVoting(roomData));
         } else if (roomStatus === 'ingame' && roomData) {
             applyInGameState(roomData);
         } else if (roomData?.players) {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.disabled = false;
+                chatInput.placeholder = 'Ваше сообщение...';
+            }
+
             const myProfile = roomData.players.find(p => {
                 const id = p.player?.id ?? p.id;
                 return String(id) === String(window.myId);

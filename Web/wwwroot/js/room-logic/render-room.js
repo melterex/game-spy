@@ -65,12 +65,12 @@ async function renderRoom(players) {
     checkEveryoneReady(players);
 }
 
-function setGameData(theme, word) {
+function setGameData(theme, word, isAmogus) {
     const themeElem = document.getElementById('themeValue');
     const wordElem = document.getElementById('wordValue');
 
     if (themeElem) themeElem.innerText = theme ?? '';
-    if (wordElem) wordElem.innerText = word ?? '';
+    if (wordElem) wordElem.innerText = isAmogus ? 'ты шпион' : (word ?? '');
 }
 
 function checkEveryoneReady(players) {

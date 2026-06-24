@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     ensureFinishVoteSection();
+    bindVoteResultModal();
 
     const token = localStorage.getItem('jwt_token');
 
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     restoreMyVote(votingData.players);
+    restoreEndVoteReadyState(votingData.players);
     renderVoting(buildVoteCards(votingData.players, votingData.voteStatistics));
     startTimer(votingData.timeToVote);
 });

@@ -10,9 +10,15 @@ function isVotingPage() {
 
 function goToRoomAfterVoting() {
     sessionStorage.setItem('voting_finished', '1');
+
+    if (typeof votingData !== 'undefined' && votingData.players?.length) {
+        sessionStorage.setItem('lobby_players_after_vote', JSON.stringify(votingData.players));
+    }
+
     if (window.myId) {
         sessionStorage.removeItem(`voting_my_vote_${window.myId}`);
     }
+
     window.location.href = '../room/index.html';
 }
 
@@ -90,15 +96,20 @@ async function startSignalR(token) {
         makingVote(users, counts);
     });
 
-    window.connection.on("ReadyEndVote", (id, isReady) => {
+    window.connection.on("UserEarlyVoteStatusChange", (id, isReady) => {
         if (!isVotingPage()) return;
         updatePlayerEndVoteReady(id, isReady);
     });
 
-    window.connection.on("VoteFinish", (userIdToKick, wasAmogus) => {
+    window.connection.on("ChangeVoteEnd", (secondsToEnd) => {
+        if (!isVotingPage()) return;
+        startTimer(secondsToEnd);
+    });
+
+    window.connection.on("VoteFinish", (userIdToKick, civiliansWon, spyPlayerId) => {
         if (!isVotingPage()) return;
 
-        goToRoomAfterVoting();
+        showVoteResult(userIdToKick, civiliansWon, spyPlayerId);
     });
 
     try {
