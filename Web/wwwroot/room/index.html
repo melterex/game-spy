@@ -1,62 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spy Game - Room</title>
-    <link rel="stylesheet" href="../css/room.css">
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Шпион — игра для компании</title><link rel="stylesheet" href="/css/game.css"></head>
 <body>
-
-<div class="game-area">
-    <div class="top-ui">
-        <div id="timer" class="timer">05:00</div>
-        <button class="exit-btn" onclick="exitRoom()">ВЫЙТИ</button>
-    </div>
-
-    <div class="side-players left" id="leftSide"></div>
-
-    <div class="center-box">
-        <div class="game-info">
-            <div id="turnStatus" class="turn-status-banner hidden">Ожидание начала игры...</div>
-
-            <div class="info-item hidden" id="themeBlock">
-                <span class="label">ТЕМА:</span>
-                <span id="themeValue" class="value"></span>
-            </div>
-            <div class="info-item hidden" id="wordBlock">
-                <span class="label">ВАШЕ СЛОВО:</span>
-                <span id="wordValue" class="value"></span>
-            </div>
-
-            <button id="readyBtn" class="ready-btn">ГОТОВ</button>
-            <button id="startGameBtn" class="ready-btn" disabled style="background: #28a745; margin-top: 10px; opacity: 0.5;">СТАРТ ИГРЫ</button>
-        </div>
-
-        <div class="chat-area" id="chatArea">
-            <div class="message"><span>Система:</span> Ожидание начала...</div>
-        </div>
-        <div class="chat-input-wrap">
-            <label for="chatInput"><input type="text" id="chatInput" placeholder="Ваше сообщение..."></label>
-            <button onclick="sendMessage()">➤</button>
-        </div>
-    </div>
-
-    <div class="side-players right" id="rightSide"></div>
-</div>
-
-<script src="../js/config.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-<script src="../js/signalr-init.js"></script>
-
-<script src="../js/room-logic/myId.js"></script>
-<script src="../js/room-logic/render-room.js"></script>
-<script src="../js/room-logic/lobby-state.js"></script>
-<script src="../js/room-logic/timer.js"></script>
-<script src="../js/room-logic/chat/chat.js"></script>
-<script src="../js/room-logic/start-game.js"></script>
-<script src="../js/room-logic/room.js"></script>
-<script src="../js/room-logic/ready-button.js"></script>
-</body>
-</html>
+<div id="connectionStatus" class="connection hidden" role="status"></div><div id="error" class="error hidden" role="alert"></div>
+<main class="container"><header><div><h1 id="roomName">Комната</h1><p id="roomSettings" class="muted"></p></div><div id="timer" class="timer" aria-label="Осталось времени"></div><button id="leaveBtn" class="secondary">Выйти из комнаты</button></header><div class="game-layout"><aside><h2>Участники</h2><div id="players" class="players"></div><button id="addBotBtn" class="secondary hidden">Добавить бота</button><button id="inviteBtn" class="secondary">Скопировать приглашение</button></aside><section class="panel"><div id="lobbyControls"><p>Отметьте готовность. Владелец начнёт, когда готовы все.</p><div class="actions"><button id="readyBtn">Готов</button><button id="startGameBtn" disabled>Старт игры</button></div></div><div id="gameInfo" class="hidden"><p id="roundLabel"></p><p>Тема: <strong id="themeValue"></strong></p><p>Ваше слово: <strong id="wordValue"></strong></p><div id="turnStatus" class="turn-banner"></div></div><div id="chatArea" class="chat" role="log" aria-label="История ходов"></div><form id="chatForm" class="chat-input"><input id="chatInput" placeholder="Чат будет доступен в игре" maxlength="1000" autocomplete="off" disabled aria-label="Сообщение"><button id="sendBtn" disabled>Отправить</button></form></section></div></main>
+<dialog id="resultDialog"><h2 id="resultTitle"></h2><p id="resultMessage"></p><button id="resultClose">В комнату</button></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script><script src="/js/app.js" defer></script>
+</body></html>

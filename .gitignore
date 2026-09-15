@@ -3,3 +3,6 @@
 bin/
 obj/
 ConsoleSpy/
+*.db
+*.db-shm
+*.db-wal

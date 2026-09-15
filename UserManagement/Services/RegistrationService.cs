@@ -16,7 +16,9 @@ public class RegistrationService : IRegistrationService
         var userId = new UserId(UserStorage.GetNextId());
         var user = new User(regData.Username, userId);
         
-        UserStorage.Add(user, regData.Password);
+        try { UserStorage.Add(user, regData.Password); }
+        catch (Microsoft.Data.Sqlite.SqliteException error) when (error.SqliteErrorCode == 19)
+        { return Status.UsernameExists; }
         
         return Status.Ok;
     }

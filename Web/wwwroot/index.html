@@ -1,52 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spy Game - Главная</title>
-    <link rel="stylesheet" href="css/index.css">
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Шпион — игра для компании</title><link rel="stylesheet" href="/css/game.css"></head>
 <body>
-
-<button id="loginBtn" class="top-right-btn">Вход</button>
-
-<div class="main-container">
-    <h1 class="game-title">ШПИОН</h1>
-    <button id="playBtn" class="play-btn">ИГРАТЬ</button>
-</div>
-
-<div id="authModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <div class="auth-tabs">
-            <button class="tab-link active" onclick="openTab(event, 'login')">Вход</button>
-            <button class="tab-link" onclick="openTab(event, 'register')">Регистрация</button>
-        </div>
-
-        <form id="login" class="tab-content active">
-            <label>
-                <input name="logNick" type="text" placeholder="Логин" required>
-            </label>
-            <label>
-                <input name="logPass" type="password" placeholder="Пароль" required>
-            </label>
-            <button type="submit" class="submit-btn">Войти</button>
-        </form>
-
-        <form id="register" class="tab-content">
-            <label>
-                <input name="regNick" type="text" placeholder="Придумайте логин" required>
-            </label>
-            <label>
-                <input name="regPass" type="password" placeholder="Придумайте пароль" required>
-            </label>
-            <button type="submit" class="submit-btn">Создать аккаунт</button>
-        </form>
-    </div>
-</div>
-
-<script src="js/index/login.js"></script>
-<script src="js/index/register.js"></script>
-<script src="js/index/index.js"></script>
-</body>
-</html>
+<div id="connectionStatus" class="connection hidden" role="status"></div><div id="error" class="error hidden" role="alert"></div>
+<main class="home"><p class="eyebrow">Игра для компании</p><h1>ШПИОН</h1><p>Одно слово. Один шпион. Кому вы доверяете?</p><button id="playBtn">Играть</button><button id="loginBtn" class="secondary">Войти / зарегистрироваться</button><button id="logoutBtn" class="secondary hidden">Выйти из аккаунта</button></main>
+<dialog id="authDialog"><h2>Добро пожаловать</h2><form id="authForm"><label>Логин<input name="username" required maxlength="32" autocomplete="username"></label><label>Пароль<input name="password" type="password" required maxlength="64" autocomplete="current-password"></label><div class="actions"><button name="mode" value="login">Войти</button><button name="mode" value="register" class="secondary">Создать аккаунт</button></div></form><button class="secondary" data-close="authDialog">Закрыть</button></dialog>
+<dialog id="resultDialog"><h2 id="resultTitle"></h2><p id="resultMessage"></p><button id="resultClose">В комнату</button></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script><script src="/js/app.js" defer></script>
+</body></html>

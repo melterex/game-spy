@@ -11,7 +11,7 @@ namespace GameLogic.Services
 {
     public class GameService : IGameService
     {
-        private readonly Dictionary<Guid, GameSession> sessions = new();
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, GameSession> sessions = new();
         private readonly IVotingService _votingService;
         private readonly IThemesService _themesService;
         public List<UserId> GeneratePlayerOrder(List<UserId> playersIDs)
@@ -25,6 +25,10 @@ namespace GameLogic.Services
         }
         public Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings)
         {
+            if (playersIDs.Count < 2 || playersIDs.Distinct().Count() != playersIDs.Count)
+                throw new ArgumentException("At least two distinct players are required");
+            if (settings.TotalRounds < 1 || !_themesService.GetThemes().Contains(settings.Theme))
+                throw new ArgumentException("Invalid game settings");
             var session = new SpyGameSession
             {
                 GameId = Guid.NewGuid(),
@@ -36,7 +40,7 @@ namespace GameLogic.Services
                 CurrentStage = GameStage.Round,
                 MessagesList = new List<Message>(),
                 PlayerCards = new Dictionary<UserId, Card>(),
-                CurrentTurnStartTime = DateTime.Now,
+                CurrentTurnStartTime = DateTime.UtcNow,
                 CurrentTurnNumber = 0,
             };
             AssignCards(session);
@@ -78,6 +82,7 @@ namespace GameLogic.Services
         {
             return session.CurrentPlayerOrder;
         }
+        public void RemoveGameSession(Guid gameSessionId) => sessions.TryRemove(gameSessionId, out _);
         public IVotingService GetVoteService(GameSession session)
         {
             return _votingService;
@@ -98,14 +103,14 @@ namespace GameLogic.Services
             session.MessagesList.Add(new Message(currentPlayerId, message));
             session.CurrentPlayerIndex++;
             session.CurrentTurnNumber++;
-            session.CurrentTurnStartTime = DateTime.Now;
+            session.CurrentTurnStartTime = DateTime.UtcNow;
 
             if (session.CurrentPlayerIndex >= session.PlayersIDs.Count())
             {
                 if (session.CurrentRound == session.GameSettings.TotalRounds)
                 {
                     session.CurrentPlayerIndex = -1;
-                    session.CurrentStage = GameStage.Voting;
+                    StartVoting(session);
                 }
                 else
                 {
@@ -120,12 +125,13 @@ namespace GameLogic.Services
             session.CurrentStage = GameStage.Voting;
             session.Votes = new Dictionary<UserId, UserId>();
             session.VotingEnded = false;
-            session.VotingStartTime = DateTime.Now;
+            session.VotingStartTime = DateTime.UtcNow;
             session.IsPlayerReadyToEndVotingDict = new Dictionary<UserId, bool>();
             foreach (UserId userID in session.PlayersIDs)
             {
                 session.IsPlayerReadyToEndVotingDict[userID] = false;
             }
+            session.IsUsingExtraTime = false;
         }
 
         public DateTime GetCurrentTurnStartTime(GameSession session)

@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageService", "ImageServic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BotService", "BotService\BotService.csproj", "{999B1EF0-45FE-4BD5-96DC-24515F31840D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{D987BF92-B2ED-4C41-8496-0FC78FEF3F51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +56,9 @@ Global
 		{999B1EF0-45FE-4BD5-96DC-24515F31840D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{999B1EF0-45FE-4BD5-96DC-24515F31840D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{999B1EF0-45FE-4BD5-96DC-24515F31840D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D987BF92-B2ED-4C41-8496-0FC78FEF3F51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D987BF92-B2ED-4C41-8496-0FC78FEF3F51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D987BF92-B2ED-4C41-8496-0FC78FEF3F51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D987BF92-B2ED-4C41-8496-0FC78FEF3F51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

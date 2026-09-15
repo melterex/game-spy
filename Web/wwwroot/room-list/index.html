@@ -1,64 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spy Game - Lobby</title>
-    <link rel="stylesheet" href="../css/room-list.css">
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Шпион — игра для компании</title><link rel="stylesheet" href="/css/game.css"></head>
 <body>
-
-
-
-<div class="container">
-    <div class="header">
-        <button class="exit-btn" onclick="exitRoomList()">ВЫЙТИ</button>
-        <h1>Доступные комнаты</h1>
-        <button class="create-btn" onclick="openModal('createModal')">Создать комнату</button>
-    </div>
-
-    <div class="room-list" id="roomsContainer"></div>
-</div>
-
-<div id="createModal" class="modal">
-    <div class="modal-content">
-        <h2>Новая комната</h2>
-        <label for="roomTheme">Выберите тему:</label>
-        <select id="roomTheme">
-            <option value="Animals">Animals</option>
-            <option value="Education">Education</option>
-            <option value="Plants">Plants</option>
-            <option value="Sport">Sport</option>
-            <option value="Travelling">Travelling</option>
-        </select>
-
-        <label for="playerLimit">Количество игроков:</label>
-        <select id="playerLimit">
-            <option value="5">5 человек</option>
-            <option value="6">6 человек</option>
-            <option value="7">7 человек</option>
-            <option value="8">8 человек</option>
-            <option value="9">9 человек</option>
-            <option value="10">10 человек</option>
-        </select>
-
-        <button class="confirm-btn" onclick="createNewRoom()">СОЗДАТЬ</button>
-        <div class="cancel-link" onclick="closeModal('createModal')">Отмена</div>
-    </div>
-</div>
-
-<div id="joinModal" class="modal">
-    <div class="modal-content">
-        <h2 id="joinRoomTitle">Название</h2>
-        <p id="joinRoomDesc"></p>
-        <button class="confirm-btn" onclick="enterRoom()">ВОЙТИ</button>
-        <div class="cancel-link" onclick="closeModal('joinModal')">Назад</div>
-    </div>
-</div>
-
-<script src="../js/config.js"></script>
-<script src="../js/room-list/render-room.js"></script>
-<script src="../js/room-list/create-room.js"></script>
-<script src="../js/room-list/enter-room.js"></script>
-</body>
-</html>
+<div id="connectionStatus" class="connection hidden" role="status"></div><div id="error" class="error hidden" role="alert"></div>
+<main class="container"><header><a href="/">← Главная</a><h1>Комнаты</h1><button id="createBtn">Создать комнату</button></header>
+<section class="profile"><span id="profileName"></span><img id="myAvatar" class="avatar hidden" alt="Ваш аватар"><label class="upload">Аватар<input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp"></label><button id="historyBtn" class="secondary">Моя статистика</button><a id="resumeRoom" class="hidden" href="/room/">Вернуться в свою комнату →</a></section><p class="muted">Для старта нужно 5 игроков. Можно пригласить друзей или добавить ботов.</p><div id="roomsContainer" class="room-list"></div></main>
+<dialog id="createDialog"><h2>Новая комната</h2><form id="createForm"><label>Название<input name="name" required maxlength="40" value="Моя комната"></label><label>Тема<select name="theme" id="roomTheme" required></select></label><label>Лимит игроков<select name="userMaxCount"><option>5</option><option>6</option><option>7</option><option selected>8</option><option>9</option><option>10</option></select></label><div class="fields"><label>Секунд на ход<input type="number" name="turnSeconds" min="15" max="180" value="60" required></label><label>Раундов<input type="number" name="rounds" min="1" max="10" value="3" required></label></div><label class="checkbox"><input name="isPrivate" type="checkbox">Комната с паролем</label><label id="passwordLabel" class="hidden">Пароль комнаты<input name="password" type="password" minlength="4" maxlength="64" autocomplete="new-password" disabled></label><button>Создать</button></form><button class="secondary" data-close="createDialog">Отмена</button></dialog>
+<dialog id="joinDialog"><h2 id="joinTitle"></h2><p id="joinDescription"></p><form id="joinForm"><label id="joinPasswordLabel">Пароль<input name="password" type="password" maxlength="64" autocomplete="off"></label><button>Войти</button></form><button class="secondary" data-close="joinDialog">Отмена</button></dialog>
+<dialog id="historyDialog"><h2>Мои партии</h2><p id="statistics"></p><div id="historyList"></div><div class="actions"><button id="historyPrev" class="secondary">Назад</button><button id="historyNext" class="secondary">Далее</button><button class="secondary" data-close="historyDialog">Закрыть</button></div></dialog>
+<dialog id="resultDialog"><h2 id="resultTitle"></h2><p id="resultMessage"></p><button id="resultClose">В комнату</button></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script><script src="/js/app.js" defer></script>
+</body></html>

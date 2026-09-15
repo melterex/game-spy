@@ -12,18 +12,18 @@ namespace GameLogic.Services
     {
         public void Vote(GameSession session, UserId voterId, UserId targetId)
         {
-            if (session.CurrentStage != GameStage.Voting)
+            if (session.CurrentStage != GameStage.Voting || session.VotingEnded)
                 throw new InvalidOperationException("Сейчас не этап голосования");
-            if (voterId == targetId)
+            if (voterId.Equals(targetId))
                 throw new ArgumentException("Нельзя голосовать за себя");
-            if (!session.PlayersIDs.Contains(targetId))
+            if (!session.PlayersIDs.Contains(targetId) || !session.PlayersIDs.Contains(voterId))
                 throw new ArgumentException("Игрок не в игре");
 
             session.Votes[voterId] = targetId;
         }
 
         public bool IsVotingEnded(GameSession session) =>
-            session.Votes.Count == session.PlayersIDs.Count;
+            session.VotingEnded;
 
         public VotingResults SummarizeResults(GameSession session)
         {
@@ -41,7 +41,7 @@ namespace GameLogic.Services
 
             UserId votedOut = mostVoted.Key;
             var spy = session.PlayerCards.First(c => c.Value.IsSpy).Key;
-            return votedOut == spy ? VotingResults.CivilianWins : VotingResults.SpyWins;
+            return votedOut.Equals(spy) ? VotingResults.CivilianWins : VotingResults.SpyWins;
         }
 
         public VotingReport GetVotingReport(GameSession session)
@@ -55,12 +55,15 @@ namespace GameLogic.Services
 
         public void SetPlayerReadyToEndVoting(GameSession session, UserId userID, bool isReady)
         {
+            if (session.CurrentStage != GameStage.Voting || session.VotingEnded || !session.PlayersIDs.Contains(userID))
+                throw new InvalidOperationException("Голосование недоступно");
             session.IsPlayerReadyToEndVotingDict[userID] = isReady;
         }
 
         public bool IsEveryoneReadyToEndVoting(GameSession session)
         {
-            return session.IsPlayerReadyToEndVotingDict.Values.All(v => v == true);
+            return session.IsPlayerReadyToEndVotingDict.Count == session.PlayersIDs.Count
+                && session.PlayersIDs.Count > 0 && session.IsPlayerReadyToEndVotingDict.Values.All(v => v);
         }
 
         public Dictionary<UserId, bool> GetIsPlayerReadyToEndVotingDict(GameSession session)

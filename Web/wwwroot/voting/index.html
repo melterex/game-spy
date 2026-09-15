@@ -1,50 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Голосование</title>
-    <link rel="stylesheet" href="../css/vote.css">
-</head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Шпион — игра для компании</title><link rel="stylesheet" href="/css/game.css"></head>
 <body>
-
-<div class="voting-container">
-    <div class="timer-section">
-        <span class="timer-label">Осталось времени:</span>
-        <div class="timer-badge" id="timer">00:30</div>
-    </div>
-
-    <h2 class="voting-title">Кто шпион? Выберите игрока:</h2>
-
-    <div class="users-grid" id="usersGrid"></div>
-
-    <div class="finish-vote-section" id="finishVoteSection">
-        <p id="finishVoteHint" class="finish-vote-hint">Проголосуйте за игрока, чтобы подтвердить готовность завершить.</p>
-        <button id="finishVoteBtn" type="button" class="finish-vote-btn" disabled>
-            Готов завершить
-        </button>
-    </div>
-
-</div>
-
-<div id="voteResultOverlay" class="vote-result-overlay hidden">
-    <div class="vote-result-modal">
-        <h2 id="voteResultTitle" class="vote-result-title"></h2>
-        <p id="voteResultMessage" class="vote-result-message"></p>
-        <button id="voteResultBtn" type="button" class="finish-vote-btn">В комнату</button>
-    </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
-<script src="../js/signalr-init.js"></script>
-<script src="../js/room-logic/myId.js"></script>
-<script src="../js/room-logic/timer.js"></script>
-<script src="../js/voting/voting-state.js"></script>
-<script src="../js/voting/vote-storage.js"></script>
-<script src="../js/voting/finish-vote.js"></script>
-<script src="../js/voting/render-voting.js"></script>
-<script src="../js/voting/cast-vote.js"></script>
-<script src="../js/voting/vote-result.js"></script>
-<script src="../js/voting/voting.js"></script>
-</body>
-</html>
+<div id="connectionStatus" class="connection hidden" role="status"></div><div id="error" class="error hidden" role="alert"></div>
+<main class="container"><header><h1>Кто шпион?</h1><div id="timer" class="timer" aria-label="Осталось времени"></div><button id="leaveBtn" class="secondary">Выйти из комнаты</button></header><p>Выберите другого игрока. До завершения голосования выбор можно изменить.</p><div id="usersGrid" class="users-grid"></div><section class="finish-section"><button id="finishVoteBtn">Готов завершить</button><p class="muted">Когда готовы все, останется не больше 10 секунд. Готовность можно отменить.</p></section></main>
+<dialog id="resultDialog"><h2 id="resultTitle"></h2><p id="resultMessage"></p><button id="resultClose">В комнату</button></dialog>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script><script src="/js/app.js" defer></script>
+</body></html>

@@ -14,8 +14,8 @@ public class GameContext
     }
 
     public UserId MyId { get; set; }
-    bool IsPlayerAmogus { get; set; }
-    string Card { get; set; }
+    public bool IsPlayerAmogus { get; set; }
+    public string Card { get; set; }
     public List<Player> Players { get; set; }
     public List<Message> Messages { get; set; }
 }

@@ -9,7 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\GameLogic\GameLogic.csproj" />
-      <ProjectReference Include="..\RoomService\RoomService.csproj" />
+      <ProjectReference Include="..\BotService\BotService.csproj" />
       <ProjectReference Include="..\UserManagement\UserManagement.csproj" />
     </ItemGroup>
 

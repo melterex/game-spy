@@ -18,6 +18,7 @@ namespace GameLogic.Interfaces
         IVotingService GetVoteService(GameSession session);
         Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings);
         GameSession GetGameSessionById (Guid GameSessionId);
+        void RemoveGameSession(Guid gameSessionId);
         void StartVoting (GameSession session);
         List<UserId> GetPlayerOrder(GameSession session);
         DateTime GetCurrentTurnStartTime(GameSession session);

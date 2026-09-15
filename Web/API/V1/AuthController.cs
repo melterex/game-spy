@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.RateLimiting;
 using authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,20 +12,24 @@ namespace WebAPI.API.V1;
 
 public class LoginData
 {
-    public string Username { get; set; }
-    public string Password { get; set; }
+    [Required, StringLength(32, MinimumLength = 1)]
+    public string Username { get; set; } = string.Empty;
+    [Required, StringLength(64, MinimumLength = 1)]
+    public string Password { get; set; } = string.Empty;
 }
 
 public class RegisterData
 {
-    public string Username { get; set; }
-    public string Password { get; set; }
+    [Required, StringLength(32, MinimumLength = 1)]
+    public string Username { get; set; } = string.Empty;
+    [Required, StringLength(64, MinimumLength = 1)]
+    public string Password { get; set; } = string.Empty;
 }
 
 public class User
 {
-    public string Id { get; set; }
-    public string Username { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
 }
 [ApiController]
 [Route("api/v1/auth")]
@@ -42,6 +48,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("sensitive")]
     public ActionResult<string> Post([FromBody] LoginData data)
     {
         var res = _loginService.Login(new authorization.LoginData(data.Username, data.Password));
@@ -54,8 +61,11 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("register")]
+    [EnableRateLimiting("sensitive")]
     public ActionResult<string> Post([FromBody] RegisterData data)
     {
+        if (Encoding.UTF8.GetByteCount(data.Password) > 72)
+            return BadRequest("Пароль слишком длинный: максимум 72 байта UTF-8");
         var res = _registrationService.Register(new authorization.RegistrationData(data.Username, data.Password));
         switch (res)
         {
@@ -68,7 +78,7 @@ public class AuthController : ControllerBase
             case Status.Ok:
             {
                 var user = _loginService.Login(new authorization.LoginData(data.Username, data.Password));
-                return Ok(GenerateJwtToken(user.Id.ToString()));
+                return user == null ? BadRequest() : Ok(GenerateJwtToken(user.Id.ToString()));
             }
             default:
             {
@@ -81,8 +91,8 @@ public class AuthController : ControllerBase
     [HttpGet("/me")]
     public ActionResult<User> GetMe()
     {
-        var user = _getUser.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
-        return Ok(new User{Id = user.Id.ToString(), Username = user.Username});
+        var user = _getUser.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+        return user == null ? Unauthorized() : Ok(new User{Id = user.Id.ToString(), Username = user.Username});
     }
     
     private string GenerateJwtToken(string id)
@@ -102,7 +112,7 @@ public class AuthController : ControllerBase
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(2),
+            expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
