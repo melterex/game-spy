@@ -1,5 +1,4 @@
 using authorization;
-using GameLogic;
 using GameLogic.Interfaces;
 
 namespace RoomService
@@ -33,23 +32,30 @@ namespace RoomService
         public bool IsStartingNewGame(LobbySession session) => 
             GetSession(session).IsStartingNewGame;
 
-        public GameSession? GetGameSession(LobbySession session) => 
+        public GameSession? GetGameSession(LobbySession session) =>
             GetSession(session).Session;
 
-        public bool TryToEnter(LobbySession session, User user) =>
-            GetSession(session).AddPlayerByUser(user);
+        public bool TryToEnter(LobbySession session, User user, string inputPassword) =>
+            GetSession(session).AddPlayerByUser(user, inputPassword);
 
         public IReadOnlyDictionary<UserId, PlayerStatus> GetPlayersStatuses(LobbySession session) =>
             GetSession(session).GetPlayersStatuses();
 
         public LobbySettings GetLobbySettings(LobbySession session) =>
             GetSession(session).Settings;
-        
-        public bool MakeReady(UserId id, LobbySession session) => 
+
+        public bool MakeReady(UserId id, LobbySession session) =>
             GetSession(session).ChangePlayerStatus(id, PlayerStatus.Ready);
 
-        public bool KickUserByUserId(UserId id, LobbySession session) =>
-            GetSession(session).KickPlayer(id);
+        public bool KickUserByUserId(UserId initiator, UserId target, LobbySession session)
+        {
+            var serviceSession = GetSession(session);
+
+            if (serviceSession.CreatorId != initiator || initiator == target)
+                return false;
+
+            return serviceSession.KickPlayer(target);
+        }
 
         public bool SetLobbySettings(LobbySettings settings, LobbySession session)
         {
@@ -57,7 +63,7 @@ namespace RoomService
 
             if (settings.Status == RoomStatus.InGame || settings.Status == RoomStatus.Closed)
                 return false;
-            
+
             if (string.IsNullOrWhiteSpace(settings.Theme))
                 return false;
 
