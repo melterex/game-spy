@@ -1,10 +1,10 @@
 using authorization;
-using GameLogic;
+using Microsoft.Extensions.Logging;
 using GameLogic.Interfaces;
 
 namespace RoomService
 {
-    public class LobbyService(IGameService gameService) : ILobbyService
+    public class LobbyService(IGameService gameService, ILogger<RoomService> logger) : ILobbyService
     {
         public bool PlayerIsReady(UserId id, LobbySession session)
         {
@@ -23,7 +23,7 @@ namespace RoomService
             if (serviceSession.IsAllPlayersReady() && !serviceSession.IsStartingNewGame)
                 return serviceSession.StartGame(gameService);
 
-            Logger.Log($"Not all players ready or already ingame");
+            logger.LogInformation($"Not all players ready or already ingame");
             return null;
         }
 

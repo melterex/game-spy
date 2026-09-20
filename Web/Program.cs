@@ -9,6 +9,7 @@ using Microsoft.OpenApi;
 using RoomService;
 using WebAPI;
 using WebAPI.API.V1;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -47,6 +48,9 @@ builder.Services.AddSwaggerGen(options =>
 });
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["Key"];
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddAuthentication(options =>
 {
