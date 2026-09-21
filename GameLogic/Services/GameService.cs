@@ -38,9 +38,11 @@ namespace GameLogic.Services
                 PlayerCards = new Dictionary<UserId, Card>(),
                 CurrentTurnStartTime = DateTime.Now,
                 CurrentTurnNumber = 0,
+                PlayerComments = playersIDs.ToDictionary(id => id, id => string.Empty),
             };
             AssignCards(session);
             sessions[session.GameId] = session;
+            ProcessBotTurns(session);
             return session.GameId;
         }
         public Dictionary<UserId, Card> AssignCards(GameSession session)
@@ -113,6 +115,8 @@ namespace GameLogic.Services
                     session.CurrentRound++;
                 }
             }
+
+            ProcessBotTurns(session);
         }
 
         public void StartVoting(GameSession session)
@@ -122,9 +126,23 @@ namespace GameLogic.Services
             session.VotingEnded = false;
             session.VotingStartTime = DateTime.Now;
             session.IsPlayerReadyToEndVotingDict = new Dictionary<UserId, bool>();
+
             foreach (UserId userID in session.PlayersIDs)
             {
                 session.IsPlayerReadyToEndVotingDict[userID] = false;
+            }
+
+            foreach (var botPair in session.Bots)
+            {
+                UserId botId = botPair.Key;
+                IDecisionMaker bot = botPair.Value;
+
+                var context = BuildBotContext(session, botId);
+
+                UserId targetId = bot.MakeVote(context);
+
+                    _votingService.Vote(session, botId, targetId);
+                _votingService.SetPlayerReadyToEndVoting(session, botId, true);
             }
         }
 
@@ -165,6 +183,59 @@ namespace GameLogic.Services
         public bool GetIsUdingExtraTime(GameSession session)
         {
             return session.IsUsingExtraTime;
+        }
+
+        private GameContext BuildBotContext(GameSession session, UserId botId)
+        {
+            var botCard = session.PlayerCards[botId];
+
+            var safePlayersList = session.PlayersIDs
+                .Select(id => new PlayerPublicInfo(id, "Игрок_" + id.ToString(), session.PlayerComments[id]))
+                .ToList();
+
+            return new GameContext(
+                botId,
+                botCard.IsSpy,
+                botCard.Word, 
+                safePlayersList,
+                session.MessagesList.ToList()
+            );
+        }
+        private void ProcessBotTurns(GameSession session)
+        {
+            while (session.CurrentStage == GameStage.Round)
+            {
+                var nextPlayerId = WhoseTurn(session);
+
+                if (nextPlayerId == null || !session.Bots.TryGetValue(nextPlayerId, out var bot))
+                {
+                    break;
+                }
+
+                var context = BuildBotContext(session, nextPlayerId);
+                string botMessage = bot.MakeMessage(context);
+
+                session.MessagesList.Add(new Message(nextPlayerId, botMessage));
+
+                session.CurrentPlayerIndex++;
+                session.CurrentTurnNumber++;
+                session.CurrentTurnStartTime = DateTime.Now;
+
+                if (session.CurrentPlayerIndex >= session.PlayersIDs.Count)
+                {
+                    if (session.CurrentRound == session.GameSettings.TotalRounds)
+                    {
+                        session.CurrentPlayerIndex = -1;
+                        StartVoting(session);
+                        break;
+                    }
+                    else
+                    {
+                        session.CurrentPlayerIndex = 0;
+                        session.CurrentRound++;
+                    }
+                }
+            }
         }
     }
 }

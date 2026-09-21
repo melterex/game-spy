@@ -1,6 +1,7 @@
 ﻿using authorization;
 using GameLogic.Entities;
 using GameLogic.Enums;
+using GameLogic.Interfaces;
 
 public abstract class GameSession
 {
@@ -22,4 +23,6 @@ public abstract class GameSession
     public Dictionary<UserId, bool> IsPlayerReadyToEndVotingDict { get; set; } = new();
     public DateTime ExtraTime { get; set; } = DateTime.MinValue;
     public bool IsUsingExtraTime { get; set; } = false;
+    public Dictionary<UserId, IDecisionMaker> Bots { get; set; } = new();
+    public Dictionary<UserId, string> PlayerComments { get; set; } = new();
 }
