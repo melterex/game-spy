@@ -13,6 +13,7 @@ using WebAPI.API.V1;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IRoomService, RoomService.RoomService>();
+builder.Services.AddSingleton<IBotFactory, BotFactory>();
 builder.Services.AddTransient<ILobbyService, LobbyService>();
 builder.Services.AddTransient<CardsService.IThemesService, ThemesService>();
 builder.Services.AddTransient<IVotingService, VotingService>();
