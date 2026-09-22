@@ -8,5 +8,6 @@ namespace GameLogic.Entities
     {
         public int TotalRounds { get; set; } = 3;
         public String Theme { get; set; }
+        public int BotCount { get; set; } = 0;
     }
 }

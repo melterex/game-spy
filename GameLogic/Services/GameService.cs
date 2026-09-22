@@ -14,21 +14,34 @@ namespace GameLogic.Services
         private readonly Dictionary<Guid, GameSession> sessions = new();
         private readonly IVotingService _votingService;
         private readonly IThemesService _themesService;
+
+        private readonly IBotFactory _botFactory;
         public List<UserId> GeneratePlayerOrder(List<UserId> playersIDs)
         {
             return playersIDs.OrderBy(_ => Guid.NewGuid()).ToList();
         }
-        public GameService(IVotingService votingService, IThemesService themesService)
+        public GameService(IVotingService votingService, IThemesService themesService, IBotFactory botFactory)
         {
             _votingService = votingService;
             _themesService = themesService;
+            _botFactory = botFactory;
         }
         public Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings)
         {
+
+            var botsDict = new Dictionary<UserId, IDecisionMaker>();
+
+            for (int i = 0; i < settings.BotCount; i++)
+            {
+                var botId = new UserId(-1 * (i + 1));
+                playersIDs.Add(botId);
+                botsDict[botId] = _botFactory.CreateBot();
+            }
             var session = new SpyGameSession
             {
                 GameId = Guid.NewGuid(),
                 PlayersIDs = playersIDs,
+                Bots = botsDict,
                 GameSettings = settings,
                 CurrentRound = 1,
                 CurrentPlayerIndex = 0,
@@ -40,6 +53,7 @@ namespace GameLogic.Services
                 CurrentTurnNumber = 0,
                 PlayerComments = playersIDs.ToDictionary(id => id, id => string.Empty),
             };
+
             AssignCards(session);
             sessions[session.GameId] = session;
             ProcessBotTurns(session);
