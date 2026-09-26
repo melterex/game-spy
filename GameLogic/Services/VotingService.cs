@@ -62,5 +62,10 @@ namespace GameLogic.Services
         {
             return session.IsPlayerReadyToEndVotingDict.Values.All(v => v == true);
         }
+
+        public Dictionary<UserId, bool> GetIsPlayerReadyToEndVotingDict(GameSession session)
+        {
+            return session.IsPlayerReadyToEndVotingDict;
+        }
     }
 }

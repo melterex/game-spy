@@ -1,5 +1,27 @@
 window.connection = null;
 
+function isRoomPage() {
+    return window.location.pathname.includes('/room/');
+}
+
+function isVotingPage() {
+    return window.location.pathname.includes('/voting/');
+}
+
+function goToRoomAfterVoting() {
+    sessionStorage.setItem('voting_finished', '1');
+
+    if (typeof votingData !== 'undefined' && votingData.players?.length) {
+        sessionStorage.setItem('lobby_players_after_vote', JSON.stringify(votingData.players));
+    }
+
+    if (window.myId) {
+        sessionStorage.removeItem(`voting_my_vote_${window.myId}`);
+    }
+
+    window.location.href = '../room/index.html';
+}
+
 async function startSignalR(token) {
     window.connection = new signalR.HubConnectionBuilder()
         .withUrl("/room_hub", {
@@ -8,16 +30,15 @@ async function startSignalR(token) {
         .withAutomaticReconnect()
         .build();
 
-    // EnteredRoom(string id, string nickname)
     window.connection.on("EnteredRoom", (id, nickname) => {
+        if (!isRoomPage()) return;
+
         const playerExists = roomData.players.some(p => {
             const existingId = p.player?.id ?? p.id;
             return String(existingId) === String(id);
         });
 
-        if (playerExists) {
-            return;
-        }
+        if (playerExists) return;
 
         roomData.players.push({
             player: {
@@ -26,13 +47,13 @@ async function startSignalR(token) {
             },
             ready: false
         });
-        console.log(roomData.players);
 
         renderRoom(roomData.players);
     });
 
-    // Ready(string id, bool isReady)
     window.connection.on("Ready", (id, isReady) => {
+        if (!isRoomPage()) return;
+
         const player = roomData.players.find(p => {
             const existingId = p.player?.id ?? p.id;
             return String(existingId) === String(id);
@@ -46,40 +67,49 @@ async function startSignalR(token) {
         renderRoom(roomData.players);
     });
 
-    // KickUser(string userId)
-    window.connection.on("KickUser", (userId) =>{
-        //TODO
-    });
-
-    // StartGame
     window.connection.on("StartGame", () => {
+        if (!isRoomPage()) return;
         startGame();
     });
 
-    // TurnMade(string userId, bool hasMessage, string message, bool hasNextUser, string nextUserId)
-    window.connection.on("TurnMade", (userId, hasMessage, message, hasNextUser, nextUserId) => {
-        if (hasMessage){
+    window.connection.on("TurnMade", async (userId, hasMessage, message, hasNextUser, nextUserId) => {
+        if (!isRoomPage()) return;
+
+        if (hasMessage) {
             addMessage(userId, message);
         }
-        if (hasNextUser){
+        if (hasNextUser) {
             idTurn = nextUserId;
-        }
-        else{
+            const data = await fetchGameData();
+            if (data) {
+                roomData = data;
+                startTimer(data.timeToMakeTurn);
+            }
+            renderRoom(roomData.players);
+        } else {
             window.location.href = "../voting/index.html";
         }
-        console.log("TurnMade", idTurn, nextUserId);
-        renderRoom(roomData.players);
-        startTimer(roomData.timeToMakeTurn);
     });
 
-    // VoteChange(string userId1, int newValue1, string userId2, int newValue2)
-    window.connection.on("VoteChange", (userId1, newValue1, userId2,newValue2 ) => {
-        //TODO
+    window.connection.on("VoteChange", (users, counts) => {
+        if (!isVotingPage()) return;
+        makingVote(users, counts);
     });
 
-    // VoteFinish(string userIdToKick, bool wasAmogus)
-    window.connection.on("VoteFinish", (userIdToKick, wasAmogus) => {
-        //TODO
+    window.connection.on("UserEarlyVoteStatusChange", (id, isReady) => {
+        if (!isVotingPage()) return;
+        updatePlayerEndVoteReady(id, isReady);
+    });
+
+    window.connection.on("ChangeVoteEnd", (secondsToEnd) => {
+        if (!isVotingPage()) return;
+        startTimer(secondsToEnd);
+    });
+
+    window.connection.on("VoteFinish", (userIdToKick, civiliansWon, spyPlayerId) => {
+        if (!isVotingPage()) return;
+
+        showVoteResult(userIdToKick, civiliansWon, spyPlayerId);
     });
 
     try {

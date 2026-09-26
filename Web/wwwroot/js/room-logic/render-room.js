@@ -27,7 +27,7 @@ async function renderRoom(players) {
 
         const nickname = playerData.player?.nickname ?? playerData.nickname ?? "Аноним";
         const playerId = playerData.player?.id ?? playerData.id;
-        const isHisTurn = roomStatus === 'ingame' && (typeof idTurn !== 'undefined') && playerId === idTurn;
+        const isHisTurn = roomStatus === 'ingame' && idTurn && String(playerId) === String(idTurn);
 
         tag.className = `player-tag ${isHisTurn ? 'current-turn' : ''}`;
 
@@ -65,12 +65,12 @@ async function renderRoom(players) {
     checkEveryoneReady(players);
 }
 
-function setGameData(theme, word) {
+function setGameData(theme, word, isAmogus) {
     const themeElem = document.getElementById('themeValue');
     const wordElem = document.getElementById('wordValue');
 
     if (themeElem) themeElem.innerText = theme ?? '';
-    if (wordElem) wordElem.innerText = word ?? '';
+    if (wordElem) wordElem.innerText = isAmogus ? 'ты шпион' : (word ?? '');
 }
 
 function checkEveryoneReady(players) {
@@ -108,10 +108,10 @@ function updateTurnStatusLabel(players) {
         return;
     }
 
-    const activePlayer = players.find(p => (p.player?.id ?? p.id) === idTurn);
+    const activePlayer = players.find(p => String(p.player?.id ?? p.id) === String(idTurn));
     const nickname = activePlayer ? (activePlayer.player?.nickname ?? activePlayer.nickname) : "Неизвестно";
 
-    if (idTurn === window.myId) {
+    if (String(idTurn) === String(window.myId)) {
         banner.innerText = "ВАШ ХОД! Напишите сообщение в чат!";
         banner.classList.add('my-turn-bg');
     } else {

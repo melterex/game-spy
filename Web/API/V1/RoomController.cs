@@ -40,6 +40,7 @@ public class LobbyStatus
 
 public class PlayerData
 {
+    public bool ReadyToEndVoting { get; set; }
     public string Nickname { get; set; }
     public string Id { get; set; }
 }
@@ -268,17 +269,19 @@ public class RoomController : ControllerBase
         }
 
         var gameSession = lobbyService.GetGameSession(room.Session);
-
+        var votingService = gameService.GetVoteService(gameSession);
         var playersList = new List<PlayerData>();
         foreach (var pId in gameSession.PlayersIDs)
         {
             var user = getUserService.GetUser(pId);
             if (user != null)
             {
+                bool isReady = votingService.GetIsPlayerReadyToEndVotingDict(gameSession).TryGetValue(pId, out var hasRetrieved);
                 playersList.Add(new PlayerData
                 {
                     Id = user.Id.ToString(),
-                    Nickname = user.Username
+                    Nickname = user.Username,
+                    ReadyToEndVoting = hasRetrieved ? isReady : false, 
                 });
             }
         }
@@ -299,7 +302,7 @@ public class RoomController : ControllerBase
         }
 
         var voteStats = new List<VoteStat>();
-        var votingService = gameService.GetVoteService(gameSession);
+        
     
         if (gameSession.CurrentStage == GameStage.Voting)
         {
@@ -317,11 +320,21 @@ public class RoomController : ControllerBase
 
         var lobbySettings = lobbyService.GetLobbySettings(room.Session);
 
+        int timeVote;
+        if (gameService.GetIsUdingExtraTime(gameSession))
+        {
+            timeVote = (int)(gameService.GetExtraTime(gameSession) - DateTime.Now).TotalSeconds;
+        }
+        else
+        {
+            timeVote = (int)((gameService.GetVotingStartTime(gameSession) + TimeSpan.FromMinutes(5)) - DateTime.Now)
+                .TotalSeconds;
+        }
         var status = new GameStatus
         {
             Players = playersList.ToArray(),
             IsVoting = gameSession.CurrentStage == GameStage.Voting,
-            TimeToVote = (int)((gameService.GetVotingStartTime(gameSession) + TimeSpan.FromMinutes(5)) - DateTime.Now).TotalSeconds,
+            TimeToVote = timeVote,
             TimeToMakeTurn = (int)((gameService.GetCurrentTurnStartTime(gameSession) + TimeSpan.FromSeconds(60)) - DateTime.Now).TotalSeconds,
             TurnPlayerId = gameService.WhoseTurn(gameSession)?.ToString() ?? string.Empty,
             Card = userCardWord,

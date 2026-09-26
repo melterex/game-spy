@@ -20,4 +20,6 @@ public abstract class GameSession
     public DateTime CurrentTurnStartTime { get; set; }
     public DateTime VotingStartTime { get; set; }
     public Dictionary<UserId, bool> IsPlayerReadyToEndVotingDict { get; set; } = new();
+    public DateTime ExtraTime { get; set; } = DateTime.MinValue;
+    public bool IsUsingExtraTime { get; set; } = false;
 }

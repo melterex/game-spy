@@ -1,62 +1,40 @@
-let myCurrentVote = null;
+function buildVoteCards(players, voteStats) {
+    if (!players) return [];
+    return players.map(p => ({
+        playerId: p.id,
+        votedForHim: voteStats?.find(item => String(item.playerId) === String(p.id))?.votedForHim ?? 0,
+        nickname: p.nickname
+    }));
+}
 
-function renderVoting(players, countVotes = [0, 0, 0, 0, 0, 0, 0 ]) {
+function renderVoting(countVotes) {
+    lastCountVotes = countVotes;
     const grid = document.getElementById('usersGrid');
     grid.innerHTML = '';
-    console.log(players);
 
-    let i = 0;
-    players.forEach(player => {
+    countVotes.forEach(player => {
         const card = document.createElement('div');
-        card.className = `user-card ${myCurrentVote === player.id ? 'selected' : ''}`;
-        card.id = `card-${player.id}`;
+        card.className = `user-card ${String(myCurrentVote) === String(player.playerId) ? 'selected' : ''}`;
+        card.id = `card-${player.playerId}`;
 
-        card.onclick = () => handleVoteClick(player.id);
+        card.onclick = () => handleVoteClick(player.playerId);
+
+        const isReadyToEnd = endVoteReadyByPlayer[String(player.playerId)] === true;
 
         card.innerHTML = `
             <div class="avatar-placeholder">👤</div>
             <div class="user-info">
                 <span class="username">${player.nickname}</span>
+                ${isReadyToEnd ? '<span class="end-vote-ready-badge">Готов завершить</span>' : ''}
             </div>
             <div class="votes-counter">
-                <span class="votes-count" id="votes-${player.id}">${countVotes[i]}</span>
+                <span class="votes-count" id="votes-${player.playerId}">${player.votedForHim}</span>
                 <span class="votes-label">голосов</span>
             </div>
         `;
 
         grid.appendChild(card);
-        i++;
     });
+
+    updateFinishButton(countVotes);
 }
-
-function handleVoteClick(targetPlayerId) {
-    if (myCurrentVote === targetPlayerId) return;
-
-    if (myCurrentVote) {
-        const oldCard = document.getElementById(`card-${myCurrentVote}`);
-        if (oldCard) oldCard.classList.remove('selected');
-    }
-
-    myCurrentVote = targetPlayerId;
-    const newCard = document.getElementById(`card-${targetPlayerId}`);
-    if (newCard) newCard.classList.add('selected');
-
-    console.log(`Отправляем на бэкенд голос за: ${targetPlayerId}`);
-
-}
-
-
-function updateVotes(votesMap) {
-    for (const [playerId, count] of Object.entries(votesMap)) {
-        const counterElement = document.getElementById(`votes-${playerId}`);
-        if (counterElement) {
-            counterElement.textContent = count;
-        }
-    }
-}
-
-// Первичный запуск при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    renderVoting(roomData.players);
-    console.log(roomData.players);
-});

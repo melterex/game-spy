@@ -18,7 +18,7 @@ window.onclick = (event) => {
 }
 
 playBtn.onclick = () => {
-    window.location.href = '../../room-list/index.html';
+    window.location.href = 'room-list/index.html';
 }
 
 
