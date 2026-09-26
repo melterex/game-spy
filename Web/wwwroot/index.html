@@ -1,10 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spy Game - Главная</title>
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-<p>Hello, world!</p>
+
+<button id="loginBtn" class="top-right-btn">Вход</button>
+
+<div class="main-container">
+    <h1 class="game-title">ШПИОН</h1>
+    <button id="playBtn" class="play-btn">ИГРАТЬ</button>
+</div>
+
+<div id="authModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="auth-tabs">
+            <button class="tab-link active" onclick="openTab(event, 'login')">Вход</button>
+            <button class="tab-link" onclick="openTab(event, 'register')">Регистрация</button>
+        </div>
+
+        <form id="login" class="tab-content active">
+            <label>
+                <input name="logNick" type="text" placeholder="Логин" required>
+            </label>
+            <label>
+                <input name="logPass" type="password" placeholder="Пароль" required>
+            </label>
+            <button type="submit" class="submit-btn">Войти</button>
+        </form>
+
+        <form id="register" class="tab-content">
+            <label>
+                <input name="regNick" type="text" placeholder="Придумайте логин" required>
+            </label>
+            <label>
+                <input name="regPass" type="password" placeholder="Придумайте пароль" required>
+            </label>
+            <button type="submit" class="submit-btn">Создать аккаунт</button>
+        </form>
+    </div>
+</div>
+
+<script src="js/index/login.js"></script>
+<script src="js/index/register.js"></script>
+<script src="js/index/index.js"></script>
 </body>
 </html>

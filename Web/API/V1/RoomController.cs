@@ -1,5 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using authorization;
+using GameLogic.Enums;
+using GameLogic.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RoomService;
 
 namespace WebAPI.API.V1;
 
@@ -24,7 +30,7 @@ public class RoomSettings
 public class PlayerLobbyData
 {
     public PlayerData Player { get; set; }
-    public string Ready { get; set; }
+    public bool Ready { get; set; }
 }
 public class LobbyStatus
 {
@@ -68,39 +74,265 @@ public class Message
 [Route("api/v1/rooms")]
 public class RoomController : ControllerBase
 {
-    [HttpGet("rooms-list")]
+    private readonly IRoomService roomService;
+    private readonly ILobbyService lobbyService;
+    private readonly IGameService gameService;
+    private readonly IGetUser getUserService;
+
+    public RoomController(IRoomService _roomService, ILobbyService _lobbyService,
+        IGameService _gameService, IGetUser _getUserService)
+    {
+        roomService = _roomService;
+        lobbyService = _lobbyService;
+        gameService = _gameService;
+        getUserService = _getUserService;
+    }
+    [HttpGet]
     public ActionResult<Room[]> RoomList()
     {
-        return NotFound();
+        var roomsDictionary = roomService.GetRooms();
+        var result = roomsDictionary.Values.Where(rsRoom => rsRoom.Status == RoomService.RoomStatus.Waiting).Select(rsRoom =>
+        {
+            var playerStatuses = lobbyService.GetPlayersStatuses(rsRoom.Session);
+            var lobbySettings = lobbyService.GetLobbySettings(rsRoom.Session);
+            return new Room
+            {
+                Id = rsRoom.RoomId.ToString(),
+                Name = rsRoom.Title,
+                UsersCount = playerStatuses?.Count ?? 0,
+                UserMaxCount = lobbySettings?.MaxPlayers ?? 0 
+            };
+        }).ToArray();
+        return Ok(result);
     }
 
-    [HttpPost("room-create")]
+    [HttpPost]
     public IActionResult RoomCreate([FromBody] RoomSettings roomSettings)
     {
-        return NotFound();    
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            return Unauthorized();
+        }
+
+        var user = getUserService.GetUser(UserId.FromString(userIdString));
+
+        roomService.CreateRoom(RoomType.Public, user);
+
+        var newRoom = roomService.GetRoomByUserId(user.Id);
+        if (newRoom == null)
+        {
+            return BadRequest();
+        }
+
+        var newLobbySettings = new LobbySettings(roomSettings.UserMaxCount, RoomService.RoomStatus.Waiting, roomSettings.Theme);
+        lobbyService.SetLobbySettings(newLobbySettings, newRoom.Session);
+        return Ok(newRoom.RoomId.ToString());
     }
 
-    [HttpPost("room-enter")]
-    public IActionResult RoomEnter([FromBody] RoomId roomId)
+    [HttpPost("{roomId}/enter")]
+    public IActionResult RoomEnter(string roomId)
     {
-        return NotFound();
+        var room = roomService.GetRoomByRoomId(Guid.Parse(roomId));
+        if (room == null)
+        {
+            return NotFound();
+        }
+        var user = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+        var stat = lobbyService.TryToEnter(room.Session, user);
+        if (stat == false)
+        {
+            return BadRequest();
+        }
+        else
+        {
+            return Ok();
+        }
     }
 
-    [HttpGet("in-game")]
-    public ActionResult<bool> InGame([FromQuery] string roomid)
+    [HttpGet("my-room")]
+    public ActionResult<Room> MyRoom()
     {
-        return NotFound();
+        var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+        var room = roomService.GetRoomByUserId(user_req.Id);
+        if (room == null)
+        {
+            return NotFound();
+        }
+        var playerStatuses = lobbyService.GetPlayersStatuses(room.Session);
+        var lobbySettings = lobbyService.GetLobbySettings(room.Session);
+        return new Room
+        {
+            Id = room.RoomId.ToString(),
+            Name = room.Title,
+            UsersCount = playerStatuses?.Count ?? 0,
+            UserMaxCount = lobbySettings?.MaxPlayers ?? 0 
+        };
     }
-    [HttpGet("lobby-status")]
+    [HttpGet("my-room/status")]
+    public ActionResult<string> InGame()
+    {
+        var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+        var room = roomService.GetRoomByUserId(user_req.Id);
+        if (room == null)
+        {
+            return NotFound();
+        }
+
+        switch (room.Status)
+        {
+            case RoomService.RoomStatus.Closed:
+            {
+                return Ok("closed");
+            }
+            case RoomService.RoomStatus.InGame:
+            {
+                return Ok("ingame");
+            }
+            case RoomService.RoomStatus.Waiting:
+            {
+                return Ok("waiting");
+            }
+            default:
+                return BadRequest();
+        }
+    }
+    [HttpGet("my-room/lobby")]
     public ActionResult<LobbyStatus> RoomStatus()
     {
-        return NotFound();
+        var user_req = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+        
+        var room = roomService.GetRoomByUserId(user_req.Id);
+        if (room == null)
+        {
+            return NotFound();
+        }
+        if (room.Status != RoomService.RoomStatus.Waiting)
+        {
+            return BadRequest();
+        }
+
+        if (room.Status != RoomService.RoomStatus.Waiting)
+        {
+            return BadRequest();
+        }
+        var playerStatuses = lobbyService.GetPlayersStatuses(room.Session);
+        var playersList = new List<PlayerLobbyData>();
+        foreach (var kvp in playerStatuses)
+        {
+            var userId = kvp.Key;
+            var status = kvp.Value;
+
+            var user = getUserService.GetUser(userId);
+            playersList.Add(new PlayerLobbyData
+            {
+                Player = new PlayerData
+                {
+                    Id = user.Id.ToString(),
+                    Nickname = user.Username
+                },
+                Ready = status == PlayerStatus.Ready
+            });
+        }
+
+        var settings = lobbyService.GetLobbySettings(room.Session);
+    
+        var apiRoomSettings = new RoomSettings();
+        apiRoomSettings.Theme = settings.Theme;
+        apiRoomSettings.UserMaxCount = settings.MaxPlayers; 
+
+        var lobbyStatus = new LobbyStatus
+        {
+            Players = playersList.ToArray(),
+            RoomSettings = apiRoomSettings
+        };
+
+        return Ok(lobbyStatus);
     }
 
-    [HttpGet("game-status")]
+    [HttpGet("my-room/game")]
     public ActionResult<GameStatus> GameStatus()
     {
-        return NotFound();
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var currentUserId = UserId.FromString(userIdString);
+
+
+        var room = roomService.GetRoomByUserId(currentUserId);
+        if (room == null)
+        {
+            return NotFound();
+        }
+        if (room.Status != RoomService.RoomStatus.InGame)
+        {
+            return BadRequest();
+        }
+
+        var gameSession = lobbyService.GetGameSession(room.Session);
+
+        var playersList = new List<PlayerData>();
+        foreach (var pId in gameSession.PlayersIDs)
+        {
+            var user = getUserService.GetUser(pId);
+            if (user != null)
+            {
+                playersList.Add(new PlayerData
+                {
+                    Id = user.Id.ToString(),
+                    Nickname = user.Username
+                });
+            }
+        }
+
+        var card = gameService.GetPlayerCardByID(gameSession, currentUserId);
+        string userCardWord = card.Word;
+        bool isAmogus = card.IsSpy;
+
+
+        var apiMessages = new List<Message>();
+        foreach (var userMessages in gameSession.MessagesList)
+        {
+            apiMessages.Add(new Message
+            {
+                PlayerId = userMessages.Id.ToString(),
+                MessageBody = userMessages.MessageBody,
+            });
+        }
+
+        var voteStats = new List<VoteStat>();
+        var votingService = gameService.GetVoteService(gameSession);
+    
+        if (gameSession.CurrentStage == GameStage.Voting)
+        {
+            var report = votingService.GetVotingReport(gameSession);
+        
+            foreach (var vote in report.Votes)
+            {
+                voteStats.Add(new VoteStat
+                {
+                    PlayerId = vote.Key.ToString(),
+                    VotedForHim = vote.Value
+                });
+            }
+        }
+
+        var lobbySettings = lobbyService.GetLobbySettings(room.Session);
+
+        var status = new GameStatus
+        {
+            Players = playersList.ToArray(),
+            IsVoting = gameSession.CurrentStage == GameStage.Voting,
+            TimeToVote = (int)((gameService.GetVotingStartTime(gameSession) + TimeSpan.FromMinutes(5)) - DateTime.Now).TotalSeconds,
+            TimeToMakeTurn = (int)((gameService.GetCurrentTurnStartTime(gameSession) + TimeSpan.FromSeconds(60)) - DateTime.Now).TotalSeconds,
+            TurnPlayerId = gameService.WhoseTurn(gameSession)?.ToString() ?? string.Empty,
+            Card = userCardWord,
+            Theme = lobbySettings?.Theme ?? string.Empty,
+            Messages = apiMessages.ToArray(),
+            Round = gameSession.CurrentRound,
+            VoteStatistics = voteStats.ToArray(),
+            IsAmogus = isAmogus
+        };
+
+        return Ok(status);
     }
     
 }

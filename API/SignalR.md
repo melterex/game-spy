@@ -46,17 +46,21 @@ Called by a player during the voting phase to cast a vote against someone.
     * `userId` (string): The ID of the player being voted for.
 * **Action:** Broadcasts `VoteChange` to all clients.
 
+### `MakeReadyEndVote(isReady: bool)`
+Called to notify that a client is ready to end voting
+* **Parameters:**
+  * `isReady`: Is player ready to end voting
+* **Action**: Broadcasts `VoteFinish` if everybody is ready
 ---
 
 ## Server-to-Client Events
 *Clients must listen (`on`) for these events to update the UI based on server state.*
 
-### `EnteredRoom(string id, string nickname, int order)`
+### `EnteredRoom(string id, string nickname)`
 Triggered when a player successfully joins the room.
 * **Payload:**
     * `id` (string): The unique identifier of the joined user.
     * `nickname` (string): The display name of the joined user.
-    * `order` number: The turn of the player(counting from first in the array)
 
 ### `Ready(string id, bool isReady)`
 Triggered when a player changes their ready state.
@@ -82,16 +86,13 @@ Triggered when a user completes their turn.
     * `hasNextUser` (boolean): Indicates if the turn passes to another user (`true`) or if a voting phase begins (`false`).
     * `nextUserId` (string): The ID of the next user to play.
 
-### `VoteChange(string userId1, int newValue1, string userId2, int newValue2)`
+### `VoteChange(string userId1, string[] userIds, int[] votesForThem)`
 Triggered when the voting tallies change.
-* **Payload:**
-    * `userId1` (string): ID of a user.
-    * `newValue1` number: The new vote tally for userId1.
-    * `userId2` (string): ID of another user.
-    * `newValue2` number: The new vote tally for userId2.
+* **Payload:** 
+    * Values in the arrays do correspondent  
 
 ### `VoteFinish(string userIdToKick, bool wasAmogus)`
 Triggered when the voting phase concludes.
 * **Payload:**
-    * `userIdToKick` (string): The ID of the player voted out (or null if a tie/skip).
+    * `userIdToKick` (string): The ID of the player voted out (or `tie` if tie).
     * `wasAmogus` boolean: Indicates whether the ejected player had the impostor/traitor role.

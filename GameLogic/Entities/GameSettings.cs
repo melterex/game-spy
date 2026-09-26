@@ -7,6 +7,6 @@ namespace GameLogic.Entities
     public class GameSettings
     {
         public int TotalRounds { get; set; } = 3;
-        String Theme { get; set; }
+        public String Theme { get; set; }
     }
 }
