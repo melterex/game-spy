@@ -11,12 +11,15 @@ public class TurnWorker : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ITurnStorage _turnStorage;
     private readonly IHubContext<RoomHub> hubContext;
+    private readonly ILogger<TurnWorker> _logger;
 
-    public TurnWorker(IServiceScopeFactory scopeFactory, ITurnStorage turnStorage, IHubContext<RoomHub> hubContext)
+    public TurnWorker(IServiceScopeFactory scopeFactory, ITurnStorage turnStorage, 
+            IHubContext<RoomHub> hubContext, ILogger<TurnWorker> logger)
     {
         _turnStorage = turnStorage;
         _scopeFactory = scopeFactory;
         this.hubContext = hubContext;
+        _logger = logger;
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -42,6 +45,12 @@ public class TurnWorker : BackgroundService
                 var gameSession = lobbyService.GetGameSession(room.Session);
                 var userId = gameService.WhoseTurn(gameSession);
                 gameService.MessageReceived(gameSession, "No message was provided");
+
+                _logger.LogInformation(
+                    "Turn timer expired for room {RoomId}. Forced skip for player {UserId}", 
+                    action.RoomId, userId
+                    );
+
                 await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", userId.ToString(),
                     false, String.Empty, gameService.WhoseTurn(gameSession) != null,
                     gameService.WhoseTurn(gameSession) != null
@@ -66,6 +75,12 @@ public class TurnWorker : BackgroundService
                 var votingService = gameService.GetVoteService(gameSession);
                 var votingReport = votingService.GetVotingReport(gameSession);
                 var results = votingService.SummarizeResults(gameSession);
+
+                _logger.LogInformation(
+                    "Voting timer expired for room {RoomId}. Forced voting end with result {Result}", 
+                    action.RoomId, results
+                    );
+
                 var maxUserId = votingReport.Votes.MaxBy(a => a.Value);
                 bool wasAmogus = results == VotingResults.CivilianWins;
                 if (results == VotingResults.Tie)

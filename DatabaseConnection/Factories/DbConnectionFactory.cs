@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace DbConnection
 {
-    public class DbConnectionFactory
+    public class DbConnectionFactory(ILogger<DbConnectionFactory> logger)
     {
         private readonly Dictionary<string, Action<DbContextOptionsBuilder, string>> _strategies =
         new(StringComparer.OrdinalIgnoreCase)
@@ -14,16 +15,30 @@ namespace DbConnection
 
         public void Configure(DbContextOptionsBuilder options)
         {
-            var dbType = Environment.GetEnvironmentVariable("DB_TYPE")
-                         ?? throw new ArgumentException("DB_TYPE not set");
+            var dbType = Environment.GetEnvironmentVariable("DB_TYPE");
+            if (string.IsNullOrEmpty(dbType))
+            {
+                logger.LogCritical("DB_TYPE environment variable is missing");
+                throw new ArgumentException("DB_TYPE not set");
+            }
 
-            var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING")
-                                   ?? throw new ArgumentException("CONNECTION_STRING not set");
+
+            var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                logger.LogCritical("CONNECTION_STRING environment variable is missing");
+                throw new ArgumentException("CONNECTION_STRING not set");
+            }                                   
 
             if (_strategies.TryGetValue(dbType, out var configureDb))
                 configureDb(options, connectionString);
 
-            else throw new InvalidOperationException($"Database type {dbType} is not supported");
+            else {
+                logger.LogError("Unsupported database type: {DbType}", dbType);
+                throw new InvalidOperationException($"Database type {dbType} is not supported");
+            }
+
+            logger.LogDebug($"Database {dbType} sucessfully configured");
         }
     }
 }

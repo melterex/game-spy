@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using GameLogic.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace GameLogic.Services
 {
@@ -14,14 +15,16 @@ namespace GameLogic.Services
         private readonly Dictionary<Guid, GameSession> sessions = new();
         private readonly IVotingService _votingService;
         private readonly IThemesService _themesService;
+        private ILogger<GameService> _logger;
         public List<UserId> GeneratePlayerOrder(List<UserId> playersIDs)
         {
             return playersIDs.OrderBy(_ => Guid.NewGuid()).ToList();
         }
-        public GameService(IVotingService votingService, IThemesService themesService)
+        public GameService(IVotingService votingService, IThemesService themesService, ILogger<GameService> logger)
         {
             _votingService = votingService;
             _themesService = themesService;
+            _logger = logger;
         }
         public Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings)
         {
@@ -41,6 +44,9 @@ namespace GameLogic.Services
             };
             AssignCards(session);
             sessions[session.GameId] = session;
+
+            _logger.LogInformation("New GameSession {GameId} created", session.GameId);
+
             return session.GameId;
         }
         public Dictionary<UserId, Card> AssignCards(GameSession session)
@@ -67,11 +73,16 @@ namespace GameLogic.Services
             }
 
             session.PlayerCards = cards;
+
+            _logger.LogInformation("Cards assigned");
+
             return cards;
         }
         public GameSession GetGameSessionById(Guid GameSessionId)
         {
-            sessions.TryGetValue(GameSessionId, out var session);
+            if (!sessions.TryGetValue(GameSessionId, out var session))
+                _logger.LogWarning("Game session with ID {GameSessionId} not found", GameSessionId);
+
             return session;
         }
         public List<UserId> GetPlayerOrder(GameSession session)
@@ -92,8 +103,10 @@ namespace GameLogic.Services
         public void MessageReceived(GameSession session, string message)
         {
             var currentPlayerId = WhoseTurn(session);
-            if (currentPlayerId == null)
+            if (currentPlayerId == null){
+                _logger.LogCritical("No active player");
                 throw new InvalidOperationException("Нет активного игрока");
+            }
 
             session.MessagesList.Add(new Message(currentPlayerId, message));
             session.CurrentPlayerIndex++;
@@ -106,11 +119,19 @@ namespace GameLogic.Services
                 {
                     session.CurrentPlayerIndex = -1;
                     session.CurrentStage = GameStage.Voting;
+
+                    _logger.LogInformation(
+                        "All rounds finished for session {GameId}. Moving to Voting stage", session.GameId
+                        );
                 }
                 else
                 {
                     session.CurrentPlayerIndex = 0;
                     session.CurrentRound++;
+
+                    _logger.LogInformation(
+                        "Round {CurrentRound} started for session {GameId}", session.CurrentRound, session.GameId
+                        );
                 }
             }
         }
@@ -126,6 +147,8 @@ namespace GameLogic.Services
             {
                 session.IsPlayerReadyToEndVotingDict[userID] = false;
             }
+
+            _logger.LogInformation("Voting phase started for game session {GameId}", session.GameId);
         }
 
         public DateTime GetCurrentTurnStartTime(GameSession session)

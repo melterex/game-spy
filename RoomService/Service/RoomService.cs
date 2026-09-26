@@ -1,10 +1,9 @@
 using System.Collections.Concurrent;
 using authorization;
-using Microsoft.Extensions.Logging;
 
 namespace RoomService
 {
-    public class RoomService(ILogger<RoomService> logger) : IRoomService
+    public class RoomService : IRoomService
     {
         private ConcurrentDictionary<Guid, Room> _rooms = new();
 
@@ -24,7 +23,6 @@ namespace RoomService
                 if (room.Session.GetPlayers().TryGetValue(id, out var _))
                     return room;
 
-            logger.LogInformation($"Haven`t found Player with id {id}");
             return null;
         }
 
@@ -33,7 +31,6 @@ namespace RoomService
             if (_rooms.TryGetValue(id, out var room))
                 return room;
 
-            logger.LogInformation($"Haven`t found Room with id {id}");
             return null;
         }
         public IReadOnlyDictionary<Guid, Room> GetRooms() => _rooms.AsReadOnly();
