@@ -17,7 +17,11 @@ builder.Services.AddTransient<ILobbyService, LobbyService>();
 builder.Services.AddTransient<CardsService.IThemesService, ThemesService>();
 builder.Services.AddTransient<IVotingService, VotingService>();
 builder.Services.AddTransient<IGameService, GameService>();
-builder.Services.AddTransient<IParser, ThemesJsonParser>();
+builder.Services.AddTransient<IParser>(provider => 
+    new ThemesJsonParser 
+    { 
+        logger = provider.GetRequiredService<ILogger<ThemesJsonParser>>() 
+    });
 builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IGetUser, GetUserService>();
