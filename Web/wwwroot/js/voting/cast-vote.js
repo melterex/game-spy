@@ -24,8 +24,8 @@ async function handleVoteClick(targetPlayerId) {
 }
 
 function makingVote(users, counts) {
-    const countVotes = users.map((userId, i) => ({
-        playerId: userId,
+    const countVotes = users.map((slotId, i) => ({
+        slotId,
         votedForHim: counts[i]
     }));
     renderVoting(buildVoteCards(votingData.players, countVotes));

@@ -26,8 +26,8 @@ async function renderRoom(players) {
         const tag = document.createElement('div');
 
         const nickname = playerData.player?.nickname ?? playerData.nickname ?? "Аноним";
-        const playerId = playerData.player?.id ?? playerData.id;
-        const isHisTurn = roomStatus === 'ingame' && idTurn && String(playerId) === String(idTurn);
+        const slotId = playerData.player?.slotId ?? playerData.slotId;
+        const isHisTurn = roomStatus === 'ingame' && idTurn && String(slotId) === String(idTurn);
 
         tag.className = `player-tag ${isHisTurn ? 'current-turn' : ''}`;
 
@@ -52,7 +52,7 @@ async function renderRoom(players) {
             `;
         }
 
-        tag.dataset.id = playerId;
+        tag.dataset.slotId = slotId;
         return tag;
     };
 
@@ -108,10 +108,10 @@ function updateTurnStatusLabel(players) {
         return;
     }
 
-    const activePlayer = players.find(p => String(p.player?.id ?? p.id) === String(idTurn));
+    const activePlayer = players.find(p => String(p.player?.slotId ?? p.slotId) === String(idTurn));
     const nickname = activePlayer ? (activePlayer.player?.nickname ?? activePlayer.nickname) : "Неизвестно";
 
-    if (String(idTurn) === String(window.myId)) {
+    if (String(idTurn) === String(window.mySlotId)) {
         banner.innerText = "ВАШ ХОД! Напишите сообщение в чат!";
         banner.classList.add('my-turn-bg');
     } else {

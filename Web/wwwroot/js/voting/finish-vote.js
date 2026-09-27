@@ -60,16 +60,16 @@ function restoreEndVoteReadyState(players) {
     endVoteReadyByPlayer = {};
 
     players?.forEach(player => {
-        endVoteReadyByPlayer[String(player.id)] = player.readyToEndVoting === true;
+        endVoteReadyByPlayer[String(player.slotId)] = player.readyToEndVoting === true;
     });
 
-    myEndVoteReady = endVoteReadyByPlayer[String(window.myId)] === true;
+    myEndVoteReady = endVoteReadyByPlayer[String(window.mySlotId)] === true;
 }
 
 function updatePlayerEndVoteReady(id, isReady) {
     endVoteReadyByPlayer[String(id)] = isReady;
 
-    if (String(id) === String(window.myId)) {
+    if (String(id) === String(window.mySlotId)) {
         myEndVoteReady = isReady;
     }
 

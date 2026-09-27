@@ -44,8 +44,9 @@ function hideLobbyControls() {
 function applyInGameState(data) {
     roomStatus = 'ingame';
     roomData = data;
+    window.mySlotId = data.mySlotId;
     hideLobbyControls();
-    idTurn = data.turnPlayerId;
+    idTurn = data.turnSlotId;
     renderRoom(data.players);
     setGameData(data.theme, data.card, data.isAmogus);
     startTimer(data.timeToMakeTurn);

@@ -76,8 +76,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const myProfile = roomData.players.find(p => {
-                const id = p.player?.id ?? p.id;
-                return String(id) === String(window.myId);
+                const slotId = p.player?.slotId ?? p.slotId;
+                return String(slotId) === String(window.mySlotId);
             });
 
             if (myProfile && myProfile.ready === true) {

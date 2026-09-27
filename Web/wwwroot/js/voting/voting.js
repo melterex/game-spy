@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    window.mySlotId = votingData.mySlotId;
     restoreMyVote(votingData.players);
     restoreEndVoteReadyState(votingData.players);
     renderVoting(buildVoteCards(votingData.players, votingData.voteStatistics));

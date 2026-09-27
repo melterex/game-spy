@@ -15,8 +15,8 @@ function goToRoomAfterVoting() {
         sessionStorage.setItem('lobby_players_after_vote', JSON.stringify(votingData.players));
     }
 
-    if (window.myId) {
-        sessionStorage.removeItem(`voting_my_vote_${window.myId}`);
+    if (window.mySlotId) {
+        sessionStorage.removeItem(`voting_my_vote_${window.mySlotId}`);
     }
 
     window.location.href = '../room/index.html';
@@ -30,19 +30,19 @@ async function startSignalR(token) {
         .withAutomaticReconnect()
         .build();
 
-    window.connection.on("EnteredRoom", (id, nickname) => {
+    window.connection.on("EnteredRoom", (slotId, nickname) => {
         if (!isRoomPage()) return;
 
         const playerExists = roomData.players.some(p => {
-            const existingId = p.player?.id ?? p.id;
-            return String(existingId) === String(id);
+            const existingSlotId = p.player?.slotId ?? p.slotId;
+            return String(existingSlotId) === String(slotId);
         });
 
         if (playerExists) return;
 
         roomData.players.push({
             player: {
-                id: id.toString(),
+                slotId: slotId.toString(),
                 nickname: nickname
             },
             ready: false
@@ -51,18 +51,18 @@ async function startSignalR(token) {
         renderRoom(roomData.players);
     });
 
-    window.connection.on("Ready", (id, isReady) => {
+    window.connection.on("Ready", (slotId, isReady) => {
         if (!isRoomPage()) return;
 
         const player = roomData.players.find(p => {
-            const existingId = p.player?.id ?? p.id;
-            return String(existingId) === String(id);
+            const existingSlotId = p.player?.slotId ?? p.slotId;
+            return String(existingSlotId) === String(slotId);
         });
 
         if (player) {
             player.ready = isReady;
         } else {
-            console.warn(`Игрок с ID ${id} не найден в текущем массиве roomData.players`);
+            console.warn(`Игрок со SlotID ${slotId} не найден в текущем массиве roomData.players`);
         }
         renderRoom(roomData.players);
     });
@@ -72,14 +72,14 @@ async function startSignalR(token) {
         startGame();
     });
 
-    window.connection.on("TurnMade", async (userId, hasMessage, message, hasNextUser, nextUserId) => {
+    window.connection.on("TurnMade", async (slotId, hasMessage, message, hasNextSlot, nextSlotId) => {
         if (!isRoomPage()) return;
 
         if (hasMessage) {
-            addMessage(userId, message);
+            addMessage(slotId, message);
         }
-        if (hasNextUser) {
-            idTurn = nextUserId;
+        if (hasNextSlot) {
+            idTurn = nextSlotId;
             const data = await fetchGameData();
             if (data) {
                 roomData = data;
@@ -96,9 +96,9 @@ async function startSignalR(token) {
         makingVote(users, counts);
     });
 
-    window.connection.on("UserEarlyVoteStatusChange", (id, isReady) => {
+    window.connection.on("UserEarlyVoteStatusChange", (slotId, isReady) => {
         if (!isVotingPage()) return;
-        updatePlayerEndVoteReady(id, isReady);
+        updatePlayerEndVoteReady(slotId, isReady);
     });
 
     window.connection.on("ChangeVoteEnd", (secondsToEnd) => {
@@ -106,10 +106,10 @@ async function startSignalR(token) {
         startTimer(secondsToEnd);
     });
 
-    window.connection.on("VoteFinish", (userIdToKick, civiliansWon, spyPlayerId) => {
+    window.connection.on("VoteFinish", (slotIdToKick, civiliansWon, spySlotId) => {
         if (!isVotingPage()) return;
 
-        showVoteResult(userIdToKick, civiliansWon, spyPlayerId);
+        showVoteResult(slotIdToKick, civiliansWon, spySlotId);
     });
 
     try {

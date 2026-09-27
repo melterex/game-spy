@@ -1,6 +1,6 @@
 function toLobbyPlayers(players) {
     return (players || []).map(p => ({
-        player: { id: p.id ?? p.player?.id, nickname: p.nickname ?? p.player?.nickname },
+        player: { slotId: p.slotId ?? p.player?.slotId, nickname: p.nickname ?? p.player?.nickname },
         ready: false
     }));
 }

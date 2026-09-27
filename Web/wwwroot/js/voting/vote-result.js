@@ -1,71 +1,37 @@
-function findPlayer(playerId) {
-    return votingData.players?.find(p => String(p.id) === String(playerId));
+function findPlayer(slotId) {
+    return votingData.players?.find(p => String(p.slotId) === String(slotId));
 }
 
-function getPlayerNickname(playerId) {
-    const player = findPlayer(playerId);
+function getPlayerNickname(slotId) {
+    const player = findPlayer(slotId);
     if (player?.nickname) return player.nickname;
 
-    const fromVotes = lastCountVotes.find(p => String(p.playerId) === String(playerId));
+    const fromVotes = lastCountVotes.find(p => String(p.slotId) === String(slotId));
     return fromVotes?.nickname ?? null;
 }
 
-function extractIdFromBrokenPayload(rawId) {
-    const str = String(rawId).trim();
-
-    const kvpMatch = str.match(/^\[(\d+),\s*\d+\]$/);
-    if (kvpMatch) return kvpMatch[1];
-
-    if (/^\d+$/.test(str)) return str;
-
-    return null;
-}
-
-function resolveKickedPlayerId(userIdToKick) {
-    if (userIdToKick === 'tie') return 'tie';
-
-    if (getPlayerNickname(userIdToKick)) {
-        return userIdToKick;
+function resolveSpyInfo(spySlotId, kickedSlotId, civiliansWon) {
+    if (spySlotId && getPlayerNickname(spySlotId)) {
+        return { known: true, nickname: getPlayerNickname(spySlotId) };
     }
 
-    const extractedId = extractIdFromBrokenPayload(userIdToKick);
-    if (extractedId && getPlayerNickname(extractedId)) {
-        return extractedId;
-    }
-
-    if (lastCountVotes.length) {
-        const maxVotes = Math.max(...lastCountVotes.map(p => p.votedForHim));
-        const leaders = lastCountVotes.filter(p => p.votedForHim === maxVotes);
-        if (leaders.length === 1) {
-            return leaders[0].playerId;
-        }
-    }
-
-    return userIdToKick;
-}
-
-function resolveSpyInfo(spyPlayerId, kickedPlayerId, civiliansWon) {
-    if (spyPlayerId && getPlayerNickname(spyPlayerId)) {
-        return { known: true, nickname: getPlayerNickname(spyPlayerId) };
-    }
-
-    if (civiliansWon && kickedPlayerId !== 'tie') {
+    if (civiliansWon && kickedSlotId !== 'tie') {
         return {
             known: true,
-            nickname: getPlayerNickname(kickedPlayerId) ?? 'неизвестный игрок'
+            nickname: getPlayerNickname(kickedSlotId) ?? 'неизвестный игрок'
         };
     }
 
     if (votingData.isAmogus) {
         return {
             known: true,
-            nickname: window.myNickname ?? getPlayerNickname(window.myId) ?? 'вы'
+            nickname: window.myNickname ?? getPlayerNickname(window.mySlotId) ?? 'вы'
         };
     }
 
-    if (kickedPlayerId !== 'tie') {
+    if (kickedSlotId !== 'tie') {
         const remaining = (votingData.players ?? []).filter(
-            p => String(p.id) !== String(kickedPlayerId)
+            p => String(p.slotId) !== String(kickedSlotId)
         );
 
         if (remaining.length === 1) {
@@ -76,15 +42,15 @@ function resolveSpyInfo(spyPlayerId, kickedPlayerId, civiliansWon) {
     return { known: false };
 }
 
-function buildVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
+function buildVoteResult(slotIdToKick, civiliansWon, spySlotId) {
     const isSpy = votingData.isAmogus === true;
-    const kickedPlayerId = resolveKickedPlayerId(userIdToKick);
-    const spyInfo = resolveSpyInfo(spyPlayerId, kickedPlayerId, civiliansWon);
-    const kickedNickname = kickedPlayerId === 'tie'
+    const kickedSlotId = slotIdToKick;
+    const spyInfo = resolveSpyInfo(spySlotId, kickedSlotId, civiliansWon);
+    const kickedNickname = kickedSlotId === 'tie'
         ? null
-        : (getPlayerNickname(kickedPlayerId) ?? 'игрок');
+        : (getPlayerNickname(kickedSlotId) ?? 'игрок');
 
-    if (kickedPlayerId === 'tie') {
+    if (kickedSlotId === 'tie') {
         return {
             title: 'Ничья',
             message: 'Голоса разделились. Раунд завершён без выгнания.',
@@ -121,7 +87,7 @@ function buildVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
     };
 }
 
-function showVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
+function showVoteResult(slotIdToKick, civiliansWon, spySlotId) {
     const overlay = document.getElementById('voteResultOverlay');
     const titleEl = document.getElementById('voteResultTitle');
     const messageEl = document.getElementById('voteResultMessage');
@@ -132,7 +98,7 @@ function showVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
         return;
     }
 
-    const result = buildVoteResult(userIdToKick, civiliansWon, spyPlayerId);
+    const result = buildVoteResult(slotIdToKick, civiliansWon, spySlotId);
 
     titleEl.textContent = result.title;
     messageEl.textContent = result.message;

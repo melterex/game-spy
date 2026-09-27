@@ -1,9 +1,9 @@
 function getVoteStorageKey() {
-    return `voting_my_vote_${window.myId ?? 'unknown'}`;
+    return `voting_my_vote_${window.mySlotId ?? 'unknown'}`;
 }
 
-function saveMyVote(playerId) {
-    sessionStorage.setItem(getVoteStorageKey(), String(playerId));
+function saveMyVote(slotId) {
+    sessionStorage.setItem(getVoteStorageKey(), String(slotId));
 }
 
 function clearMyVote() {
@@ -14,7 +14,7 @@ function restoreMyVote(players) {
     const savedVote = sessionStorage.getItem(getVoteStorageKey());
     if (!savedVote) return;
 
-    const playerExists = players?.some(p => String(p.id) === String(savedVote));
+    const playerExists = players?.some(p => String(p.slotId) === String(savedVote));
     if (playerExists) {
         myCurrentVote = savedVote;
     } else {

@@ -8,7 +8,7 @@ async function getMyId(){
     });
     if (response.ok){
         let json = await response.json();
-        window.myId = json.id;
+        window.mySlotId = json.slotId;
         window.myNickname = json.username;
     }
 }

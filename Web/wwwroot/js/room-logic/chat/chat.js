@@ -1,5 +1,5 @@
 async function sendMessage() {
-    if (String(window.myId) !== String(idTurn)) return;
+    if (String(window.mySlotId) !== String(idTurn)) return;
 
     const input = document.getElementById('chatInput');
     if (!input || input.value.trim() === "") return;
@@ -17,11 +17,11 @@ async function sendMessage() {
     }
 }
 
-function addMessage(id, message) {
+function addMessage(slotId, message) {
     const chat = document.getElementById('chatArea');
     if (!chat) return;
 
-    const nickname = getPlayerNickname(id);
+    const nickname = getPlayerNickname(slotId);
 
     const msg = document.createElement('div');
     msg.className = 'message';
@@ -31,9 +31,9 @@ function addMessage(id, message) {
     chat.scrollTop = chat.scrollHeight;
 }
 
-function getPlayerNickname(id) {
+function getPlayerNickname(slotId) {
     if (!roomData?.players) return 'Игрок';
-    const player = roomData.players.find(p => String(p.player?.id ?? p.id) === String(id));
+    const player = roomData.players.find(p => String(p.player?.slotId ?? p.slotId) === String(slotId));
     return player?.player?.nickname ?? player?.nickname ?? 'Игрок';
 }
 
@@ -46,5 +46,5 @@ function loadChatMessages(messages) {
         chat.innerHTML = '<div class="message"><span>Система:</span> Игра продолжается...</div>';
         return;
     }
-    messages.forEach(m => addMessage(m.playerId, m.messageBody));
+    messages.forEach(m => addMessage(m.slotId, m.messageBody));
 }
