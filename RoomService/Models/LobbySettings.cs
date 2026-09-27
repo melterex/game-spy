@@ -4,6 +4,7 @@ namespace RoomService
         string Name, 
         string PasswordHash, 
         int MaxPlayers, 
+        int BotCount,
         RoomStatus Status, 
         string Theme, 
         ThemesMode Mode,
