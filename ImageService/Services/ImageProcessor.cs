@@ -1,10 +1,11 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Formats.Png;
+using Microsoft.Extensions.Logging;
 
 namespace ImageService
 {
-    public class ImageProcessor
+    public class ImageProcessor(ILogger<ImageProcessor> logger)
     {
         public async Task<byte[]> ProcessImageAsync(byte[] originalBytes, ImageProcessingOptions options)
         {
@@ -20,7 +21,10 @@ namespace ImageService
                     !int.TryParse(parts[0], out var width) ||
                     !int.TryParse(parts[1], out var height)
                 )
+                {
+                    logger.LogDebug("Invalid image resize option format: {Size}", options.Size);
                     return originalBytes;
+                }
 
                 using var img = Image.Load(originalBytes);
                 var resizeOptions = new ResizeOptions
@@ -31,14 +35,20 @@ namespace ImageService
                 };
 
                 img.Mutate(x => x.Resize(resizeOptions));
+                logger.LogDebug("Image successfully resized with parameters {Size}", options.Size);
 
                 using var outStream = new MemoryStream();
                 await img.SaveAsync(outStream, PngFormat.Instance);
 
                 return outStream.ToArray();
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(
+                    ex, 
+                    "Failed to resize image. Returning original bytes. Format option: {Size}", 
+                    options.Size
+                    );
                 return originalBytes;
             }
         }
