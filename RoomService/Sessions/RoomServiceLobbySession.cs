@@ -39,7 +39,7 @@ namespace RoomService
             if (_players.ContainsKey(user.Id))
             {
                 logger.LogWarning(
-                    "User {Username} (Id: {UserId}) failed to enter: already in this lobby", 
+                    "User {Username} (Id: {UserId}) failed to enter: already in this lobby",
                     user.Username, user.Id
                     );
                 return false;
@@ -47,7 +47,7 @@ namespace RoomService
             if (_players.Count >= Settings.MaxPlayers)
             {
                 logger.LogWarning(
-                    "User {Username} (Id: {UserId}) failed to enter: lobby is full (Max: {MaxPlayers})", 
+                    "User {Username} (Id: {UserId}) failed to enter: lobby is full (Max: {MaxPlayers})",
                     user.Username, user.Id, Settings.MaxPlayers
                     );
                 return false;
@@ -55,7 +55,7 @@ namespace RoomService
             if (verifyRes != PasswordVerificationResult.Success)
             {
                 logger.LogWarning(
-                    "User {Username} (Id: {UserId}) failed to enter: incorrect password", 
+                    "User {Username} (Id: {UserId}) failed to enter: incorrect password",
                     user.Username, user.Id
                     );
                 return false;
@@ -72,7 +72,8 @@ namespace RoomService
 
         public bool KickPlayer(UserId id)
         {
-            if (_statuses.Remove(id, out _) && _players.Remove(id, out _)){
+            if (_statuses.Remove(id, out _) && _players.Remove(id, out _))
+            {
                 logger.LogInformation("Player {UserId} was successfully removed from the lobby", id);
                 return true;
             }
@@ -106,7 +107,7 @@ namespace RoomService
             Settings = Settings with { Status = RoomStatus.InGame };
 
             logger.LogInformation(
-                "Lobby session state changed to InGame. Starting game process with theme {Theme} and {PlayerCount} players", 
+                "Lobby session state changed to InGame. Starting game process with theme {Theme} and {PlayerCount} players",
                 Settings.Theme, _players.Count
                 );
             return Session;
@@ -144,11 +145,20 @@ namespace RoomService
 
         private GameSession CreateGameSession(IGameService gameService)
         {
-            var gameSettings = new GameSettings { Theme = Settings.Theme };
-            var guid = gameService.CreateGameSession(_players.Keys.ToList(), gameSettings);
+            int realPlayersCount = _players.Count;
+            int allowedBotsCount = Settings.MaxPlayers - realPlayersCount;
+            int finalBotCount = Math.Min(Settings.BotCount, allowedBotsCount);
 
+            var gameSettings = new GameSettings
+            {
+                Theme = Settings.Theme,
+                BotCount = finalBotCount
+            };
+
+            var guid = gameService.CreateGameSession(_players.Keys.ToList(), gameSettings);
             return gameService.GetGameSessionById(guid);
         }
+
 
         public IReadOnlyDictionary<UserId, User> GetPlayers() => _players.AsReadOnly();
         public IReadOnlyDictionary<UserId, PlayerStatus> GetPlayersStatuses() => _statuses.AsReadOnly();
