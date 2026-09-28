@@ -10,6 +10,7 @@ namespace RoomService
         bool IsStartingNewGame(LobbySession session);
         GameSession? GetGameSession(LobbySession session);
         bool TryToEnter(LobbySession session, User user, string inputPassword);
+        bool TryToEnter(LobbySession session, User user);
         LobbySettings GetLobbySettings(LobbySession session);
         bool SetLobbySettings(LobbySettings settings, LobbySession session);
         bool MakeReady(UserId id, LobbySession session);

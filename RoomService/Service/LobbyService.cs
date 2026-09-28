@@ -43,6 +43,9 @@ namespace RoomService
         public bool TryToEnter(LobbySession session, User user, string inputPassword) =>
             GetSession(session).AddPlayerByUser(user, inputPassword);
 
+        public bool TryToEnter(LobbySession session, User user) =>
+            GetSession(session).AddPlayerByUser(user);
+
         public IReadOnlyDictionary<UserId, PlayerStatus> GetPlayersStatuses(LobbySession session) =>
             GetSession(session).GetPlayersStatuses();
 
