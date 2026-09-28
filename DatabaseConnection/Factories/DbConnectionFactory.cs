@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DbConnection
 {
-    public class DbConnectionFactory(ILogger<DbConnectionFactory> logger)
+    public class DbConnectionFactory
     {
         private readonly Dictionary<string, Action<DbContextOptionsBuilder, string>> _strategies =
         new(StringComparer.OrdinalIgnoreCase)
@@ -12,6 +13,7 @@ namespace DbConnection
         { "SQLite", (opt, cs) => opt.UseSqlite(cs) },
         { "PostgreSQL", (opt, cs) => opt.UseNpgsql(cs) }
     };
+        public ILogger<DbConnectionFactory> logger { get; set; } = NullLogger<DbConnectionFactory>.Instance;
 
         public void Configure(DbContextOptionsBuilder options)
         {

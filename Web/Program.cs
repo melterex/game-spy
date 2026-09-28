@@ -10,6 +10,8 @@ using RoomService;
 using WebAPI;
 using WebAPI.API.V1;
 using Serilog;
+using DbConnection;
+using ImageService;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -23,7 +25,20 @@ builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IGetUser, GetUserService>();
 builder.Services.AddSingleton<ITurnStorage, TurnStorage>();
+builder.Services.AddTransient<IRepository<ImageModel>, ImageDbRepository>();
+builder.Services.AddTransient<ImageProviderFactory>();
+builder.Services.AddTransient<IProvider<ImageModel>, LocalImageProvider>();
+builder.Services.AddTransient<IProvider<ImageModel>, UrlImageProvider>(); 
 builder.Services.AddHostedService<TurnWorker>();
+builder.Services.AddTransient(sp => 
+{
+    var factory = new DbConnectionFactory
+    {
+        logger = sp.GetRequiredService<ILogger<DbConnectionFactory>>()
+    };
+    return factory;
+});
+
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
