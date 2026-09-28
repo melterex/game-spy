@@ -8,7 +8,7 @@ namespace GameLogic.Interfaces{
    public interface IDecisionMaker
     {
         public string MakeMessage(GameContext context);
-        public UserId MakeVote(GameContext context);
+        public SlotID MakeVote(GameContext context);
     }
 
     public interface IBotFactory

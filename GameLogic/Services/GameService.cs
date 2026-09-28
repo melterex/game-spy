@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using GameLogic.Entities;
+using System.Runtime.Serialization.Formatters;
 
 namespace GameLogic.Services
 {
@@ -14,44 +15,66 @@ namespace GameLogic.Services
         private readonly Dictionary<Guid, GameSession> sessions = new();
         private readonly IVotingService _votingService;
         private readonly IThemesService _themesService;
-
+        private readonly IGameWorker _gameWorker;
         private readonly IBotFactory _botFactory;
-        public List<UserId> GeneratePlayerOrder(List<UserId> playersIDs)
+        public List<SlotID> GeneratePlayerOrder(List<SlotID> playersIDs)
         {
             return playersIDs.OrderBy(_ => Guid.NewGuid()).ToList();
         }
-        public GameService(IVotingService votingService, IThemesService themesService, IBotFactory botFactory)
+        public GameService(IVotingService votingService, IThemesService themesService, IBotFactory botFactory, IGameWorker gameWorker)
         {
             _votingService = votingService;
             _themesService = themesService;
             _botFactory = botFactory;
+            _gameWorker = gameWorker;
         }
         public Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings)
         {
+            List<PlayerSlot> PlayerSlots = new List<PlayerSlot>();
+            Dictionary<UserId, SlotID> PlayerIDs = new Dictionary<UserId, SlotID>();
+            Dictionary<SlotID, IDecisionMaker> Bots = new Dictionary<SlotID, IDecisionMaker>();
 
-            var botsDict = new Dictionary<UserId, IDecisionMaker>();
+            int currentSlotCounter = 0;
+            foreach (UserId userId in playersIDs)
+            {
+                PlayerSlot pSlot = new PlayerSlot
+                {
+                    Id = new SlotID { Id = currentSlotCounter },
+                    Username = userId.ToString(),
+                    IsBot = false
+                };
+                PlayerSlots.Add(pSlot);
+                PlayerIDs[userId] = pSlot.Id;
+                currentSlotCounter++;
+            }
 
             for (int i = 0; i < settings.BotCount; i++)
             {
-                var botId = new UserId(-1 * (i + 1));
-                playersIDs.Add(botId);
-                botsDict[botId] = _botFactory.CreateBot();
-            }
+                PlayerSlot bSlot = new PlayerSlot
+                {
+                    Id = new SlotID { Id = currentSlotCounter },
+                    Username = $"Бот_{i}",
+                    IsBot = true
+                };
+                PlayerSlots.Add(bSlot);
+                Bots[bSlot.Id] = _botFactory.CreateBot();
+                currentSlotCounter++;
+            } 
             var session = new SpyGameSession
             {
                 GameId = Guid.NewGuid(),
-                PlayersIDs = playersIDs,
-                Bots = botsDict,
+                PlayerSlots = PlayerSlots,
+                Bots = Bots,
                 GameSettings = settings,
                 CurrentRound = 1,
                 CurrentPlayerIndex = 0,
-                CurrentPlayerOrder = GeneratePlayerOrder(playersIDs),
+                CurrentPlayerOrder = GeneratePlayerOrder(PlayerSlots.Select(s => s.Id).ToList()),
                 CurrentStage = GameStage.Round,
                 MessagesList = new List<Message>(),
-                PlayerCards = new Dictionary<UserId, Card>(),
+                PlayerCards = new Dictionary<SlotID, Card>(),
                 CurrentTurnStartTime = DateTime.Now,
                 CurrentTurnNumber = 0,
-                PlayerComments = playersIDs.ToDictionary(id => id, id => string.Empty),
+                PlayerComments = PlayerSlots.ToDictionary(Slot => Slot.Id, Slot => string.Empty),
             };
 
             AssignCards(session);
@@ -59,20 +82,20 @@ namespace GameLogic.Services
             ProcessBotTurns(session);
             return session.GameId;
         }
-        public Dictionary<UserId, Card> AssignCards(GameSession session)
+        public Dictionary<SlotID, Card> AssignCards(GameSession session)
         {
             var random = new Random();
-            int spyIndex = random.Next(session.PlayersIDs.Count);
+            int spyIndex = random.Next(session.PlayerSlots.Count);
 
             string word = _themesService.GetRandomWordByTheme(session.GameSettings.Theme);
 
             session.CurrentWord = word;
 
-            var cards = new Dictionary<UserId, Card>();
+            var cards = new Dictionary<SlotID, Card>();
 
-            for (int i = 0; i < session.PlayersIDs.Count; i++)
+            for (int i = 0; i < session.PlayerSlots.Count; i++)
             {
-                var playerId = session.PlayersIDs[i];
+                var playerId = session.PlayerSlots[i].Id;
                 bool isSpy = (i == spyIndex);
                 var card = new Card
                 {
@@ -90,7 +113,7 @@ namespace GameLogic.Services
             sessions.TryGetValue(GameSessionId, out var session);
             return session;
         }
-        public List<UserId> GetPlayerOrder(GameSession session)
+        public List<SlotID> GetPlayerOrder(GameSession session)
         {
             return session.CurrentPlayerOrder;
         }
@@ -98,7 +121,7 @@ namespace GameLogic.Services
         {
             return _votingService;
         }
-        public UserId WhoseTurn(GameSession session)
+        public SlotID WhoseTurn(GameSession session)
         {
             if (session.CurrentPlayerIndex == -1)
                 return null;
@@ -116,7 +139,7 @@ namespace GameLogic.Services
             session.CurrentTurnNumber++;
             session.CurrentTurnStartTime = DateTime.Now;
 
-            if (session.CurrentPlayerIndex >= session.PlayersIDs.Count())
+            if (session.CurrentPlayerIndex >= session.PlayerSlots.Count)
             {
                 if (session.CurrentRound == session.GameSettings.TotalRounds)
                 {
@@ -136,24 +159,24 @@ namespace GameLogic.Services
         public void StartVoting(GameSession session)
         {
             session.CurrentStage = GameStage.Voting;
-            session.Votes = new Dictionary<UserId, UserId>();
+            session.Votes = new Dictionary<SlotID, SlotID>();
             session.VotingEnded = false;
             session.VotingStartTime = DateTime.Now;
-            session.IsPlayerReadyToEndVotingDict = new Dictionary<UserId, bool>();
+            session.IsPlayerReadyToEndVotingDict = new Dictionary<SlotID, bool>();
 
-            foreach (UserId userID in session.PlayersIDs)
+            foreach (PlayerSlot slot in session.PlayerSlots)
             {
-                session.IsPlayerReadyToEndVotingDict[userID] = false;
+                session.IsPlayerReadyToEndVotingDict[slot.Id] = false;
             }
 
             foreach (var botPair in session.Bots)
             {
-                UserId botId = botPair.Key;
+                SlotID botId = botPair.Key;
                 IDecisionMaker bot = botPair.Value;
 
                 var context = BuildBotContext(session, botId);
 
-                UserId targetId = bot.MakeVote(context);
+                SlotID targetId = bot.MakeVote(context);
 
                     _votingService.Vote(session, botId, targetId);
                 _votingService.SetPlayerReadyToEndVoting(session, botId, true);
@@ -174,9 +197,13 @@ namespace GameLogic.Services
         {
             return session.CurrentTurnNumber;
         }
-        public Card GetPlayerCardByID(GameSession session, UserId userID)
+        public Card GetPlayerCardBySlotID(GameSession session, SlotID slotId)
         {
-            return session.PlayerCards[userID];
+            return session.PlayerCards[slotId];
+        }
+        public SlotID GetSlotIDByUserID(GameSession session, UserId userId)
+        {
+            return session.PlayerIDs[userId];
         }
 
         public void SetExtraTime(GameSession session, DateTime time)
@@ -199,12 +226,12 @@ namespace GameLogic.Services
             return session.IsUsingExtraTime;
         }
 
-        private GameContext BuildBotContext(GameSession session, UserId botId)
+        private GameContext BuildBotContext(GameSession session, SlotID botId)
         {
             var botCard = session.PlayerCards[botId];
 
-            var safePlayersList = session.PlayersIDs
-                .Select(id => new PlayerPublicInfo(id, "Игрок_" + id.ToString(), session.PlayerComments[id]))
+            var safePlayersList = session.PlayerSlots
+                .Select(slot => new PlayerPublicInfo(slot.Id, "Игрок_" + slot.Id.ToString(), session.PlayerComments[slot.Id]))
                 .ToList();
 
             return new GameContext(
@@ -235,7 +262,7 @@ namespace GameLogic.Services
                 session.CurrentTurnNumber++;
                 session.CurrentTurnStartTime = DateTime.Now;
 
-                if (session.CurrentPlayerIndex >= session.PlayersIDs.Count)
+                if (session.CurrentPlayerIndex >= session.PlayerSlots.Count)
                 {
                     if (session.CurrentRound == session.GameSettings.TotalRounds)
                     {

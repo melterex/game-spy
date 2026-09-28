@@ -5,11 +5,10 @@ using System.Text;
 
 namespace GameLogic.Entities
 {
-    internal class Player
+    public class PlayerSlot
     {
-        public UserId Id { get; set; }
+        public SlotID Id { get; set; }
         public string Username { get; set; }    
-        public Card Card { get; set; }
-        public string CurrentComment { get; set; }
+        public bool IsBot { get; set; }
     }
 }

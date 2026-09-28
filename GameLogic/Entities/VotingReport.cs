@@ -8,9 +8,9 @@ namespace GameLogic.Entities
 {
     public class VotingReport
     {
-        public Dictionary<UserId, Int32> Votes { get; set; }
+        public Dictionary<SlotID, Int32> Votes { get; set; }
 
-        public VotingReport(Dictionary<UserId, Int32> votes)
+        public VotingReport(Dictionary<SlotID, Int32> votes)
         {
             Votes = votes;
         }

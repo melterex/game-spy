@@ -7,11 +7,11 @@ namespace GameLogic.Entities
 {
     public class Message
     {
-        public UserId Id { get; set; }
+        public SlotID Id { get; set; }
 
         public String MessageBody { get; set; }
 
-        public Message(UserId id, String messageBody)
+        public Message(SlotID id, String messageBody)
         {
             Id = id;
             MessageBody = messageBody;

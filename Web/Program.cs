@@ -23,6 +23,7 @@ builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IGetUser, GetUserService>();
 builder.Services.AddSingleton<ITurnStorage, TurnStorage>();
+builder.Services.AddScoped<IGameWorker, GameWorker>();
 builder.Services.AddHostedService<TurnWorker>();
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
