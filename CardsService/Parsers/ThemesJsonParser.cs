@@ -1,9 +1,12 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CardsService
 {
-    public class ThemesJsonParser() : IParser
+    public class ThemesJsonParser : IParser
     {
+        public ILogger<ThemesJsonParser> logger { get; set; } = NullLogger<ThemesJsonParser>.Instance;
 
         public IReadOnlyDictionary<string, List<string>> Parse()
         {
@@ -14,10 +17,12 @@ namespace CardsService
 
             if (Directory.Exists(dataPath))
             {
+                logger.LogDebug("Successfully found directory {dataPath}", dataPath);
                 files = Directory.GetFiles(dataPath, "*.json");
             }
             else
             {
+                logger.LogError("Directory {dataPath} doesn`t exist", dataPath);
                 throw new FileNotFoundException($"Directory {dataPath} doesn`t exist");
             }
 
@@ -35,6 +40,7 @@ namespace CardsService
 
                 else
                 {
+                    logger.LogError("Failed to parse JSON {jsonFile}", jsonFile);
                     throw new JsonException("Failed to parse JSON");
                 }
             }
