@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using GameLogic.Entities;
 using System.Runtime.Serialization.Formatters;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace GameLogic.Services
 {
@@ -152,7 +153,8 @@ namespace GameLogic.Services
                     session.CurrentRound++;
                 }
             }
-
+            var nextPlayerId = WhoseTurn(session);
+            _ = Task.Run(() => _gameWorker.OnTurnMadeAsync(session.GameId, currentPlayerId, message, nextPlayerId));
             ProcessBotTurns(session);
         }
 
@@ -276,7 +278,21 @@ namespace GameLogic.Services
                         session.CurrentRound++;
                     }
                 }
+                var playerAfterBot = WhoseTurn(session);
+                _ = Task.Run(() => _gameWorker.OnTurnMadeAsync(session.GameId, nextPlayerId, botMessage, playerAfterBot));
             }
+        }
+
+        public UserId? GetUserIDBySlotID(GameSession session, SlotID slotID)
+        {
+            foreach (UserId key in session.PlayerIDs.Keys)
+            {
+                if (session.PlayerIDs[key].Id == slotID.Id)
+                {
+                    return key;
+                }
+            }
+            return null;
         }
     }
 }
