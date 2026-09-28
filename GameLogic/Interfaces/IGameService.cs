@@ -14,6 +14,7 @@ namespace GameLogic.Interfaces
         Dictionary<SlotID, Card> AssignCards(GameSession session);
         Card GetPlayerCardBySlotID(GameSession session, SlotID slotID);
         SlotID GetSlotIDByUserID(GameSession session, UserId userId);
+        UserId? GetUserIDBySlotID(GameSession session, SlotID slotID);
         SlotID WhoseTurn(GameSession session);
         void MessageReceived(GameSession session, String message); // Переключает ход
         IVotingService GetVoteService(GameSession session);
