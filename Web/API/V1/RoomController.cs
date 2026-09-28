@@ -269,24 +269,28 @@ public class RoomController : ControllerBase
         }
 
         var gameSession = lobbyService.GetGameSession(room.Session);
-        var votingService = gameService.GetVoteService(gameSession);
-        var playersList = new List<PlayerData>();
-        foreach (var pId in gameSession.PlayersIDs)
+        if (gameSession == null)
         {
-            var user = getUserService.GetUser(pId);
-            if (user != null)
-            {
-                bool isReady = votingService.GetIsPlayerReadyToEndVotingDict(gameSession).TryGetValue(pId, out var hasRetrieved);
-                playersList.Add(new PlayerData
-                {
-                    Id = user.Id.ToString(),
-                    Nickname = user.Username,
-                    ReadyToEndVoting = hasRetrieved ? isReady : false, 
-                });
-            }
+            return BadRequest();
         }
 
-        var card = gameService.GetPlayerCardByID(gameSession, currentUserId);
+        var currentSlotId = gameService.GetSlotIDByUserID(gameSession, currentUserId);
+        var votingService = gameService.GetVoteService(gameSession);
+        var readyPlayers = votingService.GetIsPlayerReadyToEndVotingDict(gameSession);
+        var playersList = new List<PlayerData>();
+        foreach (var slot in gameSession.PlayerSlots)
+        {
+            var userId = gameService.GetUserIDBySlotID(gameSession, slot.Id);
+            var user = userId == null ? null : getUserService.GetUser(userId);
+            playersList.Add(new PlayerData
+            {
+                Id = slot.Id.ToString(),
+                Nickname = user?.Username ?? slot.Username,
+                ReadyToEndVoting = readyPlayers.TryGetValue(slot.Id, out var isReady) && isReady,
+            });
+        }
+
+        var card = gameService.GetPlayerCardBySlotID(gameSession, currentSlotId);
         string userCardWord = card.Word;
         bool isAmogus = card.IsSpy;
 

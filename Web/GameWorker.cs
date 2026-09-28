@@ -1,4 +1,3 @@
-using authorization;
 using GameLogic.Entities;
 using GameLogic.Interfaces;
 using Microsoft.AspNetCore.SignalR;
@@ -19,10 +18,10 @@ public class GameWorker : IGameWorker
         this.votingService = votingService;
     }
 
-    public async Task OnTurnMadeAsync(Guid roomId, UserId userId, string message, UserId? nextUserId)
+    public async Task OnTurnMadeAsync(Guid roomId, SlotID slotId, string message, SlotID? nextSlotId)
     {
         turnStorage.RemoveTurnEnd(roomId);
-        if (nextUserId != null)
+        if (nextSlotId != null)
         {
             turnStorage.AddTurnEnd(DateTime.Now + TimeSpan.FromMinutes(1), roomId);
         }
@@ -31,33 +30,33 @@ public class GameWorker : IGameWorker
             turnStorage.AddVotingEnd(DateTime.Now + TimeSpan.FromMinutes(5), roomId);
         }
 
-        await hubContext.Clients.Group(roomId.ToString()).SendAsync("TurnMade", userId.ToString(), true,
-            message, nextUserId != null, nextUserId?.ToString() ?? string.Empty);
+        await hubContext.Clients.Group(roomId.ToString()).SendAsync("TurnMade", slotId.ToString(), true,
+            message, nextSlotId != null, nextSlotId?.ToString() ?? string.Empty);
     }
 
     public Task OnVoteMadeAsync(Guid roomId, VotingReport report)
     {
-        List<string> users = new();
+        List<string> slots = new();
         List<int> votes = new();
         foreach (var vote in report.Votes)
         {
-            users.Add(vote.Key.ToString());
+            slots.Add(vote.Key.ToString());
             votes.Add(vote.Value);
         }
 
-        return hubContext.Clients.Group(roomId.ToString()).SendAsync("VoteChange", users, votes);
+        return hubContext.Clients.Group(roomId.ToString()).SendAsync("VoteChange", slots, votes);
     }
 
-    public async Task MakeReadyEndVoteAsync(Guid roomId, GameSession gameSession, UserId userId, bool isReady)
+    public async Task MakeReadyEndVoteAsync(Guid roomId, GameSession gameSession, SlotID slotId, bool isReady)
     {
         var readyPlayers = votingService.GetIsPlayerReadyToEndVotingDict(gameSession);
-        if (readyPlayers[userId] == isReady)
+        if (readyPlayers[slotId] == isReady)
         {
             return;
         }
 
         var wasEveryoneReady = votingService.IsEveryoneReadyToEndVoting(gameSession);
-        votingService.SetPlayerReadyToEndVoting(gameSession, userId, isReady);
+        votingService.SetPlayerReadyToEndVoting(gameSession, slotId, isReady);
         var isEveryoneReady = votingService.IsEveryoneReadyToEndVoting(gameSession);
         var votingEnd = gameSession.VotingStartTime + TimeSpan.FromMinutes(5);
 
@@ -82,7 +81,7 @@ public class GameWorker : IGameWorker
             await clients.SendAsync("ChangeVoteEnd", (int)(votingEnd - DateTime.Now).TotalSeconds);
         }
 
-        await clients.SendAsync("UserEarlyVoteStatusChange", userId.ToString(), isReady);
+        await clients.SendAsync("UserEarlyVoteStatusChange", slotId.ToString(), isReady);
         if (isEveryoneReady)
         {
             await clients.SendAsync("ChangeVoteEnd", TimeSpan.FromSeconds(10).TotalSeconds);

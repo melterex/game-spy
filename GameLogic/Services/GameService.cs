@@ -65,6 +65,7 @@ namespace GameLogic.Services
             {
                 GameId = Guid.NewGuid(),
                 PlayerSlots = PlayerSlots,
+                PlayerIDs = PlayerIDs,
                 Bots = Bots,
                 GameSettings = settings,
                 CurrentRound = 1,
@@ -180,7 +181,9 @@ namespace GameLogic.Services
 
                 SlotID targetId = bot.MakeVote(context);
 
-                    _votingService.Vote(session, botId, targetId);
+                _votingService.Vote(session, botId, targetId);
+                var report = _votingService.GetVotingReport(session);
+                _ = Task.Run(() => _gameWorker.OnVoteMadeAsync(session.GameId, report));
                 _votingService.SetPlayerReadyToEndVoting(session, botId, true);
             }
         }
@@ -287,7 +290,7 @@ namespace GameLogic.Services
         {
             foreach (UserId key in session.PlayerIDs.Keys)
             {
-                if (session.PlayerIDs[key].Id == slotID.Id)
+                if (session.PlayerIDs[key] == slotID)
                 {
                     return key;
                 }

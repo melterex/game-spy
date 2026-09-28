@@ -40,9 +40,9 @@ public class TurnWorker : BackgroundService
                 var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
                 var room = roomService.GetRoomByRoomId(action.RoomId);
                 var gameSession = lobbyService.GetGameSession(room.Session);
-                var userId = gameService.WhoseTurn(gameSession);
+                var slotId = gameService.WhoseTurn(gameSession);
                 gameService.MessageReceived(gameSession, "No message was provided");
-                await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", userId.ToString(),
+                await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", slotId.ToString(),
                     false, String.Empty, gameService.WhoseTurn(gameSession) != null,
                     gameService.WhoseTurn(gameSession) != null
                         ? gameService.WhoseTurn(gameSession).ToString()
@@ -66,7 +66,7 @@ public class TurnWorker : BackgroundService
                 var votingService = gameService.GetVoteService(gameSession);
                 var votingReport = votingService.GetVotingReport(gameSession);
                 var results = votingService.SummarizeResults(gameSession);
-                var maxUserId = votingReport.Votes.MaxBy(a => a.Value);
+                var maxSlotId = votingReport.Votes.MaxBy(a => a.Value).Key;
                 bool wasAmogus = results == VotingResults.CivilianWins;
                 if (results == VotingResults.Tie)
                 {
@@ -75,7 +75,7 @@ public class TurnWorker : BackgroundService
                 else
                 {
                     await hubContext.Clients.Group(room.RoomId.ToString())
-                        .SendAsync("VoteFinish", maxUserId.ToString(), wasAmogus);
+                        .SendAsync("VoteFinish", maxSlotId.ToString(), wasAmogus);
                 }
 
                 lobbyService.EndGame(room.Session);

@@ -10,11 +10,6 @@ namespace GameLogic.Services
 {
     public class VotingService : IVotingService
     {
-        private readonly IGameWorker _gameWorker;
-        public VotingService(IGameWorker gameWorker)
-        {
-            _gameWorker = gameWorker;
-        }
         public void Vote(GameSession session, SlotID voterId, SlotID targetId)
         {
             if (session.CurrentStage != GameStage.Voting)
@@ -25,9 +20,6 @@ namespace GameLogic.Services
                 throw new ArgumentException("Игрок не в игре");
 
             session.Votes[voterId] = targetId;
-
-            var report = GetVotingReport(session);
-            _ = Task.Run(() => _gameWorker.OnVoteMadeAsync(session.GameId, report));
         }
 
         public bool IsVotingEnded(GameSession session) =>

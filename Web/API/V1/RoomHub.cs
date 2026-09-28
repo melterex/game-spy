@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using authorization;
+using GameLogic.Entities;
 using GameLogic.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -120,19 +121,20 @@ public class RoomHub : Hub
             throw new HubException("Not inside game");
         }
 
-        if (!userId.Equals(gameService.WhoseTurn(gameSession)))
+        var slotId = gameService.GetSlotIDByUserID(gameSession, userId);
+        if (slotId != gameService.WhoseTurn(gameSession))
         {
             throw new HubException("Not your turn");
         }
 
         gameService.MessageReceived(gameSession, message);
-        var nextUserId = gameService.WhoseTurn(gameSession);
-        if (nextUserId == null)
+        var nextSlotId = gameService.WhoseTurn(gameSession);
+        if (nextSlotId == null && gameService.GetVotingStartTime(gameSession) == default)
         {
             gameService.StartVoting(gameSession);
         }
 
-        await gameWorker.OnTurnMadeAsync(room.RoomId, userId, message, nextUserId);
+        await gameWorker.OnTurnMadeAsync(room.RoomId, slotId, message, nextSlotId);
     }
 
     public async Task MakeReadyEndVote(bool isReady)
@@ -155,10 +157,11 @@ public class RoomHub : Hub
             throw new HubException("Not in game");
         }
 
-        await gameWorker.MakeReadyEndVoteAsync(room.RoomId, gameSession, userId, isReady);
+        var slotId = gameService.GetSlotIDByUserID(gameSession, userId);
+        await gameWorker.MakeReadyEndVoteAsync(room.RoomId, gameSession, slotId, isReady);
     }
 
-    public async Task MakeVote(string userId)
+    public async Task MakeVote(string slotId)
     {
         var voterId = UserId.FromString(Context.User.FindFirstValue(ClaimTypes.NameIdentifier));
         var room = roomService.GetRoomByUserId(voterId);
@@ -167,21 +170,28 @@ public class RoomHub : Hub
             throw new HubException("Room not found");
         }
 
-        var targetId = UserId.FromString(userId);
-        var targetRoom = roomService.GetRoomByUserId(targetId);
-        if (targetRoom == null || targetRoom.RoomId != room.RoomId)
-        {
-            throw new HubException("Id incorrect");
-        }
-
         var gameSession = lobbyService.GetGameSession(room.Session);
         if (gameSession == null)
         {
             throw new HubException("Not inside game");
         }
+
+        if (!int.TryParse(slotId, out var targetSlotValue))
+        {
+            throw new HubException("Id incorrect");
+        }
+
+        var targetSlotId = new SlotID { Id = targetSlotValue };
+        var targetSlot = gameSession.PlayerSlots.FirstOrDefault(slot => slot.Id == targetSlotId);
+        if (targetSlot == null)
+        {
+            throw new HubException("Id incorrect");
+        }
+
+        var voterSlotId = gameService.GetSlotIDByUserID(gameSession, voterId);
         
         var votingService = gameService.GetVoteService(gameSession);
-        votingService.Vote(gameSession, voterId, targetId);
+        votingService.Vote(gameSession, voterSlotId, targetSlot.Id);
         var report = votingService.GetVotingReport(gameSession);
         await gameWorker.OnVoteMadeAsync(room.RoomId, report);
     }
