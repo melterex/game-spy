@@ -23,13 +23,17 @@ public class RoomId
 }
 public class RoomSettings
 {
+    public string Name { get; set; }
+    public int MaxBots { get; set; }
     public string Theme { get; set; }
     public int UserMaxCount { get; set; }
 }
 
+
 public class PlayerLobbyData
 {
-    public PlayerData Player { get; set; }
+    public string Nickname { get; set; }
+    public string Id { get; set; }
     public bool Ready { get; set; }
 }
 public class LobbyStatus
@@ -43,6 +47,7 @@ public class PlayerData
     public bool ReadyToEndVoting { get; set; }
     public string Nickname { get; set; }
     public string Id { get; set; }
+    public bool IsBot { get; set; }
 }
 public class GameStatus
 {
@@ -126,7 +131,7 @@ public class RoomController : ControllerBase
             return BadRequest();
         }
 
-        var newLobbySettings = new LobbySettings(roomSettings.UserMaxCount, RoomService.RoomStatus.Waiting, roomSettings.Theme);
+        var newLobbySettings = new LobbySettings(roomSettings.Name, "", roomSettings.UserMaxCount, roomSettings.MaxBots, RoomService.RoomStatus.Waiting, roomSettings.Theme, ThemesMode.Fixed, new TimeSpan(60));
         lobbyService.SetLobbySettings(newLobbySettings, newRoom.Session);
         return Ok(newRoom.RoomId.ToString());
     }
@@ -227,11 +232,8 @@ public class RoomController : ControllerBase
             var user = getUserService.GetUser(userId);
             playersList.Add(new PlayerLobbyData
             {
-                Player = new PlayerData
-                {
-                    Id = user.Id.ToString(),
-                    Nickname = user.Username
-                },
+                Id = user.Id.ToString(),
+                Nickname = user.Username,
                 Ready = status == PlayerStatus.Ready
             });
         }
@@ -287,6 +289,7 @@ public class RoomController : ControllerBase
                 Id = slot.Id.ToString(),
                 Nickname = user?.Username ?? slot.Username,
                 ReadyToEndVoting = readyPlayers.TryGetValue(slot.Id, out var isReady) && isReady,
+                IsBot = slot.IsBot,
             });
         }
 

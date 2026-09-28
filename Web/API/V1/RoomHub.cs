@@ -75,7 +75,7 @@ public class RoomHub : Hub
             throw new HubException("No such user");
         }
 
-        if (lobbyService.KickUserByUserId(UserId.FromString(userId), room.Session))
+        if (lobbyService.KickUserByUserId(adminId, UserId.FromString(userId), room.Session))
         {
             await Clients.Group(room.RoomId.ToString()).SendAsync("KickUser", userId);
         }
