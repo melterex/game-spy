@@ -119,6 +119,16 @@ body {
     border-color: #22c55e;
 }
 
+.user-card.is-self {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.user-card.is-self:hover {
+    background: #3f3f46;
+    transform: none;
+}
+
 .avatar-placeholder {
     font-size: 1.5rem;
     background: #18181b;

@@ -50,6 +50,13 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
+.room-id-label {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0;
+}
+
 .exit-btn {
     background: transparent;
     border: 2px solid var(--accent);
@@ -92,6 +99,18 @@ body {
     white-space: nowrap;
     transition: 0.2s ease-in-out;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.bot-badge {
+    margin-left: 6px;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #a1a1aa;
+    border: 1px solid #52525b;
+    border-radius: 4px;
+    padding: 1px 6px;
+    vertical-align: middle;
 }
 
 .left .player-tag { border-right: 4px solid var(--accent); }

@@ -1,5 +1,14 @@
+function updateChatInputForTurn() {
+    const input = document.getElementById('chatInput');
+    if (!input || roomStatus !== 'ingame') return;
+
+    const myTurn = window.mySlotId && String(window.mySlotId) === String(idTurn);
+    input.disabled = !myTurn;
+    input.placeholder = myTurn ? 'Ваше сообщение...' : 'Сейчас ход другого игрока';
+}
+
 async function sendMessage() {
-    if (String(window.myId) !== String(idTurn)) return;
+    if (!window.mySlotId || String(window.mySlotId) !== String(idTurn)) return;
 
     const input = document.getElementById('chatInput');
     if (!input || input.value.trim() === "") return;

@@ -1,5 +1,48 @@
 const startGameBtn = document.getElementById('startGameBtn');
 
+function showRoomId(roomId) {
+    const label = document.getElementById('roomIdLabel');
+    if (!label || !roomId) return;
+    label.textContent = `Room #${String(roomId).slice(0, 4)}`;
+}
+
+function showRoomTitle(name) {
+    const label = document.getElementById('roomIdLabel');
+    if (!label || !name) return;
+    label.textContent = name;
+}
+
+function humanPlayers(players) {
+    return (players || []).filter(p => p.isBot !== true && p.player?.isBot !== true);
+}
+
+function lobbyBotPlaceholders(players) {
+    const settings = roomData?.roomSettings;
+    if (!settings || roomStatus === 'ingame') return [];
+
+    const humans = humanPlayers(players);
+    const maxPlayers = Number(settings.userMaxCount) || 0;
+    const configuredBots = Number(settings.maxBots) || 0;
+    const count = Math.max(0, Math.min(configuredBots, maxPlayers - humans.length));
+    const bots = [];
+
+    for (let i = 0; i < count; i++) {
+        bots.push({
+            id: `bot-preview-${i}`,
+            nickname: `Бот_${i}`,
+            isBot: true,
+            ready: false
+        });
+    }
+
+    return bots;
+}
+
+function playersForDisplay(players) {
+    if (roomStatus === 'ingame') return players || [];
+    return humanPlayers(players).concat(lobbyBotPlaceholders(players));
+}
+
 async function renderRoom(players) {
     if (roomStatus === 'ingame') {
         startGameBtn.disabled = true;
@@ -18,9 +61,10 @@ async function renderRoom(players) {
         return;
     }
 
-    const half = Math.ceil(players.length / 2);
-    const leftPlayers = players.slice(0, half);
-    const rightPlayers = players.slice(half);
+    const displayPlayers = playersForDisplay(players);
+    const half = Math.ceil(displayPlayers.length / 2);
+    const leftPlayers = displayPlayers.slice(0, half);
+    const rightPlayers = displayPlayers.slice(half);
 
     const createTag = (playerData) => {
         const tag = document.createElement('div');
@@ -32,22 +76,25 @@ async function renderRoom(players) {
         tag.className = `player-tag ${isHisTurn ? 'current-turn' : ''}`;
 
         if (roomStatus === 'waiting') {
+            const isBot = playerData.isBot === true;
             const isReady = playerData.ready === true;
             const icon = isReady ? '●' : '';
             const statusClass = isReady ? 'is-ready' : 'not-ready';
+            const botBadge = isBot ? '<span class="bot-badge">бот</span>' : '';
 
             tag.innerHTML = `
-                <span class="player-name">${nickname}</span>
+                <span class="player-name">${nickname} ${botBadge}</span>
                 <div class="player-status-wrapper">
-                    <span class="ready-icon ${statusClass}" title="${isReady ? 'Готов' : 'Не готов'}">
+                    ${isBot ? '' : `<span class="ready-icon ${statusClass}" title="${isReady ? 'Готов' : 'Не готов'}">
                         ${icon}
-                    </span>
+                    </span>`}
                 </div>
             `;
         } else {
+            const botBadge = playerData.isBot ? '<span class="bot-badge">бот</span>' : '';
             tag.innerHTML = `
                 <span class="player-name">
-                    ${nickname} ${isHisTurn ? '<span class="turn-dot">●</span>' : ''}
+                    ${nickname} ${botBadge} ${isHisTurn ? '<span class="turn-dot">●</span>' : ''}
                 </span>
             `;
         }
@@ -61,6 +108,9 @@ async function renderRoom(players) {
     rightPlayers.forEach(item => rightContainer.appendChild(createTag(item)));
 
     updateTurnStatusLabel(players);
+    if (typeof updateChatInputForTurn === 'function') {
+        updateChatInputForTurn();
+    }
 
     checkEveryoneReady(players);
 }
@@ -78,7 +128,8 @@ function checkEveryoneReady(players) {
 
     if (roomStatus === 'ingame') return;
 
-    const isEveryoneReady = players.length > 0 && players.every(p => p.ready === true);
+    const humans = humanPlayers(players);
+    const isEveryoneReady = humans.length > 0 && humans.every(p => p.ready === true);
 
     if (isEveryoneReady) {
         startGameBtn.disabled = false;
@@ -111,7 +162,7 @@ function updateTurnStatusLabel(players) {
     const activePlayer = players.find(p => String(p.player?.id ?? p.id) === String(idTurn));
     const nickname = activePlayer ? (activePlayer.player?.nickname ?? activePlayer.nickname) : "Неизвестно";
 
-    if (String(idTurn) === String(window.myId)) {
+    if (window.mySlotId && String(idTurn) === String(window.mySlotId)) {
         banner.innerText = "ВАШ ХОД! Напишите сообщение в чат!";
         banner.classList.add('my-turn-bg');
     } else {

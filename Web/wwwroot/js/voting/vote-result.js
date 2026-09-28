@@ -44,11 +44,7 @@ function resolveKickedPlayerId(userIdToKick) {
     return userIdToKick;
 }
 
-function resolveSpyInfo(spyPlayerId, kickedPlayerId, civiliansWon) {
-    if (spyPlayerId && getPlayerNickname(spyPlayerId)) {
-        return { known: true, nickname: getPlayerNickname(spyPlayerId) };
-    }
-
+function resolveSpyInfo(kickedPlayerId, civiliansWon) {
     if (civiliansWon && kickedPlayerId !== 'tie') {
         return {
             known: true,
@@ -59,7 +55,9 @@ function resolveSpyInfo(spyPlayerId, kickedPlayerId, civiliansWon) {
     if (votingData.isAmogus) {
         return {
             known: true,
-            nickname: window.myNickname ?? getPlayerNickname(window.myId) ?? 'вы'
+            nickname: window.myNickname
+                ?? (window.mySlotId ? getPlayerNickname(window.mySlotId) : null)
+                ?? 'вы'
         };
     }
 
@@ -76,10 +74,10 @@ function resolveSpyInfo(spyPlayerId, kickedPlayerId, civiliansWon) {
     return { known: false };
 }
 
-function buildVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
+function buildVoteResult(slotIdToKick, civiliansWon) {
     const isSpy = votingData.isAmogus === true;
-    const kickedPlayerId = resolveKickedPlayerId(userIdToKick);
-    const spyInfo = resolveSpyInfo(spyPlayerId, kickedPlayerId, civiliansWon);
+    const kickedPlayerId = resolveKickedPlayerId(slotIdToKick);
+    const spyInfo = resolveSpyInfo(kickedPlayerId, civiliansWon);
     const kickedNickname = kickedPlayerId === 'tie'
         ? null
         : (getPlayerNickname(kickedPlayerId) ?? 'игрок');
@@ -121,7 +119,7 @@ function buildVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
     };
 }
 
-function showVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
+function showVoteResult(slotIdToKick, wasAmogus) {
     const overlay = document.getElementById('voteResultOverlay');
     const titleEl = document.getElementById('voteResultTitle');
     const messageEl = document.getElementById('voteResultMessage');
@@ -132,7 +130,7 @@ function showVoteResult(userIdToKick, civiliansWon, spyPlayerId) {
         return;
     }
 
-    const result = buildVoteResult(userIdToKick, civiliansWon, spyPlayerId);
+    const result = buildVoteResult(slotIdToKick, wasAmogus === true);
 
     titleEl.textContent = result.title;
     messageEl.textContent = result.message;

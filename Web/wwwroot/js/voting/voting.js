@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!response.ok) return;
 
     votingData = await response.json();
+    syncMySlotId(votingData.players);
 
     if (!votingData.isVoting) {
         window.location.href = '../room/index.html';

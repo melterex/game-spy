@@ -12,3 +12,13 @@ async function getMyId(){
         window.myNickname = json.username;
     }
 }
+
+function syncMySlotId(players) {
+    window.mySlotId = null;
+    if (!players || !window.myNickname) return;
+
+    const me = players.find(p => p.isBot !== true && p.nickname === window.myNickname);
+    if (me) {
+        window.mySlotId = String(me.id);
+    }
+}

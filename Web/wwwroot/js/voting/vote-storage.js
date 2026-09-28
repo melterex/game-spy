@@ -15,7 +15,8 @@ function restoreMyVote(players) {
     if (!savedVote) return;
 
     const playerExists = players?.some(p => String(p.id) === String(savedVote));
-    if (playerExists) {
+    const isOwnSlot = window.mySlotId && String(savedVote) === String(window.mySlotId);
+    if (playerExists && !isOwnSlot) {
         myCurrentVote = savedVote;
     } else {
         clearMyVote();

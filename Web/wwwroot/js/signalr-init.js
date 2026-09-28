@@ -10,10 +10,7 @@ function isVotingPage() {
 
 function goToRoomAfterVoting() {
     sessionStorage.setItem('voting_finished', '1');
-
-    if (typeof votingData !== 'undefined' && votingData.players?.length) {
-        sessionStorage.setItem('lobby_players_after_vote', JSON.stringify(votingData.players));
-    }
+    sessionStorage.removeItem('lobby_players_after_vote');
 
     if (window.myId) {
         sessionStorage.removeItem(`voting_my_vote_${window.myId}`);
@@ -72,18 +69,20 @@ async function startSignalR(token) {
         startGame();
     });
 
-    window.connection.on("TurnMade", async (userId, hasMessage, message, hasNextUser, nextUserId) => {
+    window.connection.on("TurnMade", async (slotId, hasMessage, message, hasNextSlot, nextSlotId) => {
         if (!isRoomPage()) return;
 
-        if (hasMessage) {
-            addMessage(userId, message);
-        }
-        if (hasNextUser) {
-            idTurn = nextUserId;
+        if (hasNextSlot) {
+            idTurn = nextSlotId;
             const data = await fetchGameData();
             if (data) {
                 roomData = data;
+                syncMySlotId(data.players);
+                idTurn = data.turnPlayerId || nextSlotId;
+                loadChatMessages(data.messages);
                 startTimer(data.timeToMakeTurn);
+            } else if (hasMessage) {
+                addMessage(slotId, message);
             }
             renderRoom(roomData.players);
         } else {
@@ -106,10 +105,10 @@ async function startSignalR(token) {
         startTimer(secondsToEnd);
     });
 
-    window.connection.on("VoteFinish", (userIdToKick, civiliansWon, spyPlayerId) => {
+    window.connection.on("VoteFinish", (slotIdToKick, wasAmogus) => {
         if (!isVotingPage()) return;
 
-        showVoteResult(userIdToKick, civiliansWon, spyPlayerId);
+        showVoteResult(slotIdToKick, wasAmogus);
     });
 
     try {

@@ -10,8 +10,13 @@ function applyLobbyAfterVoting(players) {
     idTurn = null;
     window.curStatus = false;
 
-    const lobbyPlayers = toLobbyPlayers(players);
-    roomData = { players: lobbyPlayers };
+    const lobbyPlayers = toLobbyPlayers(humanPlayers(players));
+    roomData = {
+        players: lobbyPlayers,
+        roomId: roomData?.roomId,
+        roomSettings: roomData?.roomSettings
+    };
+    showRoomId(roomData.roomId);
 
     const readyBtn = document.getElementById('readyBtn');
     const startGameBtn = document.getElementById('startGameBtn');

@@ -63,13 +63,13 @@ function restoreEndVoteReadyState(players) {
         endVoteReadyByPlayer[String(player.id)] = player.readyToEndVoting === true;
     });
 
-    myEndVoteReady = endVoteReadyByPlayer[String(window.myId)] === true;
+    myEndVoteReady = endVoteReadyByPlayer[String(window.mySlotId)] === true;
 }
 
 function updatePlayerEndVoteReady(id, isReady) {
     endVoteReadyByPlayer[String(id)] = isReady;
 
-    if (String(id) === String(window.myId)) {
+    if (window.mySlotId && String(id) === String(window.mySlotId)) {
         myEndVoteReady = isReady;
     }
 

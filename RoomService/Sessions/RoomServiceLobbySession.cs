@@ -33,9 +33,6 @@ namespace RoomService
 
         public bool AddPlayerByUser(User user, string inputPassword = "")
         {
-            var hasher = new PasswordHasher<User>();
-            var verifyRes = hasher.VerifyHashedPassword(user, Settings.PasswordHash, inputPassword);
-
             if (_players.ContainsKey(user.Id))
             {
                 logger.LogWarning(
@@ -52,13 +49,18 @@ namespace RoomService
                     );
                 return false;
             }
-            if (verifyRes != PasswordVerificationResult.Success)
+            if (!string.IsNullOrEmpty(Settings.PasswordHash))
             {
-                logger.LogWarning(
-                    "User {Username} (Id: {UserId}) failed to enter: incorrect password",
-                    user.Username, user.Id
-                    );
-                return false;
+                var hasher = new PasswordHasher<User>();
+                var verifyRes = hasher.VerifyHashedPassword(user, Settings.PasswordHash, inputPassword);
+                if (verifyRes == PasswordVerificationResult.Failed)
+                {
+                    logger.LogWarning(
+                        "User {Username} (Id: {UserId}) failed to enter: incorrect password",
+                        user.Username, user.Id
+                        );
+                    return false;
+                }
             }
 
 

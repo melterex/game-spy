@@ -1,5 +1,6 @@
 async function handleVoteClick(targetPlayerId) {
-    if (myCurrentVote === targetPlayerId) return;
+    if (window.mySlotId && String(targetPlayerId) === String(window.mySlotId)) return;
+    if (String(myCurrentVote) === String(targetPlayerId)) return;
 
     if (myCurrentVote) {
         const oldCard = document.getElementById(`card-${myCurrentVote}`);

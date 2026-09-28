@@ -3,9 +3,25 @@ let roomStatus;
 let idTurn;
 
 function exitRoom() {
-    if (confirm("Выйти из комнаты?")) {
-        localStorage.removeItem('selected_room_id');
-        window.location.href = '../';
+    if (!confirm("Выйти из комнаты?")) return;
+
+    localStorage.removeItem('selected_room_id');
+    window.location.href = '../';
+}
+
+async function loadRoomTitle(token) {
+    try {
+        const response = await fetch('/api/v1/rooms/my-room', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) return;
+
+        const room = await response.json();
+        showRoomTitle(room.name);
+    } catch (error) {
+        console.error("Ошибка загрузки названия комнаты:", error);
     }
 }
 
@@ -49,7 +65,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (response.ok) {
                 roomData = await response.json();
+                showRoomId(roomData.roomId);
             }
+            await loadRoomTitle(token);
         } catch (err) {
             console.error("Ошибка загрузки данных комнаты:", err);
         }

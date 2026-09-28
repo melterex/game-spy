@@ -38,6 +38,7 @@ public class PlayerLobbyData
 }
 public class LobbyStatus
 {
+    public string RoomId { get; set; }
     public PlayerLobbyData[] Players { get; set; }
     public RoomSettings RoomSettings { get; set; }
 }
@@ -51,6 +52,7 @@ public class PlayerData
 }
 public class GameStatus
 {
+    public string RoomId { get; set; }
     public PlayerData[] Players { get; set; }
     public bool IsVoting { get; set; }
     public int TimeToVote { get; set; }
@@ -242,10 +244,12 @@ public class RoomController : ControllerBase
     
         var apiRoomSettings = new RoomSettings();
         apiRoomSettings.Theme = settings.Theme;
-        apiRoomSettings.UserMaxCount = settings.MaxPlayers; 
+        apiRoomSettings.UserMaxCount = settings.MaxPlayers;
+        apiRoomSettings.MaxBots = settings.BotCount;
 
         var lobbyStatus = new LobbyStatus
         {
+            RoomId = room.RoomId.ToString(),
             Players = playersList.ToArray(),
             RoomSettings = apiRoomSettings
         };
@@ -339,6 +343,7 @@ public class RoomController : ControllerBase
         }
         var status = new GameStatus
         {
+            RoomId = room.RoomId.ToString(),
             Players = playersList.ToArray(),
             IsVoting = gameSession.CurrentStage == GameStage.Voting,
             TimeToVote = timeVote,
