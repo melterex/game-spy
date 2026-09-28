@@ -14,7 +14,7 @@ namespace BotService
             return "Я ботик";
         }
 
-        public UserId MakeVote(GameContext context)
+        public SlotID MakeVote(GameContext context)
         {
             var candidates = context.Players
                 .Where(p => p.Id != context.MyId)

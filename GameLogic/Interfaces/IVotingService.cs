@@ -10,12 +10,12 @@ namespace GameLogic.Interfaces
 {
     public interface IVotingService
     {
-        void Vote(GameSession session, UserId chooserId, UserId choosedId);
+        void Vote(GameSession session, SlotID chooserId, SlotID choosedId);
         bool IsVotingEnded(GameSession session);
         VotingResults SummarizeResults(GameSession session);
         VotingReport GetVotingReport(GameSession session);
-        void SetPlayerReadyToEndVoting(GameSession session, UserId userID, bool isReady);
+        void SetPlayerReadyToEndVoting(GameSession session, SlotID slotId, bool isReady);
         bool IsEveryoneReadyToEndVoting(GameSession session);
-        Dictionary<UserId, bool> GetIsPlayerReadyToEndVotingDict(GameSession session);
+        Dictionary<SlotID, bool> GetIsPlayerReadyToEndVotingDict(GameSession session);
     }
 }

@@ -10,20 +10,28 @@ namespace GameLogic.Services
 {
     public class VotingService : IVotingService
     {
-        public void Vote(GameSession session, UserId voterId, UserId targetId)
+        private readonly IGameWorker _gameWorker;
+        public VotingService(IGameWorker gameWorker)
+        {
+            _gameWorker = gameWorker;
+        }
+        public void Vote(GameSession session, SlotID voterId, SlotID targetId)
         {
             if (session.CurrentStage != GameStage.Voting)
                 throw new InvalidOperationException("Сейчас не этап голосования");
             if (voterId == targetId)
                 throw new ArgumentException("Нельзя голосовать за себя");
-            if (!session.PlayersIDs.Contains(targetId))
+            if (!session.PlayerSlots.Any(s => s.Id == targetId))
                 throw new ArgumentException("Игрок не в игре");
 
             session.Votes[voterId] = targetId;
+
+            var report = GetVotingReport(session);
+            _ = Task.Run(() => _gameWorker.OnVoteMadeAsync(session.GameId, report));
         }
 
         public bool IsVotingEnded(GameSession session) =>
-            session.Votes.Count == session.PlayersIDs.Count;
+            session.Votes.Count == session.PlayerSlots.Count;
 
         public VotingResults SummarizeResults(GameSession session)
         {
@@ -39,7 +47,7 @@ namespace GameLogic.Services
             if (session.Votes.Values.GroupBy(id => id).Count(g => g.Count() == maxCount) > 1)
                 return VotingResults.Tie;
 
-            UserId votedOut = mostVoted.Key;
+            SlotID votedOut = mostVoted.Key;
             var spy = session.PlayerCards.First(c => c.Value.IsSpy).Key;
             return votedOut == spy ? VotingResults.CivilianWins : VotingResults.SpyWins;
         }
@@ -53,9 +61,9 @@ namespace GameLogic.Services
             );
         }
 
-        public void SetPlayerReadyToEndVoting(GameSession session, UserId userID, bool isReady)
+        public void SetPlayerReadyToEndVoting(GameSession session, SlotID slotId, bool isReady)
         {
-            session.IsPlayerReadyToEndVotingDict[userID] = isReady;
+            session.IsPlayerReadyToEndVotingDict[slotId] = isReady;
         }
 
         public bool IsEveryoneReadyToEndVoting(GameSession session)
@@ -63,7 +71,7 @@ namespace GameLogic.Services
             return session.IsPlayerReadyToEndVotingDict.Values.All(v => v == true);
         }
 
-        public Dictionary<UserId, bool> GetIsPlayerReadyToEndVotingDict(GameSession session)
+        public Dictionary<SlotID, bool> GetIsPlayerReadyToEndVotingDict(GameSession session)
         {
             return session.IsPlayerReadyToEndVotingDict;
         }
