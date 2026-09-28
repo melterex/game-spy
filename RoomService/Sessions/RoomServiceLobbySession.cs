@@ -1,12 +1,15 @@
 using System.Collections.Concurrent;
 using authorization;
-using GameLogic;
 using GameLogic.Entities;
 using GameLogic.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace RoomService
 {
-    public class RoomServiceLobbySession(UserId creatorId) : LobbySession
+    public class RoomServiceLobbySession(
+        UserId creatorId, ILogger<RoomServiceLobbySession> logger)
+        : LobbySession
     {
         private ConcurrentDictionary<UserId, User> _players = new();
         private Dictionary<UserId, PlayerStatus> _statuses = new();
@@ -14,31 +17,65 @@ namespace RoomService
         public UserId CreatorId { get; private set; } = creatorId;
         public bool IsStartingNewGame { get; private set; } = false;
         public GameSession? Session { get; private set; }
-        public event Action? OnGameStarted;
 
         public LobbySettings Settings { get; set; } = new(
+            Name: "Room" + Guid.NewGuid().ToString()[..4],
+            PasswordHash: "",
             MaxPlayers: 8,
+            BotCount: 0,
             Status: RoomStatus.Waiting,
-            Theme: "Default"
+            Theme: "Default",
+            Mode: ThemesMode.Fixed,
+            MoveTime: TimeSpan.FromSeconds(30)
         );
 
         public bool HasPlayer(UserId id) => _players.ContainsKey(id);
 
-        public bool AddPlayerByUser(User user)
+        public bool AddPlayerByUser(User user, string inputPassword = "")
         {
+            var hasher = new PasswordHasher<User>();
+            var verifyRes = hasher.VerifyHashedPassword(user, Settings.PasswordHash, inputPassword);
+
             if (_players.ContainsKey(user.Id))
+            {
+                logger.LogWarning(
+                    "User {Username} (Id: {UserId}) failed to enter: already in this lobby", 
+                    user.Username, user.Id
+                    );
                 return false;
+            }
+            if (_players.Count >= Settings.MaxPlayers)
+            {
+                logger.LogWarning(
+                    "User {Username} (Id: {UserId}) failed to enter: lobby is full (Max: {MaxPlayers})", 
+                    user.Username, user.Id, Settings.MaxPlayers
+                    );
+                return false;
+            }
+            if (verifyRes != PasswordVerificationResult.Success)
+            {
+                logger.LogWarning(
+                    "User {Username} (Id: {UserId}) failed to enter: incorrect password", 
+                    user.Username, user.Id
+                    );
+                return false;
+            }
+
 
             _players[user.Id] = user;
             _statuses[user.Id] = PlayerStatus.Waiting;
 
+            logger.LogInformation(
+                "User {Username} (Id: {UserId}) successfully joined the lobby", user.Username, user.Id);
             return true;
         }
 
         public bool KickPlayer(UserId id)
         {
-            if (_statuses.Remove(id, out _) && _players.Remove(id, out _))
+            if (_statuses.Remove(id, out _) && _players.Remove(id, out _)){
+                logger.LogInformation("Player {UserId} was successfully removed from the lobby", id);
                 return true;
+            }
 
             return false;
         }
@@ -66,9 +103,12 @@ namespace RoomService
                 }
 
             IsStartingNewGame = true;
-            Settings = new LobbySettings(Settings.MaxPlayers, RoomStatus.InGame, Settings.Theme);
-            OnGameStarted?.Invoke();
+            Settings = Settings with { Status = RoomStatus.InGame };
 
+            logger.LogInformation(
+                "Lobby session state changed to InGame. Starting game process with theme {Theme} and {PlayerCount} players", 
+                Settings.Theme, _players.Count
+                );
             return Session;
         }
 
@@ -80,6 +120,8 @@ namespace RoomService
             IsStartingNewGame = false;
             Settings = Settings with { Status = RoomStatus.Waiting };
             Session = CreateGameSession(gameService);
+
+            logger.LogInformation("Lobby session reset to Waiting state. Game successfully finished");
         }
 
         public bool ChangePlayerStatus(UserId id, PlayerStatus status)
