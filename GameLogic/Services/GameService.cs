@@ -81,7 +81,6 @@ namespace GameLogic.Services
 
             AssignCards(session);
             sessions[session.GameId] = session;
-            ProcessBotTurns(session);
             return session.GameId;
         }
         public Dictionary<SlotID, Card> AssignCards(GameSession session)
@@ -132,11 +131,19 @@ namespace GameLogic.Services
         }
         public void MessageReceived(GameSession session, string message)
         {
+            if (session.CurrentStage != GameStage.Round)
+                throw new InvalidOperationException("Сейчас не этап ходов");
+
             var currentPlayerId = WhoseTurn(session);
             if (currentPlayerId == null)
                 throw new InvalidOperationException("Нет активного игрока");
 
             session.MessagesList.Add(new Message(currentPlayerId, message));
+            AdvanceTurn(session);
+        }
+
+        private void AdvanceTurn(GameSession session)
+        {
             session.CurrentPlayerIndex++;
             session.CurrentTurnNumber++;
             session.CurrentTurnStartTime = DateTime.Now;
@@ -154,15 +161,20 @@ namespace GameLogic.Services
                     session.CurrentRound++;
                 }
             }
-            ProcessBotTurns(session);
         }
 
-        public void StartVoting(GameSession session)
+        public async Task StartVotingAsync(Guid roomId, GameSession session)
         {
+            if (session.VotingStartTime != default)
+                return;
+
+            session.CurrentPlayerIndex = -1;
             session.CurrentStage = GameStage.Voting;
             session.Votes = new Dictionary<SlotID, SlotID>();
             session.VotingEnded = false;
             session.VotingStartTime = DateTime.Now;
+            session.IsUsingExtraTime = false;
+            session.ExtraTime = DateTime.MinValue;
             session.IsPlayerReadyToEndVotingDict = new Dictionary<SlotID, bool>();
 
             foreach (PlayerSlot slot in session.PlayerSlots)
@@ -181,8 +193,8 @@ namespace GameLogic.Services
 
                 _votingService.Vote(session, botId, targetId);
                 var report = _votingService.GetVotingReport(session);
-                _ = Task.Run(() => _gameWorker.OnVoteMadeAsync(session.GameId, report));
-                _votingService.SetPlayerReadyToEndVoting(session, botId, true);
+                await _gameWorker.OnVoteMadeAsync(roomId, report);
+                await _gameWorker.MakeReadyEndVoteAsync(roomId, session, botId, true);
             }
         }
 
@@ -245,7 +257,7 @@ namespace GameLogic.Services
                 session.MessagesList.ToList()
             );
         }
-        private void ProcessBotTurns(GameSession session)
+        public async Task ProcessBotActionsAsync(Guid roomId, GameSession session)
         {
             while (session.CurrentStage == GameStage.Round)
             {
@@ -261,26 +273,13 @@ namespace GameLogic.Services
 
                 session.MessagesList.Add(new Message(nextPlayerId, botMessage));
 
-                session.CurrentPlayerIndex++;
-                session.CurrentTurnNumber++;
-                session.CurrentTurnStartTime = DateTime.Now;
-
-                if (session.CurrentPlayerIndex >= session.PlayerSlots.Count)
-                {
-                    if (session.CurrentRound == session.GameSettings.TotalRounds)
-                    {
-                        session.CurrentPlayerIndex = -1;
-                        StartVoting(session);
-                    }
-                    else
-                    {
-                        session.CurrentPlayerIndex = 0;
-                        session.CurrentRound++;
-                    }
-                }
+                AdvanceTurn(session);
                 var playerAfterBot = WhoseTurn(session);
-                _ = Task.Run(() => _gameWorker.OnTurnMadeAsync(session.GameId, nextPlayerId, botMessage, playerAfterBot));
+                await _gameWorker.OnTurnMadeAsync(roomId, nextPlayerId, botMessage, playerAfterBot);
             }
+
+            if (session.CurrentStage == GameStage.Voting)
+                await StartVotingAsync(roomId, session);
         }
 
         public UserId? GetUserIDBySlotID(GameSession session, SlotID slotID)

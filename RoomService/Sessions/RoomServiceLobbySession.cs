@@ -96,15 +96,10 @@ namespace RoomService
 
         public GameSession? StartGame(IGameService gameService)
         {
+            if (IsStartingNewGame || !IsAllPlayersReady())
+                return null;
+
             Session = CreateGameSession(gameService);
-
-            foreach (var status in _statuses.Values)
-                if (status != PlayerStatus.Ready)
-                {
-                    IsStartingNewGame = false;
-                    return Session;
-                }
-
             IsStartingNewGame = true;
             Settings = Settings with { Status = RoomStatus.InGame };
 
@@ -115,14 +110,14 @@ namespace RoomService
             return Session;
         }
 
-        public void EndGame(IGameService gameService)
+        public void EndGame()
         {
             foreach (var player in _statuses.Keys)
                 _statuses[player] = PlayerStatus.Waiting;
 
             IsStartingNewGame = false;
             Settings = Settings with { Status = RoomStatus.Waiting };
-            Session = CreateGameSession(gameService);
+            Session = null;
 
             logger.LogInformation("Lobby session reset to Waiting state. Game successfully finished");
         }

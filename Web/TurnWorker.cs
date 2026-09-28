@@ -39,7 +39,10 @@ public class TurnWorker : BackgroundService
                 var lobbyService = scope.ServiceProvider.GetRequiredService<ILobbyService>();
                 var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
                 var room = roomService.GetRoomByRoomId(action.RoomId);
-                var gameSession = lobbyService.GetGameSession(room.Session);
+                var gameSession = room == null ? null : lobbyService.GetGameSession(room.Session);
+                if (gameSession == null || gameSession.CurrentStage != GameStage.Round)
+                    continue;
+
                 var slotId = gameService.WhoseTurn(gameSession);
                 gameService.MessageReceived(gameSession, "No message was provided");
                 await hubContext.Clients.Group(room.RoomId.ToString()).SendAsync("TurnMade", slotId.ToString(),
@@ -55,6 +58,7 @@ public class TurnWorker : BackgroundService
                 {
                     _turnStorage.AddVotingEnd(DateTime.Now + TimeSpan.FromMinutes(5), action.RoomId);
                 }
+                await gameService.ProcessBotActionsAsync(room.RoomId, gameSession);
             }
             else
             {
@@ -62,7 +66,9 @@ public class TurnWorker : BackgroundService
                 var lobbyService = scope.ServiceProvider.GetRequiredService<ILobbyService>();
                 var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
                 var room = roomService.GetRoomByRoomId(action.RoomId);
-                var gameSession = lobbyService.GetGameSession(room.Session);
+                var gameSession = room == null ? null : lobbyService.GetGameSession(room.Session);
+                if (gameSession == null || gameSession.CurrentStage != GameStage.Voting)
+                    continue;
                 var votingService = gameService.GetVoteService(gameSession);
                 var votingReport = votingService.GetVotingReport(gameSession);
                 var results = votingService.SummarizeResults(gameSession);

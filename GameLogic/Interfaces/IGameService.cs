@@ -16,11 +16,13 @@ namespace GameLogic.Interfaces
         SlotID GetSlotIDByUserID(GameSession session, UserId userId);
         UserId? GetUserIDBySlotID(GameSession session, SlotID slotID);
         SlotID WhoseTurn(GameSession session);
-        void MessageReceived(GameSession session, String message); // Переключает ход
+        // Records a human turn. Notify clients before awaiting ProcessBotActionsAsync.
+        void MessageReceived(GameSession session, String message);
+        Task ProcessBotActionsAsync(Guid roomId, GameSession session);
         IVotingService GetVoteService(GameSession session);
         Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings);
         GameSession GetGameSessionById (Guid GameSessionId);
-        void StartVoting (GameSession session);
+        Task StartVotingAsync(Guid roomId, GameSession session);
         List<SlotID> GetPlayerOrder(GameSession session);
         DateTime GetCurrentTurnStartTime(GameSession session);
         DateTime GetVotingStartTime(GameSession session);

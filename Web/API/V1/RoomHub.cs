@@ -94,7 +94,8 @@ public class RoomHub : Hub
             throw new HubException("Room not found");
         }
 
-        if (lobbyService.StartGame(room.Session) == null)
+        var gameSession = lobbyService.StartGame(room.Session);
+        if (gameSession == null)
         {
             throw new HubException("Can't start game");
         }
@@ -104,6 +105,7 @@ public class RoomHub : Hub
         }
 
         turnStorage.AddTurnEnd(DateTime.Now + TimeSpan.FromMinutes(1), room.RoomId);
+        await gameService.ProcessBotActionsAsync(room.RoomId, gameSession);
     }
 
     public async Task MakeTurn(string message)
@@ -129,12 +131,8 @@ public class RoomHub : Hub
 
         gameService.MessageReceived(gameSession, message);
         var nextSlotId = gameService.WhoseTurn(gameSession);
-        if (nextSlotId == null && gameService.GetVotingStartTime(gameSession) == default)
-        {
-            gameService.StartVoting(gameSession);
-        }
-
         await gameWorker.OnTurnMadeAsync(room.RoomId, slotId, message, nextSlotId);
+        await gameService.ProcessBotActionsAsync(room.RoomId, gameSession);
     }
 
     public async Task MakeReadyEndVote(bool isReady)
