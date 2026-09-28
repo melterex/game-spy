@@ -154,8 +154,6 @@ namespace GameLogic.Services
                     session.CurrentRound++;
                 }
             }
-            var nextPlayerId = WhoseTurn(session);
-            _ = Task.Run(() => _gameWorker.OnTurnMadeAsync(session.GameId, currentPlayerId, message, nextPlayerId));
             ProcessBotTurns(session);
         }
 
@@ -273,7 +271,6 @@ namespace GameLogic.Services
                     {
                         session.CurrentPlayerIndex = -1;
                         StartVoting(session);
-                        break;
                     }
                     else
                     {
