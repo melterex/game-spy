@@ -16,7 +16,12 @@ using ImageService;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IRoomService, RoomService.RoomService>();
-builder.Services.AddSingleton<IBotFactory, BotFactory>();
+builder.Services.AddSingleton<IBotFactory>(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    string apiKey = config["OpenRouterApiKey"];
+    return new BotFactory(apiKey);
+}); 
 builder.Services.AddTransient<ILobbyService, LobbyService>();
 builder.Services.AddTransient<CardsService.IThemesService, ThemesService>();
 builder.Services.AddTransient<IVotingService, VotingService>();
