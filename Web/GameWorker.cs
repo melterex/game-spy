@@ -10,12 +10,14 @@ public class GameWorker : IGameWorker
     private readonly IHubContext<RoomHub> hubContext;
     private readonly ITurnStorage turnStorage;
     private readonly IVotingService votingService;
+    private readonly ILogger<GameWorker> logger;
 
-    public GameWorker(IHubContext<RoomHub> hubContext, ITurnStorage turnStorage, IVotingService votingService)
+    public GameWorker(IHubContext<RoomHub> hubContext, ITurnStorage turnStorage, IVotingService votingService, ILogger<GameWorker> logger)
     {
         this.hubContext = hubContext;
         this.turnStorage = turnStorage;
         this.votingService = votingService;
+        this.logger = logger;
     }
 
     public async Task OnTurnMadeAsync(Guid roomId, SlotID slotId, string message, SlotID? nextSlotId)
@@ -52,6 +54,8 @@ public class GameWorker : IGameWorker
         var readyPlayers = votingService.GetIsPlayerReadyToEndVotingDict(gameSession);
         if (readyPlayers[slotId] == isReady)
         {
+            logger.LogWarning("Slot {SlotId} in room {RoomId} already has voting readiness {IsReady}",
+                slotId, roomId, isReady);
             return;
         }
 
@@ -65,6 +69,8 @@ public class GameWorker : IGameWorker
             turnStorage.RemoveVotingEnd(roomId);
             turnStorage.AddVotingEnd(votingEnd, roomId);
             gameSession.IsUsingExtraTime = false;
+            logger.LogInformation("Slot {SlotId} cancelled early vote end. Timer reset to default for room {RoomId}",
+                slotId, roomId);
         }
         else if (isEveryoneReady)
         {

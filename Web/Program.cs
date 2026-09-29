@@ -9,6 +9,9 @@ using Microsoft.OpenApi;
 using RoomService;
 using WebAPI;
 using WebAPI.API.V1;
+using Serilog;
+using DbConnection;
+using ImageService;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -25,7 +28,20 @@ builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IGetUser, GetUserService>();
 builder.Services.AddSingleton<ITurnStorage, TurnStorage>();
 builder.Services.AddScoped<IGameWorker, GameWorker>();
+builder.Services.AddTransient<IRepository<ImageModel>, ImageDbRepository>();
+builder.Services.AddTransient<ImageProviderFactory>();
+builder.Services.AddTransient<IProvider<ImageModel>, LocalImageProvider>();
+builder.Services.AddTransient<IProvider<ImageModel>, UrlImageProvider>();
 builder.Services.AddHostedService<TurnWorker>();
+builder.Services.AddTransient(sp =>
+{
+    var factory = new DbConnectionFactory
+    {
+        logger = sp.GetRequiredService<ILogger<DbConnectionFactory>>()
+    };
+    return factory;
+});
+
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -50,6 +66,9 @@ builder.Services.AddSwaggerGen(options =>
 });
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["Key"];
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -90,7 +109,7 @@ app.UseAuthorization();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(); 
+    app.UseSwaggerUI();
 }
 app.UseStaticFiles();
 app.MapControllers();

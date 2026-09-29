@@ -8,6 +8,7 @@ using System.Text;
 using GameLogic.Entities;
 using System.Runtime.Serialization.Formatters;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.Logging;
 
 namespace GameLogic.Services
 {
@@ -18,16 +19,18 @@ namespace GameLogic.Services
         private readonly IThemesService _themesService;
         private readonly IGameWorker _gameWorker;
         private readonly IBotFactory _botFactory;
+        private readonly ILogger<GameService> _logger;
         public List<SlotID> GeneratePlayerOrder(List<SlotID> playersIDs)
         {
             return playersIDs.OrderBy(_ => Guid.NewGuid()).ToList();
         }
-        public GameService(IVotingService votingService, IThemesService themesService, IBotFactory botFactory, IGameWorker gameWorker)
+        public GameService(IVotingService votingService, IThemesService themesService, IBotFactory botFactory, IGameWorker gameWorker, ILogger<GameService> logger)
         {
             _votingService = votingService;
             _themesService = themesService;
             _botFactory = botFactory;
             _gameWorker = gameWorker;
+            _logger = logger;
         }
         public Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings)
         {
@@ -60,7 +63,7 @@ namespace GameLogic.Services
                 PlayerSlots.Add(bSlot);
                 Bots[bSlot.Id] = _botFactory.CreateBot();
                 currentSlotCounter++;
-            } 
+            }
             var session = new SpyGameSession
             {
                 GameId = Guid.NewGuid(),
@@ -81,6 +84,9 @@ namespace GameLogic.Services
 
             AssignCards(session);
             sessions[session.GameId] = session;
+
+            _logger.LogInformation("New GameSession {GameId} created", session.GameId);
+
             return session.GameId;
         }
         public Dictionary<SlotID, Card> AssignCards(GameSession session)
@@ -107,11 +113,16 @@ namespace GameLogic.Services
             }
 
             session.PlayerCards = cards;
+
+            _logger.LogInformation("Cards assigned");
+
             return cards;
         }
         public GameSession GetGameSessionById(Guid GameSessionId)
         {
-            sessions.TryGetValue(GameSessionId, out var session);
+            if (!sessions.TryGetValue(GameSessionId, out var session))
+                _logger.LogWarning("Game session with ID {GameSessionId} not found", GameSessionId);
+
             return session;
         }
         public List<SlotID> GetPlayerOrder(GameSession session)
@@ -135,8 +146,10 @@ namespace GameLogic.Services
                 throw new InvalidOperationException("Сейчас не этап ходов");
 
             var currentPlayerId = WhoseTurn(session);
-            if (currentPlayerId == null)
+            if (currentPlayerId == null){
+                _logger.LogCritical("No active player");
                 throw new InvalidOperationException("Нет активного игрока");
+            }
 
             session.MessagesList.Add(new Message(currentPlayerId, message));
             AdvanceTurn(session);
@@ -154,11 +167,19 @@ namespace GameLogic.Services
                 {
                     session.CurrentPlayerIndex = -1;
                     session.CurrentStage = GameStage.Voting;
+
+                    _logger.LogInformation(
+                        "All rounds finished for session {GameId}. Moving to Voting stage", session.GameId
+                        );
                 }
                 else
                 {
                     session.CurrentPlayerIndex = 0;
                     session.CurrentRound++;
+
+                    _logger.LogInformation(
+                        "Round {CurrentRound} started for session {GameId}", session.CurrentRound, session.GameId
+                        );
                 }
             }
         }
@@ -196,6 +217,8 @@ namespace GameLogic.Services
                 await _gameWorker.OnVoteMadeAsync(roomId, report);
                 await _gameWorker.MakeReadyEndVoteAsync(roomId, session, botId, true);
             }
+
+            _logger.LogInformation("Voting phase started for game session {GameId}", session.GameId);
         }
 
         public DateTime GetCurrentTurnStartTime(GameSession session)
@@ -252,7 +275,7 @@ namespace GameLogic.Services
             return new GameContext(
                 botId,
                 botCard.IsSpy,
-                botCard.Word, 
+                botCard.Word,
                 safePlayersList,
                 session.MessagesList.ToList()
             );
