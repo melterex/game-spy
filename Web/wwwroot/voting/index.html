@@ -3,35 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Голосование</title>
+    <title>Шпион — Голосование</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
+    <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/vote.css">
 </head>
 <body>
 
-<div class="voting-container">
-    <div class="timer-section">
-        <span class="timer-label">Осталось времени:</span>
-        <div class="timer-badge" id="timer">00:30</div>
+<div class="page voting-container">
+    <div class="top timer-section">
+        <div class="logo">Шпион</div>
+        <div class="timer-wrap">
+            <span class="timer-label">осталось</span>
+            <div class="timer-badge" id="timer">00:30</div>
+        </div>
     </div>
 
-    <h2 class="voting-title">Кто шпион? Выберите игрока:</h2>
+    <h2 class="h voting-title">Кто шпион?</h2>
+    <p class="muted voting-sub">Нажмите на игрока, которого подозреваете. Голос можно поменять.</p>
 
     <div class="users-grid" id="usersGrid"></div>
 
     <div class="finish-vote-section" id="finishVoteSection">
-        <p id="finishVoteHint" class="finish-vote-hint">Проголосуйте за игрока, чтобы подтвердить готовность завершить.</p>
-        <button id="finishVoteBtn" type="button" class="finish-vote-btn" disabled>
+        <button id="finishVoteBtn" type="button" class="cta ink finish-vote-btn" disabled>
             Готов завершить
         </button>
+        <p id="finishVoteHint" class="muted finish-vote-hint">Проголосуйте за игрока, чтобы подтвердить готовность завершить.</p>
     </div>
-
 </div>
 
 <div id="voteResultOverlay" class="vote-result-overlay hidden">
-    <div class="vote-result-modal">
+    <div class="card vote-result-modal">
+        <span class="card-label">Итог раунда</span>
         <h2 id="voteResultTitle" class="vote-result-title"></h2>
         <p id="voteResultMessage" class="vote-result-message"></p>
-        <button id="voteResultBtn" type="button" class="finish-vote-btn">В комнату</button>
+        <button id="voteResultBtn" type="button" class="cta ink finish-vote-btn">В комнату</button>
     </div>
 </div>
 

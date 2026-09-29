@@ -1,0 +1,204 @@
+:root {
+    --yellow: #FFCF3F;
+    --ink: #1E1A3A;
+    --blue: #2340D6;
+    --muted: #5A5470;
+    --white: #fff;
+
+    --chip-1: #7FC8A9;
+    --chip-2: #E57F6B;
+    --chip-3: #9DB4E8;
+    --chip-4: #D59BE0;
+    --chip-5: #F5A15B;
+    --chip-6: #8ED1D6;
+    --chip-7: #C3D98A;
+    --chip-8: #F2F0FF;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    background: var(--yellow);
+    color: var(--ink);
+    font-family: Rubik, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+    color: inherit;
+}
+
+:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+}
+
+/* Каркас страницы */
+.page {
+    max-width: 430px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 20px 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+}
+
+.h {
+    font-size: 36px;
+    font-weight: 900;
+    line-height: 1.05;
+    margin: 8px 0 0;
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.hand {
+    font-family: Caveat, cursive;
+    font-weight: 700;
+}
+
+/* Текстовая кнопка-ссылка в шапке */
+.link-btn {
+    background: none;
+    border: 0;
+    padding: 6px 2px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    cursor: pointer;
+}
+
+.link-btn:hover {
+    text-decoration-thickness: 3px;
+}
+
+/* Основная кнопка */
+.cta {
+    height: 58px;
+    width: 100%;
+    border: 0;
+    border-radius: 18px;
+    font: 700 19px Rubik, sans-serif;
+    cursor: pointer;
+    transition: transform .08s, box-shadow .08s, opacity .15s;
+}
+
+.cta.ink {
+    background: var(--ink);
+    color: var(--yellow);
+    box-shadow: 0 5px 0 #000;
+}
+
+.cta.blue {
+    background: var(--blue);
+    color: var(--white);
+    box-shadow: 0 5px 0 var(--ink);
+}
+
+.cta:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #000;
+}
+
+.cta:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Синяя «карта» */
+.card {
+    background: var(--blue);
+    color: var(--white);
+    border-radius: 28px;
+    padding: 22px 22px 24px;
+    box-shadow: 0 8px 0 var(--ink);
+    transform: rotate(-1.5deg);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.card-label {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: .85;
+}
+
+/* Поле ввода в стиле карты: белая линия снизу */
+.line-input {
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid rgba(255, 255, 255, .55);
+    border-radius: 0;
+    color: var(--white);
+    font: 700 24px Rubik, sans-serif;
+    padding: 4px 0 8px;
+    outline: none;
+    width: 100%;
+}
+
+.line-input::placeholder {
+    color: rgba(255, 255, 255, .5);
+}
+
+.line-input:focus {
+    border-bottom-color: var(--white);
+}
+
+/* Модалки: JS показывает их через style.display = 'block' */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    overflow-y: auto;
+    padding: 12vh 20px 40px;
+    background: rgba(30, 26, 58, .55);
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    position: relative;
+    max-width: 390px;
+    margin: 0 auto;
+    animation: card-in .18s ease-out;
+}
+
+@keyframes card-in {
+    from { transform: translateY(16px) rotate(-1.5deg); opacity: 0; }
+    to   { transform: translateY(0) rotate(-1.5deg); opacity: 1; }
+}

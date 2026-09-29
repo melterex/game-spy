@@ -1,165 +1,148 @@
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-button {
-    -webkit-appearance: none;
-    appearance: none;
-    font-family: inherit;
-}
-
-/* Общие настройки сцены */
-body {
-    background-color: #1a1a1e;
-    color: #e4e4e7;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 20px;
+.timer-wrap {
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-}
-
-/* Главный контейнер */
-.voting-container {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    max-width: 650px;
-    background: #27272a;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-
-/* Верхняя панель с таймером */
-.timer-section {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: #18181b;
-    padding: 12px 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #3f3f46;
-    flex-shrink: 0;
+    gap: 10px;
 }
 
 .timer-label {
-    font-size: 1rem;
-    color: #a1a1aa;
+    font-family: Caveat, cursive;
+    font-size: 22px;
+    font-weight: 700;
 }
 
 .timer-badge {
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: #ef4444;
-    font-variant-numeric: tabular-nums;
-}
-
-/* Заголовок */
-.voting-title {
-    font-size: 1.25rem;
-    margin: 0 0 20px;
+    min-width: 76px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    background: var(--ink);
+    color: var(--yellow);
+    font-size: 20px;
+    font-weight: 700;
     text-align: center;
-    color: #f4f4f5;
-    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 4px 0 #000;
 }
 
-/* Сетка карточек */
+.voting-sub {
+    margin: -12px 0 0;
+    line-height: 1.4;
+}
+
+/* Список игроков */
 .users-grid {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    margin-bottom: 20px;
-}
-
-.users-grid > .user-card + .user-card {
-    margin-top: 12px;
+    gap: 14px;
 }
 
 .users-grid:empty::before {
-    content: 'Загрузка игроков...';
+    content: 'Загружаем игроков…';
     display: block;
-    padding: 20px;
+    padding: 26px 20px;
+    border: 3px dashed rgba(30, 26, 58, .35);
+    border-radius: 22px;
     text-align: center;
-    color: #a1a1aa;
-    background: #18181b;
-    border: 1px dashed #3f3f46;
-    border-radius: 12px;
+    font-weight: 500;
+    color: var(--muted);
 }
 
-/* Базовая карточка игрока */
 .user-card {
     display: flex;
     align-items: center;
-    width: 100%;
-    background: #3f3f46;
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 14px 20px;
+    gap: 14px;
+    padding: 12px 14px 12px 12px;
+    background: var(--white);
+    border-radius: 22px;
+    box-shadow: 0 5px 0 var(--ink);
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.2s ease-in-out;
     user-select: none;
-    flex-shrink: 0;
+    transition: transform .12s, box-shadow .12s, background .15s, color .15s;
 }
 
 .user-card:hover {
-    background: #52525b;
     transform: translateY(-2px);
+    box-shadow: 0 7px 0 var(--ink);
+}
+
+.user-card:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 var(--ink);
 }
 
 .user-card.selected {
-    background: #2e3e30;
-    border-color: #22c55e;
+    background: var(--blue);
+    color: var(--white);
+    transform: rotate(-1.5deg);
+    box-shadow: 0 6px 0 var(--ink);
 }
 
-.user-card.is-self {
+.user-card.is-self,
+.user-card.is-self:hover,
+.user-card.is-self:active {
     cursor: default;
-    opacity: 0.75;
-}
-
-.user-card.is-self:hover {
-    background: #3f3f46;
     transform: none;
+    background: rgba(255, 255, 255, .45);
+    box-shadow: none;
+    outline: 3px dashed rgba(30, 26, 58, .3);
+    outline-offset: -3px;
 }
 
 .avatar-placeholder {
-    font-size: 1.5rem;
-    background: #18181b;
-    padding: 10px;
-    border-radius: 50%;
-    margin-right: 16px;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--chip-1);
+    box-shadow: inset 0 -5px 0 rgba(30, 26, 58, .18);
+    font-size: 22px;
+}
+
+.user-card:nth-child(8n+2) .avatar-placeholder { background: var(--chip-2); }
+.user-card:nth-child(8n+3) .avatar-placeholder { background: var(--chip-3); }
+.user-card:nth-child(8n+4) .avatar-placeholder { background: var(--chip-4); }
+.user-card:nth-child(8n+5) .avatar-placeholder { background: var(--chip-5); }
+.user-card:nth-child(8n+6) .avatar-placeholder { background: var(--chip-6); }
+.user-card:nth-child(8n+7) .avatar-placeholder { background: var(--chip-7); }
+.user-card:nth-child(8n+8) .avatar-placeholder { background: var(--chip-8); }
+
+.user-card.selected .avatar-placeholder {
+    box-shadow: 0 0 0 3px var(--white), inset 0 -5px 0 rgba(30, 26, 58, .18);
 }
 
 .user-info {
     display: flex;
     flex-direction: column;
+    gap: 2px;
     flex: 1 1 auto;
     min-width: 0;
 }
 
 .username {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #ffffff;
+    font-size: 18px;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-status {
-    font-size: 0.85rem;
-    color: #a1a1aa;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: .7;
+}
+
+.end-vote-ready-badge {
+    align-self: flex-start;
     margin-top: 2px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--chip-1);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .votes-counter {
@@ -167,115 +150,68 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: #18181b;
-    min-width: 65px;
+    min-width: 62px;
     padding: 6px 10px;
-    border-radius: 8px;
-    border: 1px solid #52525b;
     flex-shrink: 0;
+    border-radius: 14px;
+    background: var(--ink);
+    color: var(--yellow);
+}
+
+.user-card.selected .votes-counter {
+    background: var(--yellow);
+    color: var(--ink);
 }
 
 .votes-count {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #3b82f6;
-}
-
-.user-card.selected .votes-count {
-    color: #22c55e;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
 }
 
 .votes-label {
-    font-size: 0.7rem;
-    color: #71717a;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     margin-top: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    opacity: .8;
 }
 
+/* Кнопка завершения */
 .finish-vote-section {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 16px 0 4px;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-    padding: 16px;
-    border: 1px solid #3f3f46;
-    border-radius: 12px;
-    background: #18181b;
-    flex-shrink: 0;
+    gap: 12px;
+    background: linear-gradient(to bottom, rgba(255, 207, 63, 0), var(--yellow) 30%);
 }
 
 .finish-vote-hint {
-    margin: 0 0 12px;
-    font-size: 0.9rem;
-    color: #a1a1aa;
+    margin: 0;
     text-align: center;
     line-height: 1.4;
 }
 
-.finish-vote-btn {
-    -webkit-appearance: none;
-    appearance: none;
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    min-height: 48px;
-    margin: 0;
-    padding: 14px 20px;
-    border: 2px solid #52525b;
-    border-radius: 12px;
-    font-family: inherit;
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.2;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.2s ease-in-out;
-    background-color: #22c55e;
-    color: #ffffff;
-    -webkit-text-fill-color: #ffffff;
-    align-self: stretch;
-    flex-shrink: 0;
-}
-
-.finish-vote-btn:hover:not(:disabled) {
-    background-color: #16a34a;
-    border-color: #16a34a;
-    transform: translateY(-1px);
-}
-
-.finish-vote-btn:disabled {
-    width: 100%;
-    background-color: #27272a;
-    border-color: #52525b;
-    color: #d4d4d8;
-    -webkit-text-fill-color: #d4d4d8;
-    cursor: not-allowed;
-    opacity: 1;
-}
-
 .finish-vote-btn.active {
-    background-color: #2e3e30;
-    border-color: #22c55e;
-    color: #86efac;
-    -webkit-text-fill-color: #86efac;
+    background: var(--blue);
+    color: var(--white);
+    box-shadow: 0 5px 0 var(--ink);
 }
 
-.end-vote-ready-badge {
-    font-size: 0.75rem;
-    color: #22c55e;
-    margin-top: 4px;
-}
-
+/* Итог раунда */
 .vote-result-overlay {
     position: fixed;
     inset: 0;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: rgba(0, 0, 0, 0.75);
-    z-index: 1000;
+    background: rgba(30, 26, 58, .55);
+    backdrop-filter: blur(2px);
 }
 
 .vote-result-overlay.hidden {
@@ -284,35 +220,47 @@ body {
 
 .vote-result-modal {
     width: 100%;
-    max-width: 420px;
-    padding: 24px;
-    border-radius: 16px;
-    background: #27272a;
-    border: 2px solid #3f3f46;
-    text-align: center;
+    max-width: 390px;
+    animation: result-in .2s ease-out;
 }
 
-.vote-result-modal.vote-result-win {
-    border-color: #22c55e;
-}
-
-.vote-result-modal.vote-result-lose {
-    border-color: #ef4444;
-}
-
-.vote-result-modal.vote-result-tie {
-    border-color: #eab308;
+@keyframes result-in {
+    from { transform: translateY(16px) rotate(-1.5deg); opacity: 0; }
+    to   { transform: translateY(0) rotate(-1.5deg); opacity: 1; }
 }
 
 .vote-result-title {
-    margin: 0 0 12px;
-    font-size: 1.5rem;
-    color: #f4f4f5;
+    margin: -6px 0 0;
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1;
 }
 
 .vote-result-message {
-    margin: 0 0 20px;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: #d4d4d8;
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.45;
+}
+
+.vote-result-modal .finish-vote-btn {
+    margin-top: 4px;
+}
+
+.vote-result-modal.vote-result-lose {
+    background: var(--ink);
+    box-shadow: 0 8px 0 #000;
+}
+
+.vote-result-modal.vote-result-lose .vote-result-title {
+    color: var(--chip-2);
+}
+
+.vote-result-modal.vote-result-lose .finish-vote-btn {
+    background: var(--yellow);
+    color: var(--ink);
+}
+
+.vote-result-modal.vote-result-tie {
+    background: var(--white);
+    color: var(--ink);
 }

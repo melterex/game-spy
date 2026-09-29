@@ -1,148 +1,185 @@
-:root {
-    --bg-color: #0f0f0f;
-    --card-bg: #1a1a1a;
-    --accent-color: #ff4d4d;
-    --text-color: #ffffff;
-    --border-color: #333;
-}
-
-body {
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    display: flex;
-    justify-content: center;
-}
-
-.container {
-    width: 100%;
-    max-width: 800px;
-    padding: 40px 20px;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 20px;
-}
-
-.create-btn {
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
 .room-list {
-    display: grid;
-    gap: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-.room-card {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
+.room-list:empty::before {
+    content: 'Пока ни одного стола. Создайте первый!';
+    display: block;
+    padding: 26px 20px;
+    border: 3px dashed rgba(30, 26, 58, .35);
+    border-radius: 22px;
+    text-align: center;
+    font-weight: 500;
+    color: var(--muted);
 }
+
+/* Карточка комнаты (разметку рендерит JS) */
+.room-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 16px 16px 14px;
+    background: var(--white);
+    border-radius: 22px;
+    box-shadow: 0 5px 0 var(--ink);
+    cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+}
+
+.room-card::before {
+    content: '';
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--chip-1);
+    box-shadow: inset 0 -5px 0 rgba(30, 26, 58, .18);
+}
+
+.room-card:nth-child(8n+2)::before { background: var(--chip-2); }
+.room-card:nth-child(8n+3)::before { background: var(--chip-3); }
+.room-card:nth-child(8n+4)::before { background: var(--chip-4); }
+.room-card:nth-child(8n+5)::before { background: var(--chip-5); }
+.room-card:nth-child(8n+6)::before { background: var(--chip-6); }
+.room-card:nth-child(8n+7)::before { background: var(--chip-7); }
+.room-card:nth-child(8n+8)::before { background: var(--chip-8); }
+
+.room-card:nth-child(odd)  { transform: rotate(-0.8deg); }
+.room-card:nth-child(even) { transform: rotate(0.8deg); }
 
 .room-card:hover {
-    border-color: var(--accent-color);
-    background: #222;
+    transform: rotate(0) translateY(-2px);
+    box-shadow: 0 7px 0 var(--ink);
+}
+
+.room-card:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 var(--ink);
+}
+
+.room-card > div:first-child {
+    flex: 1;
+    min-width: 0;
 }
 
 .room-name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--accent-color);
+    font-size: 19px;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-/* Модалка создания комнаты */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 100;
-    left: 0; top: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
+.room-card small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--muted) !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.modal-content {
-    background: var(--card-bg);
-    margin: 15% auto;
-    padding: 30px;
-    width: 300px;
-    border-radius: 10px;
+/* Счётчик мест: цвет JS задаёт inline, перекрашиваем под палитру */
+.room-card > div[style] {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 700 !important;
+    background: var(--chip-1);
+    color: var(--ink) !important;
+}
+
+.room-card > div[style*="ff4d4d"] {
+    background: var(--ink);
+    color: var(--chip-2) !important;
+}
+
+.bottom-bar {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: 16px 0 4px;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--border-color);
+    gap: 12px;
+    background: linear-gradient(to bottom, rgba(255, 207, 63, 0), var(--yellow) 30%);
 }
 
-input, select {
-    margin: 10px 0 20px;
-    padding: 12px;
-    background: #000;
-    border: 1px solid var(--border-color);
-    color: white;
+.hint {
+    text-align: center;
 }
 
-.confirm-btn {
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 15px;
+/* Модалки */
+.card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-note {
+    font-size: 26px;
+    color: var(--yellow);
+    transform: rotate(4deg);
+}
+
+.card-title {
+    margin: -6px 0 0;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.05;
+    word-break: break-word;
+}
+
+.card-desc {
+    margin: -6px 0 0;
+    font-size: 16px;
+    opacity: .9;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.line-select {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    padding: 4px 28px 8px 0;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1.5 1.5 7 7l5.5-5.5' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 4px center;
+    border: 0;
+    border-bottom: 3px solid rgba(255, 255, 255, .55);
+    border-radius: 0;
+    color: var(--white);
+    font: 700 24px Rubik, sans-serif;
+    outline: none;
     cursor: pointer;
-    font-weight: bold;
+}
+
+.line-select:focus {
+    border-bottom-color: var(--white);
+}
+
+.line-select option {
+    color: var(--ink);
+    background: var(--white);
+    font-size: 16px;
 }
 
 .cancel-link {
-    text-align: center;
-    margin-top: 15px;
-    color: #666;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.exit-btn {
-    background: transparent;
-    border: 2px solid var(--accent-color);
-    color: var(--text-color);
-
-
-    padding: 10px 24px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    border-radius: 4px;
-
-
-    text-transform: uppercase;
-    letter-spacing: 1px;
-
-
-    cursor: pointer;
-    transition: all 0.25s ease-in-out;
-}
-
-.exit-btn:hover {
-    background: var(--accent-color);
-    color: #ffffff;
-
-    box-shadow: 0 0 12px rgba(255, 77, 77, 0.4);
-    transform: translateY(-1px);
-}
-
-.exit-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 0 5px rgba(255, 77, 77, 0.2);
+    align-self: center;
+    margin-top: -6px;
+    color: var(--white);
 }

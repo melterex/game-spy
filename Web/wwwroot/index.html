@@ -3,44 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spy Game - Главная</title>
+    <title>Шпион — Главная</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
+    <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
-<button id="loginBtn" class="top-right-btn">Вход</button>
+<div class="page">
+    <div class="top">
+        <div class="logo">Шпион</div>
+        <button id="loginBtn" class="link-btn">Вход</button>
+    </div>
 
-<div class="main-container">
-    <h1 class="game-title">ШПИОН</h1>
-    <button id="playBtn" class="play-btn">ИГРАТЬ</button>
+    <div class="main-container">
+        <h1 class="h game-title">Кто среди вас шпион?</h1>
+
+        <div class="card hero-card">
+            <div class="hero-card-head">
+                <span class="card-label">Карта игрока</span>
+                <span class="hand hero-note">тсс…</span>
+            </div>
+            <div class="hero-word">Слово: <span class="hero-blur">Библиотека</span></div>
+            <ul class="hero-rules">
+                <li>Все знают тему и слово — кроме шпиона.</li>
+                <li>По очереди пишите подсказки в чат.</li>
+                <li>Голосуйте и вычислите чужака.</li>
+            </ul>
+        </div>
+    </div>
+
+    <button id="playBtn" class="cta ink play-btn">Играть</button>
+    <div class="muted footnote">Нет аккаунта? Нажмите «Вход» → «Регистрация».</div>
 </div>
 
 <div id="authModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
+    <div class="modal-content card">
+        <span class="close" role="button" aria-label="Закрыть">&times;</span>
+        <span class="card-label">Карта игрока</span>
+
         <div class="auth-tabs">
             <button class="tab-link active" onclick="openTab(event, 'login')">Вход</button>
             <button class="tab-link" onclick="openTab(event, 'register')">Регистрация</button>
         </div>
 
         <form id="login" class="tab-content active">
-            <label>
-                <input name="logNick" type="text" placeholder="Логин" required>
+            <label class="field">
+                <span class="card-label">Логин</span>
+                <input class="line-input" name="logNick" type="text" placeholder="Ваш логин" autocomplete="username" required>
             </label>
-            <label>
-                <input name="logPass" type="password" placeholder="Пароль" required>
+            <label class="field">
+                <span class="card-label">Пароль</span>
+                <input class="line-input" name="logPass" type="password" placeholder="••••••" autocomplete="current-password" required>
             </label>
-            <button type="submit" class="submit-btn">Войти</button>
+            <button type="submit" class="cta ink submit-btn">Войти</button>
         </form>
 
         <form id="register" class="tab-content">
-            <label>
-                <input name="regNick" type="text" placeholder="Придумайте логин" required>
+            <label class="field">
+                <span class="card-label">Имя за столом</span>
+                <input class="line-input" name="regNick" type="text" placeholder="Придумайте логин" autocomplete="nickname" required>
             </label>
-            <label>
-                <input name="regPass" type="password" placeholder="Придумайте пароль" required>
+            <label class="field">
+                <span class="card-label">Пароль</span>
+                <input class="line-input" name="regPass" type="password" placeholder="Придумайте пароль" autocomplete="new-password" required>
             </label>
-            <button type="submit" class="submit-btn">Создать аккаунт</button>
+            <button type="submit" class="cta ink submit-btn">Сесть за стол</button>
         </form>
     </div>
 </div>

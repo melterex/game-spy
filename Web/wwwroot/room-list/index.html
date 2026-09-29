@@ -3,59 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spy Game - Lobby</title>
+    <title>Шпион — Комнаты</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
+    <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/room-list.css">
 </head>
 <body>
 
-
-
-<div class="container">
-    <div class="header">
-        <button class="exit-btn" onclick="exitRoomList()">ВЫЙТИ</button>
-        <h1>Доступные комнаты</h1>
-        <button class="create-btn" onclick="openModal('createModal')">Создать комнату</button>
+<div class="page container">
+    <div class="top header">
+        <div class="logo">Шпион</div>
+        <button class="link-btn exit-btn" onclick="exitRoomList()">Выйти</button>
     </div>
 
+    <h1 class="h">Выберите стол</h1>
+
     <div class="room-list" id="roomsContainer"></div>
+
+    <div class="bottom-bar">
+        <button class="cta ink create-btn" onclick="openModal('createModal')">Создать комнату</button>
+        <div class="muted hint">Список обновляется сам каждые пару секунд.</div>
+    </div>
 </div>
 
 <div id="createModal" class="modal">
-    <div class="modal-content">
-        <h2>Новая комната</h2>
-        <label for="roomTheme">Выберите тему:</label>
-        <select id="roomTheme">
-            <option value="Animals">Animals</option>
-            <option value="Education">Education</option>
-            <option value="Plants">Plants</option>
-            <option value="Sport">Sport</option>
-            <option value="Travelling">Travelling</option>
-        </select>
+    <div class="modal-content card">
+        <div class="card-head">
+            <span class="card-label">Новый стол</span>
+            <span class="hand card-note">свой!</span>
+        </div>
+        <h2 class="card-title">Настройте игру</h2>
 
-        <label for="playerLimit">Количество игроков:</label>
-        <select id="playerLimit">
-            <option value="5">5 человек</option>
-            <option value="6">6 человек</option>
-            <option value="7">7 человек</option>
-            <option value="8">8 человек</option>
-            <option value="9">9 человек</option>
-            <option value="10">10 человек</option>
-        </select>
+        <label class="field" for="roomTheme">
+            <span class="card-label">Тема</span>
+            <select id="roomTheme" class="line-select">
+                <option value="Animals">Животные</option>
+                <option value="Education">Образование</option>
+                <option value="Plants">Растения</option>
+                <option value="Sport">Спорт</option>
+                <option value="Travelling">Путешествия</option>
+            </select>
+        </label>
 
-        <label for="botCount">Количество ботов:</label>
-        <select id="botCount"></select>
+        <div class="field-row">
+            <label class="field" for="playerLimit">
+                <span class="card-label">Игроков</span>
+                <select id="playerLimit" class="line-select">
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </label>
 
-        <button class="confirm-btn" onclick="createNewRoom()">СОЗДАТЬ</button>
-        <div class="cancel-link" onclick="closeModal('createModal')">Отмена</div>
+            <label class="field" for="botCount">
+                <span class="card-label">Из них ботов</span>
+                <select id="botCount" class="line-select"></select>
+            </label>
+        </div>
+
+        <button class="cta ink confirm-btn" onclick="createNewRoom()">Создать</button>
+        <button class="link-btn cancel-link" onclick="closeModal('createModal')">Отмена</button>
     </div>
 </div>
 
 <div id="joinModal" class="modal">
-    <div class="modal-content">
-        <h2 id="joinRoomTitle">Название</h2>
-        <p id="joinRoomDesc"></p>
-        <button class="confirm-btn" onclick="enterRoom()">ВОЙТИ</button>
-        <div class="cancel-link" onclick="closeModal('joinModal')">Назад</div>
+    <div class="modal-content card">
+        <span class="card-label">Присоединиться</span>
+        <h2 id="joinRoomTitle" class="card-title">Название</h2>
+        <p id="joinRoomDesc" class="card-desc"></p>
+        <button class="cta ink confirm-btn" onclick="enterRoom()">Сесть за стол</button>
+        <button class="link-btn cancel-link" onclick="closeModal('joinModal')">Назад</button>
     </div>
 </div>
 

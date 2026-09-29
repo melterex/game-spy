@@ -1,327 +1,418 @@
-/* 1. Глобальные переменные и база */
-:root {
-    --bg: #0a0a0a;
-    --accent: #ff4d4d;
-    --panel: #1a1a1a;
-    --text: #ffffff;
-    --chat-bg: #000000;
-    --border: #333333;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    overflow: hidden;
-}
-
-/* 2. Основной контейнер игры */
+/* Раскладка: шапка сверху, игроки по бокам, стол по центру */
 .game-area {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 560px) 220px;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+        "top  top    top"
+        "left center right";
     justify-content: center;
-    align-items: center;
-    gap: 40px;
-    width: 100vw;
+    gap: 22px 28px;
     height: 100vh;
-    position: relative;
+    padding: 20px 28px 32px;
 }
 
-/* 3. Верхний интерфейс (Таймер и Выход) */
 .top-ui {
-    position: absolute;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
+    grid-area: top;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 100;
+    gap: 12px;
 }
 
-.timer {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: var(--accent);
-    text-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
-    font-family: 'Courier New', Courier, monospace;
+.top-ui-left,
+.top-ui-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
 }
 
 .room-id-label {
-    font-size: 2rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--white);
+    font-size: 14px;
     font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 3px 0 var(--ink);
 }
 
-.exit-btn {
-    background: transparent;
-    border: 2px solid var(--accent);
-    color: var(--accent);
-    padding: 10px 25px;
-    cursor: pointer;
-    font-weight: bold;
-    border-radius: 5px;
-    text-transform: uppercase;
-    transition: all 0.3s ease;
+.room-id-label:empty {
+    display: none;
 }
 
-.exit-btn:hover {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 0 15px var(--accent);
+.timer {
+    min-width: 76px;
+    padding: 8px 14px;
+    border-radius: 14px;
+    background: var(--ink);
+    color: var(--yellow);
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 4px 0 #000;
 }
 
-/* 4. Колонки игроков */
+.timer:empty {
+    display: none;
+}
+
+/* Игроки */
 .side-players {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 15px;
-    width: 200px;
-    height: 70%;
-    z-index: 10;
+    gap: 12px;
+    min-width: 0;
 }
 
-.left { align-items: flex-end; }
-.right { align-items: flex-start; }
+.left  { grid-area: left; }
+.right { grid-area: right; }
 
 .player-tag {
-    background: var(--panel);
-    padding: 10px 18px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    font-size: 0.95rem;
-    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 14px 7px 7px;
+    background: var(--white);
+    border-radius: 999px;
+    box-shadow: 0 4px 0 var(--ink);
+    font-size: 15px;
+    font-weight: 500;
+    transition: transform .15s, background .15s, color .15s;
+}
+
+.player-tag::before {
+    content: '';
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--chip-1);
+    box-shadow: inset 0 -4px 0 rgba(30, 26, 58, .18);
+}
+
+.left .player-tag:nth-child(4n+2)::before { background: var(--chip-2); }
+.left .player-tag:nth-child(4n+3)::before { background: var(--chip-3); }
+.left .player-tag:nth-child(4n+4)::before { background: var(--chip-4); }
+.right .player-tag::before                { background: var(--chip-5); }
+.right .player-tag:nth-child(4n+2)::before { background: var(--chip-6); }
+.right .player-tag:nth-child(4n+3)::before { background: var(--chip-7); }
+.right .player-tag:nth-child(4n+4)::before { background: var(--chip-8); }
+
+.player-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
-    transition: 0.2s ease-in-out;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .bot-badge {
-    margin-left: 6px;
-    font-size: 0.7rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #a1a1aa;
-    border: 1px solid #52525b;
-    border-radius: 4px;
-    padding: 1px 6px;
-    vertical-align: middle;
+    margin-left: 4px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--yellow);
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: 1px;
 }
 
-.left .player-tag { border-right: 4px solid var(--accent); }
-.right .player-tag { border-left: 4px solid var(--accent); }
-
-.player-tag:hover {
-    transform: translateX(5px);
-    border-color: var(--accent);
+.player-status-wrapper:empty {
+    display: none;
 }
 
-.left .player-tag:hover { transform: translateX(-5px); }
+.ready-icon {
+    font-size: 0;
+}
 
-/* 5. Центральный блок (Инфо + Чат) */
+.ready-icon::after {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ready-icon.is-ready::after {
+    content: 'готов';
+    background: var(--chip-1);
+    color: var(--ink);
+}
+
+.ready-icon.not-ready::after {
+    content: 'ждём';
+    color: var(--muted);
+}
+
+.player-tag.current-turn {
+    background: var(--blue);
+    color: var(--white);
+    transform: rotate(-1.5deg) scale(1.04);
+}
+
+.player-tag.current-turn .bot-badge {
+    background: var(--yellow);
+    color: var(--ink);
+}
+
+.turn-dot {
+    margin-left: 4px;
+    color: var(--yellow);
+    animation: pulse-dot 1s infinite alternate;
+}
+
+@keyframes pulse-dot {
+    from { opacity: .3; }
+    to   { opacity: 1; }
+}
+
+/* Центральный стол */
 .center-box {
-    width: 500px;
-    height: 550px; /* Увеличено, чтобы влезла плашка и чат */
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    grid-area: center;
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-    z-index: 50;
+    gap: 14px;
+    min-height: 0;
+    padding: 18px;
+    background: var(--white);
+    border-radius: 28px;
+    box-shadow: 0 8px 0 var(--ink);
+}
+
+.game-info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.turn-status-banner {
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: var(--ink);
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.turn-status-banner.my-turn-bg {
+    background: var(--blue);
+    animation: my-turn 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes my-turn {
+    from { box-shadow: 0 0 0 0 rgba(35, 64, 214, .45); }
+    to   { box-shadow: 0 0 0 7px rgba(35, 64, 214, 0); }
+}
+
+.turn-status-banner.hidden,
+.info-item.hidden {
+    display: none;
+}
+
+/* Карта со словом: прячется, пока тема и слово скрыты */
+.word-card {
+    gap: 12px;
+    margin: 4px 4px 8px;
+    padding: 18px 20px 20px;
+}
+
+.word-card:not(:has(.info-item:not(.hidden))) {
+    display: none;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .info-item .label {
-    font-size: 0.7rem;
-    color: #888;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: .85;
 }
 
 .info-item .value {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--accent);
-    text-transform: uppercase;
+    font-weight: 900;
+    line-height: 1.05;
+    word-break: break-word;
+}
+
+#themeBlock .value {
+    font-size: 18px;
+}
+
+#wordBlock .value {
+    font-size: 34px;
+}
+
+.lobby-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.lobby-buttons:not(:has(> :not([style*="display: none"]))) {
+    display: none;
+}
+
+.ready-btn.active {
+    opacity: .7;
 }
 
 /* Чат */
 .chat-area {
-    flex-grow: 1;
+    flex: 1 1 auto;
+    min-height: 120px;
     overflow-y: auto;
-    margin-bottom: 15px;
-    padding-right: 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding: 12px;
+    border-radius: 18px;
+    background: #FFF4CC;
 }
 
-.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar { width: 6px; }
 .chat-area::-webkit-scrollbar-track { background: transparent; }
-.chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+.chat-area::-webkit-scrollbar-thumb { background: rgba(30, 26, 58, .25); border-radius: 10px; }
 
 .message {
-    font-size: 0.9rem;
+    align-self: flex-start;
+    max-width: 92%;
+    padding: 8px 12px;
+    border-radius: 16px 16px 16px 4px;
+    background: var(--white);
+    box-shadow: 0 2px 0 rgba(30, 26, 58, .15);
+    font-size: 15px;
     line-height: 1.4;
     word-break: break-word;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 8px 12px;
-    border-radius: 6px;
+}
+
+.message strong {
+    color: var(--blue);
+    font-weight: 700;
 }
 
 .message span {
-    color: var(--accent);
-    font-weight: bold;
-    margin-right: 5px;
+    margin-right: 4px;
+    color: var(--muted);
+    font-weight: 700;
 }
 
-/* Поле ввода */
 .chat-input-wrap {
     display: flex;
-    gap: 12px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border);
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.chat-input-wrap label {
+    flex: 1;
+    min-width: 0;
 }
 
 .chat-input-wrap input {
-    flex-grow: 1;
-    background: var(--chat-bg);
-    border: 1px solid var(--border);
-    color: white;
-    padding: 12px;
-    border-radius: 6px;
+    width: 100%;
+    height: 52px;
+    padding: 0 16px;
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    background: var(--white);
+    font-size: 16px;
     outline: none;
 }
 
 .chat-input-wrap input:focus {
-    border-color: var(--accent);
+    border-color: var(--blue);
+}
+
+.chat-input-wrap input:disabled {
+    border-style: dashed;
+    border-color: rgba(30, 26, 58, .35);
+    background: #F7F5EE;
+    cursor: not-allowed;
+}
+
+.chat-input-wrap input::placeholder {
+    color: var(--muted);
 }
 
 .chat-input-wrap button {
-    background: var(--accent);
-    border: none;
-    color: white;
-    padding: 0 20px;
-    border-radius: 6px;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 16px;
+    background: var(--ink);
+    color: var(--yellow);
+    font-size: 20px;
     cursor: pointer;
-    font-size: 1.2rem;
-    transition: 0.2s;
+    box-shadow: 0 4px 0 #000;
+    transition: transform .08s, box-shadow .08s;
 }
 
-.chat-input-wrap button:hover {
-    filter: brightness(1.2);
+.chat-input-wrap button:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #000;
 }
 
-/* ==========================================================================
-   ИСПРАВЛЕННЫЙ БЛОК КНОПОК УПРАВЛЕНИЯ ЛОББИ
-   ========================================================================== */
-
-.game-info {
-    display: flex;
-    flex-direction: column;   /* Строго вертикальная колонка */
-    align-items: center;      /* Идеальный центр по горизонтали */
-    justify-content: center;  /* Идеальный центр по вертикали */
-    gap: 12px;                /* Четкий, фиксированный отступ МЕЖДУ кнопками */
-    min-height: 110px;        /* Немного увеличили высоту, чтобы две кнопки свободно дышали */
-    width: 100%;
-    padding: 15px 25px;
-    box-sizing: border-box;
-}
-
-/* Элементы информации (тема и слово) */
-.info-item {
-    display: flex;
-    gap: 8px;
-    font-size: 16px;
-}
-
-/* Общие базовые стили управления для ОБЕИХ кнопок лобби */
-.ready-btn {
-    /* ПОЛНОСТЬЮ убрали position: absolute и transform, чтобы Flexbox мог ими управлять! */
-    display: block;
-    width: 240px;             /* Сделали одинаковую ширину для симметрии */
-    background-color: var(--accent);
-    color: #111;
-    border: none;
-    padding: 12px 35px;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s, opacity 0.2s, transform 0.2s;
-    text-align: center;
-    box-sizing: border-box;
-}
-
-.ready-btn:hover {
-    filter: brightness(1.1);  /* Аккуратный эффект подсветки при наведении */
-    transform: scale(1.02);   /* Легкое увеличение */
-}
-
-/* Уникальный цвет конкретно для кнопки СТАРТ ИГРЫ */
-#startGameBtn {
-    background-color: #28a745; /* Твой зеленый цвет */
-    color: white;              /* Белый текст, чтобы читался на зеленом */
-}
-
-/* Стилизация кнопки старта, когда она заблокирована */
-.ready-btn:disabled, #startGameBtn:disabled {
-    background-color: #555 !important;
-    color: #aaa !important;
+.chat-input-wrap:has(input:disabled) button {
+    opacity: .45;
     cursor: not-allowed;
-    opacity: 0.5;
-    transform: none !important; /* Отключаем увеличение при наведении */
-}
-/* Главный баннер хода */
-.turn-status-banner {
-    display: block;
-    text-align: center;
-    padding: 12px;
-    background-color: #1e1e24;
-    color: #fff;
-    font-weight: bold;
-    font-size: 16px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    border: 1px solid #333;
-    transition: all 0.3s ease;
 }
 
-/* Если ход твой — перекрашиваем в яркий цвет (можешь заменить на свой var(--accent)) */
-.turn-status-banner.my-turn-bg {
-    background-color: #ffcc00;
-    color: #111;
-    box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
-}
+/* Мобильная раскладка: игроки строкой над столом */
+@media (max-width: 900px) {
+    .game-area {
+        grid-template-columns: minmax(0, 560px);
+        grid-template-rows: auto;
+        grid-template-areas:
+            "top"
+            "left"
+            "right"
+            "center";
+        gap: 12px;
+        height: auto;
+        min-height: 100vh;
+        padding: 16px 16px 24px;
+    }
 
-/* Скрытие элементов */
-.turn-status-banner.hidden {
-    display: none;
-}
+    .top-ui {
+        margin-bottom: 6px;
+    }
 
-/* Подсветка карточки игрока в списке, который сейчас ходит */
-.player-tag.current-turn {
-    border: 2px solid #ffcc00 !important;
-    background-color: rgba(255, 204, 0, 0.08) !important;
-    transform: scale(1.03);
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.15);
-}
+    .side-players {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 10px;
+    }
 
-/* Мигающая точка около никнейма */
-.turn-dot {
-    color: #28a745;
-    margin-left: 6px;
-    animation: pulse-dot 1.2s infinite alternate;
-}
+    .side-players:empty {
+        display: none;
+    }
 
-@keyframes pulse-dot {
-    from { opacity: 0.3; }
-    to { opacity: 1; }
+    .player-tag {
+        max-width: 100%;
+        padding: 5px 12px 5px 5px;
+        font-size: 14px;
+    }
+
+    .player-tag::before {
+        width: 24px;
+        height: 24px;
+    }
+
+    .center-box {
+        margin-top: 8px;
+        height: max(460px, calc(100vh - 220px));
+    }
 }

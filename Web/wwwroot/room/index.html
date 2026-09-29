@@ -3,16 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spy Game - Room</title>
+    <title>Шпион — Стол</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
+    <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/room.css">
 </head>
 <body>
 
 <div class="game-area">
     <div class="top-ui">
-        <div id="timer" class="timer">05:00</div>
-        <div id="roomIdLabel" class="room-id-label"></div>
-        <button class="exit-btn" onclick="exitRoom()">ВЫЙТИ</button>
+        <div class="top-ui-left">
+            <div class="logo">Шпион</div>
+            <div id="roomIdLabel" class="room-id-label"></div>
+        </div>
+        <div class="top-ui-right">
+            <div id="timer" class="timer" aria-live="polite">05:00</div>
+            <button class="link-btn exit-btn" onclick="exitRoom()">Выйти</button>
+        </div>
     </div>
 
     <div class="side-players left" id="leftSide"></div>
@@ -21,25 +29,29 @@
         <div class="game-info">
             <div id="turnStatus" class="turn-status-banner hidden">Ожидание начала игры...</div>
 
-            <div class="info-item hidden" id="themeBlock">
-                <span class="label">ТЕМА:</span>
-                <span id="themeValue" class="value"></span>
-            </div>
-            <div class="info-item hidden" id="wordBlock">
-                <span class="label">ВАШЕ СЛОВО:</span>
-                <span id="wordValue" class="value"></span>
+            <div class="card word-card">
+                <div class="info-item hidden" id="themeBlock">
+                    <span class="label">Тема</span>
+                    <span id="themeValue" class="value"></span>
+                </div>
+                <div class="info-item hidden" id="wordBlock">
+                    <span class="label">Ваше слово</span>
+                    <span id="wordValue" class="value"></span>
+                </div>
             </div>
 
-            <button id="readyBtn" class="ready-btn">ГОТОВ</button>
-            <button id="startGameBtn" class="ready-btn" disabled style="background: #28a745; margin-top: 10px; opacity: 0.5;">СТАРТ ИГРЫ</button>
+            <div class="lobby-buttons">
+                <button id="readyBtn" class="cta ink ready-btn">ГОТОВ</button>
+                <button id="startGameBtn" class="cta blue ready-btn" disabled>СТАРТ ИГРЫ</button>
+            </div>
         </div>
 
         <div class="chat-area" id="chatArea">
             <div class="message"><span>Система:</span> Ожидание начала...</div>
         </div>
         <div class="chat-input-wrap">
-            <label for="chatInput"><input type="text" id="chatInput" placeholder="Ваше сообщение..."></label>
-            <button onclick="sendMessage()">➤</button>
+            <label for="chatInput"><input type="text" id="chatInput" placeholder="Ваше сообщение..." autocomplete="off"></label>
+            <button onclick="sendMessage()" aria-label="Отправить">➤</button>
         </div>
     </div>
 
