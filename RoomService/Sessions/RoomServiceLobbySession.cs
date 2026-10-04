@@ -3,12 +3,13 @@ using authorization;
 using GameLogic.Entities;
 using GameLogic.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace RoomService
 {
     public class RoomServiceLobbySession(
-        UserId creatorId, ILogger<RoomServiceLobbySession> logger)
+        UserId creatorId, ILogger<RoomServiceLobbySession> logger, IDistributedCache cache)
         : LobbySession
     {
         private ConcurrentDictionary<UserId, User> _players = new();
@@ -20,7 +21,7 @@ namespace RoomService
 
         public LobbySettings Settings { get; set; } = new(
             Name: "Room" + Guid.NewGuid().ToString()[..4],
-            PasswordHash: "",
+            Password: "",
             MaxPlayers: 8,
             BotCount: 0,
             Status: RoomStatus.Waiting,
@@ -49,10 +50,26 @@ namespace RoomService
                     );
                 return false;
             }
-            if (!string.IsNullOrEmpty(Settings.PasswordHash))
+
+            bool isOup = false;
+
+            if (!string.IsNullOrEmpty(inputPassword))
+            {
+                var cacheKey = $"oup:{CreatorId}:{inputPassword}";
+                var cachedValue = cache.GetString(cacheKey);
+
+                if (cachedValue == "valid")
+                {
+                    isOup = true;
+                    cache.Remove(cacheKey);
+                }
+            }
+            if (!isOup && !string.IsNullOrEmpty(Settings.Password))
             {
                 var hasher = new PasswordHasher<User>();
-                var verifyRes = hasher.VerifyHashedPassword(user, Settings.PasswordHash, inputPassword);
+                var passwordHash = hasher.HashPassword(user, Settings.Password);
+                var verifyRes = hasher.VerifyHashedPassword(user, passwordHash, inputPassword);
+
                 if (verifyRes == PasswordVerificationResult.Failed)
                 {
                     logger.LogWarning(

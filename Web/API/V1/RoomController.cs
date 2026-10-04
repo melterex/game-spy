@@ -5,6 +5,7 @@ using GameLogic.Enums;
 using GameLogic.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using RoomService;
 
 namespace WebAPI.API.V1;
@@ -77,6 +78,12 @@ public class Message
     public string PlayerId { get; set; }
     
 }
+
+public record CreateOupRequest(
+    string Oup, 
+    int ExpirationMinutes = 15
+);
+
 [ApiController]
 [Authorize]
 [Route("api/v1/rooms")]
@@ -86,14 +93,19 @@ public class RoomController : ControllerBase
     private readonly ILobbyService lobbyService;
     private readonly IGameService gameService;
     private readonly IGetUser getUserService;
+    private readonly IDistributedCache cache;
+    private readonly ILogger<RoomController> logger;
 
     public RoomController(IRoomService _roomService, ILobbyService _lobbyService,
-        IGameService _gameService, IGetUser _getUserService)
+        IGameService _gameService, IGetUser _getUserService,
+        IDistributedCache _cache, ILogger<RoomController> _logger)
     {
         roomService = _roomService;
         lobbyService = _lobbyService;
         gameService = _gameService;
         getUserService = _getUserService;
+        cache = _cache;
+        logger = _logger;
     }
     [HttpGet]
     public ActionResult<Room[]> RoomList()
@@ -359,5 +371,27 @@ public class RoomController : ControllerBase
 
         return Ok(status);
     }
-    
+
+    [HttpPost("{roomId}/register-oup")]
+    public async Task<IActionResult> RegisterOup(string roomId, CreateOupRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Oup))
+        {
+            return BadRequest("OUP cannot be empty.");
+        }
+
+        var cacheKey = $"oup:{roomId}:{request.Oup}";
+
+        var options = new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(request.ExpirationMinutes)
+        };
+
+        await cache.SetStringAsync(cacheKey, "valid", options);
+
+        logger.LogDebug("OUP registered for room {RoomId} with TTL {TTL} min", 
+            roomId, request.ExpirationMinutes);
+
+        return Ok(new { message = "OUP successfully registered" });
+    }
 }

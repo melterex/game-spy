@@ -1,10 +1,13 @@
 using System.Collections.Concurrent;
 using authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace RoomService
 {
-    public class RoomService(ILogger<RoomService> logger, ILoggerFactory loggerFactory) : IRoomService
+    public class RoomService(
+        ILogger<RoomService> logger, ILoggerFactory loggerFactory, IDistributedCache cache) 
+        : IRoomService
     {
         private ConcurrentDictionary<Guid, Room> _rooms = new();
 
@@ -14,7 +17,7 @@ namespace RoomService
             
             var room = new Room(creator.Id, type)
             {
-                Session = new RoomServiceLobbySession(creator.Id, sessionLogger)
+                Session = new RoomServiceLobbySession(creator.Id, sessionLogger, cache)
             };
             _rooms[room.RoomId] = room;
 

@@ -37,6 +37,7 @@ builder.Services.AddTransient<IRepository<ImageModel>, ImageDbRepository>();
 builder.Services.AddTransient<ImageProviderFactory>();
 builder.Services.AddTransient<IProvider<ImageModel>, LocalImageProvider>();
 builder.Services.AddTransient<IProvider<ImageModel>, UrlImageProvider>();
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddHostedService<TurnWorker>();
 builder.Services.AddTransient(sp =>
 {
