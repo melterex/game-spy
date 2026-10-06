@@ -10,13 +10,12 @@ using System.Text.Json;
 
 namespace BotService
 {
-    internal class OpenRouterBot : IDecisionMaker
+    internal class PolzaBot : IDecisionMaker
     {
         private readonly string _apiKey;
         private readonly string _model;
         private static readonly HttpClient _httpClient = new HttpClient();
-
-        public OpenRouterBot(string apiKey, string model = "openrouter/free")
+        public PolzaBot(string apiKey, string model = "deepseek/deepseek-v4-flash@provider=streamlake/fp8")
         {
             _apiKey = apiKey;
             _model = model;
@@ -28,7 +27,7 @@ namespace BotService
             var chatHistory = BuildChatHistory(context);
             var userPrompt = $"{chatHistory}\nТвоя очередь писать сообщение в чат. Напиши ОДНУ короткую реплику (вопрос или ответ). Не пиши ничего кроме самой реплики.";
 
-            return SendToOpenRouter(systemPrompt, userPrompt);
+            return SendToPolza(systemPrompt, userPrompt);
         }
 
         public SlotID MakeVote(GameContext context)
@@ -48,7 +47,7 @@ namespace BotService
                              $"Список кандидатов:\n{candidatesText}\n\n" +
                              $"В ответ напиши ТОЛЬКО ID выбранного игрока. Никаких других слов или символов.";
 
-            string response = SendToOpenRouter(systemPrompt, userPrompt);
+            string response = SendToPolza(systemPrompt, userPrompt);
 
             foreach (var candidate in candidates)
             {
@@ -99,7 +98,8 @@ namespace BotService
             }
             return sb.ToString();
         }
-        private string SendToOpenRouter(string systemPrompt, string userPrompt)
+
+        private string SendToPolza(string systemPrompt, string userPrompt)
         {
             var requestBody = new
             {
@@ -114,7 +114,7 @@ namespace BotService
             var jsonContent = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions")
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.polza.ai/v1/chat/completions")
             {
                 Content = content
             };

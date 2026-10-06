@@ -277,7 +277,8 @@ namespace GameLogic.Services
                 botCard.IsSpy,
                 botCard.Word,
                 safePlayersList,
-                session.MessagesList.ToList()
+                session.MessagesList.ToList(),
+                session.GameSettings.Theme
             );
         }
         public async Task ProcessBotActionsAsync(Guid roomId, GameSession session)
