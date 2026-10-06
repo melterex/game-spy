@@ -9,6 +9,7 @@
     justify-content: center;
     gap: 22px 28px;
     height: 100vh;
+    height: 100dvh;
     padding: 20px 28px 32px;
 }
 
@@ -217,15 +218,110 @@
     display: none;
 }
 
-/* Карта со словом: прячется, пока тема и слово скрыты */
+/* Карта со словом: прячется, пока тема и слово скрыты.
+   Высота фиксирована, чтобы длина слова не влияла на размер карты. */
 .word-card {
-    gap: 12px;
-    margin: 4px 4px 8px;
-    padding: 18px 20px 20px;
+    position: relative;
+    display: block;
+    height: 150px;
+    margin: 4px 4px 12px;
+    perspective: 1000px;
+    transform: rotate(-1.5deg);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .word-card:not(:has(.info-item:not(.hidden))) {
     display: none;
+}
+
+.peek-toggle {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.word-card:has(.peek-toggle:focus-visible) .word-face {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+}
+
+.word-card-inner {
+    position: relative;
+    display: block;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform .5s cubic-bezier(.3, 1.3, .5, 1);
+}
+
+.word-card:has(.peek-toggle:checked) .word-card-inner {
+    transform: rotateY(180deg);
+}
+
+.word-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 20px;
+    overflow: hidden;
+    border-radius: 28px;
+    box-shadow: 0 8px 0 var(--ink);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.word-cover {
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, .07) 0 12px, transparent 12px 24px),
+        var(--blue);
+    color: var(--white);
+}
+
+.word-cover-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.word-cover-note {
+    font-size: 24px;
+    color: var(--yellow);
+    transform: rotate(4deg);
+}
+
+.word-cover-hint {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: .7;
+}
+
+/* Сторона со словом невидима, пока карта закрыта: её нельзя выделить или прочитать */
+.word-reveal {
+    transform: rotateY(180deg);
+    background: var(--ink);
+    color: var(--yellow);
+    visibility: hidden;
+    transition: visibility 0s .5s;
+}
+
+/* Появляющаяся сторона включается сразу, уходящая выключается после переворота:
+   что видно на экране, решает backface-visibility, без провала посередине */
+.word-card:has(.peek-toggle:checked) .word-reveal {
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.word-card:has(.peek-toggle:checked) .word-cover {
+    visibility: hidden;
+    transition: visibility 0s .5s;
+}
+
+.word-reveal .word-cover-hint {
+    color: var(--white);
 }
 
 .info-item {
@@ -251,7 +347,8 @@
 }
 
 #wordBlock .value {
-    font-size: 34px;
+    font-size: 30px;
+    overflow-wrap: anywhere;
 }
 
 .lobby-buttons {
@@ -306,6 +403,18 @@
     margin-right: 4px;
     color: var(--muted);
     font-weight: 700;
+}
+
+.message.mine {
+    align-self: flex-end;
+    border-radius: 16px 16px 4px 16px;
+    background: var(--blue);
+    color: var(--white);
+    box-shadow: 0 2px 0 var(--ink);
+}
+
+.message.mine strong {
+    color: var(--yellow);
 }
 
 .chat-input-wrap {
@@ -382,6 +491,7 @@
         gap: 12px;
         height: auto;
         min-height: 100vh;
+        min-height: 100dvh;
         padding: 16px 16px 24px;
     }
 
@@ -414,5 +524,6 @@
     .center-box {
         margin-top: 8px;
         height: max(460px, calc(100vh - 220px));
+        height: max(460px, calc(100dvh - 220px));
     }
 }

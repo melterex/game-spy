@@ -34,6 +34,9 @@ function addMessage(id, message) {
 
     const msg = document.createElement('div');
     msg.className = 'message';
+    if (window.mySlotId && String(id) === String(window.mySlotId)) {
+        msg.classList.add('mine');
+    }
     msg.innerHTML = `<strong>${nickname}</strong>: ${message}`;
 
     chat.appendChild(msg);
