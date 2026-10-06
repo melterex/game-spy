@@ -59,10 +59,10 @@ namespace RoomService
         {
             var serviceSession = GetSession(session);
 
-            if (serviceSession.CreatorId != initiator || initiator == target)
+            if (serviceSession.CreatorId != initiator)
             {
                 logger.LogInformation(
-                    "Failed to kick user by userId: user {initiator} is not creator or voiting for yourself",
+                    "Failed to kick user by userId: user {initiator} is not creator",
                     initiator
                     );
                 return false;
