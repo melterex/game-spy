@@ -19,6 +19,14 @@
 
     <h1 class="h">Выберите стол</h1>
 
+    <div id="myRoomBanner" class="my-room-banner hidden">
+        <div class="my-room-banner-text">
+            <span class="card-label">Вы уже за столом</span>
+            <span id="myRoomBannerName" class="my-room-banner-name"></span>
+        </div>
+        <button class="cta blue my-room-banner-btn" onclick="goToMyRoom()">Вернуться</button>
+    </div>
+
     <div class="room-list" id="roomsContainer"></div>
 
     <div class="bottom-bar">
@@ -77,6 +85,16 @@
         <p id="joinRoomDesc" class="card-desc"></p>
         <button class="cta ink confirm-btn" onclick="enterRoom()">Сесть за стол</button>
         <button class="link-btn cancel-link" onclick="closeModal('joinModal')">Назад</button>
+    </div>
+</div>
+
+<div id="alreadyInRoomModal" class="modal">
+    <div class="modal-content card">
+        <span class="card-label">Вы уже за столом</span>
+        <h2 id="alreadyRoomName" class="card-title"></h2>
+        <p class="card-desc">Чтобы сесть за другой стол, сначала выйдите из этого.</p>
+        <button class="cta ink confirm-btn" onclick="goToMyRoom()">Вернуться в комнату</button>
+        <button class="link-btn cancel-link" onclick="closeModal('alreadyInRoomModal')">Назад</button>
     </div>
 </div>
 
