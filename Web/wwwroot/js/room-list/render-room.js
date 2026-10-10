@@ -1,59 +1,69 @@
 let rooms = [];
 let selectedRoom = null;
-let lst = 5; //TODO: удалить потом
+let myRoom = null;
 
+async function fetchMyRoom() {
+    const response = await fetch('/api/v1/rooms/my-room', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+        }
+    });
+
+    myRoom = response.ok ? await response.json() : null;
+    renderMyRoomBanner();
+    return myRoom;
+}
+
+function isMyRoom(roomId) {
+    return myRoom !== null && String(myRoom.id).toLowerCase() === String(roomId).toLowerCase();
+}
+
+function goToMyRoom() {
+    window.location.href = '../room/index.html';
+}
+
+function renderMyRoomBanner() {
+    const banner = document.getElementById('myRoomBanner');
+    if (!banner) return;
+
+    if (!myRoom) {
+        banner.classList.add('hidden');
+        return;
+    }
+
+    document.getElementById('myRoomBannerName').textContent = myRoom.name;
+    banner.classList.remove('hidden');
+}
+
+function showAlreadyInRoom() {
+    closeModal('joinModal');
+    closeModal('createModal');
+    document.getElementById('alreadyRoomName').textContent = myRoom?.name ?? '';
+    openModal('alreadyInRoomModal');
+}
 
 async function renderRooms() {
-    if (window.isBackendReady) {
-        const response = await fetch('/api/v1/rooms', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-            }
-        });
+    const response = await fetch('/api/v1/rooms', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+        }
+    });
 
-        if (response.ok) {
-            rooms = await response.json();
-        }
-    } else {
-        console.error("Connection error");
-        if (rooms.length === 0) {
-            rooms = [
-                {
-                    name: "Room1",
-                    id: "1",
-                    usersCount: 3,
-                    userMaxCount: 10
-                },
-                {
-                    name: "Room2",
-                    id: "2",
-                    usersCount: 8,
-                    userMaxCount: 8
-                },
-                {
-                    name: "Room3",
-                    id: "3",
-                    usersCount: 1,
-                    userMaxCount: 6
-                },
-                {
-                    name: "Room4",
-                    id: "4",
-                    usersCount: 5,
-                    userMaxCount: 10
-                }
-            ];
-        }
+    if (response.ok) {
+        rooms = await response.json();
     }
+
+    await fetchMyRoom();
 
     const container = document.getElementById('roomsContainer');
     container.innerHTML = '';
 
     rooms.forEach(room => {
+        const mine = isMyRoom(room.id);
         const card = document.createElement('div');
-        card.className = 'room-card';
-        card.onclick = () => openJoinConfirm(room);
+        card.className = mine ? 'room-card mine' : 'room-card';
+        card.onclick = () => mine ? goToMyRoom() : openJoinConfirm(room);
 
         const occupancyColor = room.usersCount >= room.userMaxCount ? '#ff4d4d' : '#4dff4d';
 
@@ -62,6 +72,7 @@ async function renderRooms() {
                 <div class="room-name">${room.name}</div>
                 <small style="color: #666">ID: ${room.id}</small>
             </div>
+            ${mine ? '<span class="mine-badge">вы здесь</span>' : ''}
             <div style="color: ${occupancyColor}; font-weight: bold;">
                 ${room.usersCount} / ${room.userMaxCount}
             </div>
@@ -96,6 +107,12 @@ async function renderRoomWithTimeout(){
 }
 
 document.addEventListener('DOMContentLoaded', renderRoomWithTimeout);
+
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        renderRooms();
+    }
+});
 
 function exitRoomList(){
     window.location.href = './../index.html';

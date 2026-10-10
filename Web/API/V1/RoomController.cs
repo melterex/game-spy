@@ -15,6 +15,7 @@ public class Room
     public string Id { get; set; }
     public int UsersCount { get; set; }
     public int UserMaxCount { get; set; }
+    public bool IsCreator { get; set; }
 }
 
 public class RoomId
@@ -174,7 +175,8 @@ public class RoomController : ControllerBase
             Id = room.RoomId.ToString(),
             Name = room.Title,
             UsersCount = playerStatuses?.Count ?? 0,
-            UserMaxCount = lobbySettings?.MaxPlayers ?? 0 
+            UserMaxCount = lobbySettings?.MaxPlayers ?? 0,
+            IsCreator = room.Session.CreatorId.Id == user_req.Id.Id
         };
     }
     [HttpGet("my-room/status")]
