@@ -8,15 +8,12 @@ namespace ImageService
         public ImageDbRepository() => db = new ImageContext();
 
         public IEnumerable<ImageModel> GetAll() => db.Images.ToList();
-        public ImageModel? Get(string id)
+        public ImageModel? Get(string hash)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            if (string.IsNullOrWhiteSpace(hash))
                 return null;
 
-            if (!int.TryParse(id, out int numericId))
-                return null;
-
-            return db.Images.Find(numericId);
+            return db.Images.FirstOrDefault(img => img.Hash == hash);
         }
         public void Create(ImageModel image) => db.Images.Add(image);
         public void Update(ImageModel image) => db.Update(image);
@@ -26,7 +23,7 @@ namespace ImageService
         public void Delete(string id)
         {
             if (!int.TryParse(id, out int numericId)) return;
-            
+
             var image = db.Images.Find(numericId);
             if (image != null)
             {

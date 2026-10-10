@@ -12,32 +12,34 @@ public class ImageController(
     IRepository<ImageModel> repo, ImageProviderFactory providerFactory
     ) : ControllerBase
 {
-    [HttpGet("{id}/file")]
-    public async Task<IActionResult> GetImageAsync(string id)
+    [HttpGet("{uid}/file")]
+    public async Task<IActionResult> GetImageAsync(string uid, [FromQuery] ImageProcessingOptions options)
     {
-        var image = repo.Get(id);
+        var image = repo.Get(uid);
         if (image == null)
             return NotFound();
 
         var provider = providerFactory.GetProvider(image.Source);
-        return await provider.ServeImageAsync(image, Request);
+        return await provider.ServeImageAsync(image, options);
     }
 
     [HttpPost("upload")]
-    public async Task<IActionResult> UploadImage(ImageUploadForm form, int source = 1)
+    public async Task<IActionResult> UploadImage(ImageUploadForm form, int source)
     {
         if (form == null)
             return BadRequest("Form cannot be empty");
 
         var provider = providerFactory.GetProvider(source);
-
-        var savedImage = await provider.SaveImageAsync(form);
+        var savedImage = await provider.CreateImageModelAsync(form);
 
         if (savedImage == null)
             return BadRequest("Failed to save the image.");
 
-        repo.Create(savedImage);
-        repo.Save();
+        if (repo.Get(savedImage.Hash) == null)
+        {
+            repo.Create(savedImage);
+            repo.Save();
+        }
 
         return Ok(new
         {
