@@ -10,7 +10,16 @@ async function enterRoom() {
         return;
 
     if (window.isBackendReady) {
-        localStorage.setItem('selected_room_id', selectedRoom);
+        await fetchMyRoom();
+        if (myRoom) {
+            if (isMyRoom(selectedRoom)) {
+                goToMyRoom();
+                return;
+            }
+            showAlreadyInRoom();
+            return;
+        }
+
         const response = await fetch(`/api/v1/rooms/${selectedRoom}/enter`, {
             method: 'POST',
             headers: {

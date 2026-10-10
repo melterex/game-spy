@@ -81,6 +81,9 @@ async function renderRoom(players) {
             const icon = isReady ? '●' : '';
             const statusClass = isReady ? 'is-ready' : 'not-ready';
             const botBadge = isBot ? '<span class="bot-badge">бот</span>' : '';
+            const canKick = window.isRoomCreator === true
+                && !isBot
+                && String(playerId) !== String(window.myId);
 
             tag.innerHTML = `
                 <span class="player-name">${nickname} ${botBadge}</span>
@@ -89,7 +92,12 @@ async function renderRoom(players) {
                         ${icon}
                     </span>`}
                 </div>
+                ${canKick ? '<button type="button" class="kick-btn" title="Выгнать" aria-label="Выгнать игрока">&times;</button>' : ''}
             `;
+
+            if (canKick) {
+                tag.querySelector('.kick-btn').addEventListener('click', () => kickPlayer(playerId, nickname));
+            }
         } else {
             const botBadge = playerData.isBot ? '<span class="bot-badge">бот</span>' : '';
             tag.innerHTML = `
@@ -139,6 +147,11 @@ function checkEveryoneReady(players) {
         startGameBtn.disabled = true;
         startGameBtn.style.opacity = "0.5";
         startGameBtn.style.cursor = "not-allowed";
+    }
+
+    const readyBtn = document.getElementById('readyBtn');
+    if (readyBtn && readyBtn.disabled && roomStatus !== 'ingame') {
+        readyBtn.innerText = isEveryoneReady ? "ВСЕ ГОТОВЫ" : "ОЖИДАНИЕ ИГРОКОВ...";
     }
 }
 

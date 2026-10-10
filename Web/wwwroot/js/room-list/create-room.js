@@ -38,43 +38,38 @@ async function createNewRoom() {
 
     let createdRoom = [];
 
-    if (window.isBackendReady){
-        try {
-            const response = await fetch('/api/v1/rooms', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-                },
-                body: JSON.stringify({
-                    name: '',
-                    theme: roomTheme,
-                    userMaxCount: maxCount,
-                    maxBots: maxBots,
-                })
-            });
-            console.log(response);
-
-            if (!response.ok) {
-                console.error(response.status);
-                alert(`Не удалось создать комнату. Ошибка: ${response.status}`);
-            }
-            else {
-                const createdRoomId = await response.text();
-                localStorage.setItem('selected_room_id', createdRoomId);
-                window.location.href = '../room/index.html';
-            }
+    try {
+        await fetchMyRoom();
+        if (myRoom) {
+            showAlreadyInRoom();
+            return;
         }
-        catch (error) {
-            console.error(error);
+
+        const response = await fetch('/api/v1/rooms', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+            },
+            body: JSON.stringify({
+                name: '',
+                theme: roomTheme,
+                userMaxCount: maxCount,
+                maxBots: maxBots,
+            })
+        });
+        console.log(response);
+
+        if (!response.ok) {
+            console.error(response.status);
+            alert(`Не удалось создать комнату. Ошибка: ${response.status}`);
+        }
+        else {
+            window.location.href = '../room/index.html';
         }
     }
-    else{
-        createdRoom = {theme: roomTheme, id: lst.toString(), usersCount: 0, userMaxCount: maxCount};
-        lst += 1;
-        rooms.push(createdRoom);
-
-        console.log(rooms);
+    catch (error) {
+        console.error(error);
     }
     closeModal('createModal');
     await renderRooms();

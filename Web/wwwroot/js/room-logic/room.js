@@ -2,11 +2,17 @@ let roomData;
 let roomStatus;
 let idTurn;
 
-function exitRoom() {
-    if (!confirm("Выйти из комнаты?")) return;
 
-    localStorage.removeItem('selected_room_id');
-    window.location.href = '../';
+async function kickPlayer(playerId, nickname) {
+    if (!window.connection) return;
+    if (!confirm(`Выгнать игрока ${nickname}?`)) return;
+
+    try {
+        await window.connection.invoke("KickUser", String(playerId));
+    } catch (err) {
+        console.error("Ошибка кика игрока:", err);
+        alert("Не удалось выгнать игрока.");
+    }
 }
 
 async function loadRoomTitle(token) {
@@ -19,6 +25,7 @@ async function loadRoomTitle(token) {
         if (!response.ok) return;
 
         const room = await response.json();
+        window.isRoomCreator = room.isCreator === true;
         showRoomTitle(room.name);
     } catch (error) {
         console.error("Ошибка загрузки названия комнаты:", error);
@@ -76,6 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sessionStorage.removeItem('voting_finished');
 
         if (roomStatus === 'ingame' && roomData?.isVoting && !votingJustFinished) {
+            roomLeaveIntentional = true;
             window.location.href = '../voting/index.html';
             return;
         }
@@ -101,7 +109,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (myProfile && myProfile.ready === true) {
                 const readyBtn = document.getElementById('readyBtn');
                 if (readyBtn) {
-                    readyBtn.innerText = "ОЖИДАНИЕ ИГРОКОВ...";
                     readyBtn.disabled = true;
                     readyBtn.classList.add('active');
                 }
@@ -127,4 +134,53 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
+
+    installRoomHistoryGuard();
 });
+
+let roomLeaveIntentional = false;
+let leaveInProgress = false;
+
+async function leaveRoom() {
+    if (roomLeaveIntentional || leaveInProgress) return false;
+    if (!window.connection || !window.myId) return false;
+
+    leaveInProgress = true;
+    try {
+        await window.connection.invoke("KickUser", window.myId);
+        return true;
+    } catch (err) {
+        leaveInProgress = false;
+        console.error("Ошибка выхода из комнаты:", err);
+        return false;
+    }
+}
+
+function installRoomHistoryGuard() {
+    const navigation = performance.getEntriesByType('navigation')[0];
+    const alreadyGuarded = navigation?.type === 'reload' || navigation?.type === 'back_forward';
+    if (alreadyGuarded) {
+        history.replaceState({ roomGuard: true }, '');
+    } else {
+        history.pushState({ roomGuard: true }, '');
+    }
+}
+
+window.addEventListener('popstate', async (event) => {
+    if (event.state?.roomGuard || window.leavingByHistory) return;
+
+    window.leavingByHistory = true;
+    const left = await leaveRoom();
+    if (!left) {
+        window.leavingByHistory = false;
+        history.pushState({ roomGuard: true }, '');
+        return;
+    }
+
+    history.back();
+});
+
+async function exitRoom() {
+    if (!confirm("Выйти из комнаты?")) return;
+    await leaveRoom();
+}

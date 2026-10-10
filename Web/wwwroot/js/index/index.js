@@ -3,9 +3,11 @@ const loginBtn = document.getElementById("loginBtn");
 const closeBtn = document.querySelector(".close");
 const playBtn = document.getElementById("playBtn");
 
-loginBtn.onclick = () => {
+function openAuthModal() {
     modal.style.display = "block";
 }
+
+loginBtn.onclick = openAuthModal;
 
 closeBtn.onclick = () => {
     modal.style.display = "none";
@@ -17,9 +19,39 @@ window.onclick = (event) => {
     }
 }
 
-playBtn.onclick = () => {
-    window.location.href = 'room-list/index.html';
+function setPlayButton(isLoggedIn) {
+    if (isLoggedIn) {
+        playBtn.innerText = "Играть";
+        playBtn.onclick = () => {
+            window.location.href = 'room-list/index.html';
+        };
+    } else {
+        playBtn.innerText = "Вход";
+        playBtn.onclick = openAuthModal;
+    }
 }
+
+async function checkAuth() {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+        setPlayButton(false);
+        return;
+    }
+
+    setPlayButton(true);
+    try {
+        const response = await fetch('/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        setPlayButton(response.ok);
+    } catch (error) {
+        console.error("Ошибка проверки авторизации:", error);
+    }
+}
+
+checkAuth();
 
 
 function openTab(evt, tabName) {
