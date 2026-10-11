@@ -8,7 +8,7 @@
 
 Развернутая версия игры доступна по адресу:
 
-**[https://game-spy.duckdns.org/room/index.html](https://game-spy.duckdns.org/room/index.html)**
+**[https://game-spy.duckdns.org/index.html](https://game-spy.duckdns.org/index.html)**
 
 Для начала игры откройте адрес, зарегистрируйте аккаунт или войдите в
 существующий, после чего создайте комнату либо присоединитесь к доступной.
@@ -83,7 +83,7 @@
 
 ## Быстрый старт для игрока
 
-1. Откройте [онлайн-версию](https://game-spy.duckdns.org/room/index.html).
+1. Откройте [онлайн-версию](https://game-spy.duckdns.org/index.html).
 2. Нажмите **«Вход»** и выберите вкладку **«Регистрация»**, если аккаунта еще
    нет.
 3. Введите логин и пароль.
