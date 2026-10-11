@@ -372,15 +372,15 @@ public class RoomController : ControllerBase
         return Ok(status);
     }
 
-    [HttpPost("{roomId}/register-oup")]
-    public async Task<IActionResult> RegisterOup(string roomId, CreateOupRequest request)
+    [HttpPost("{creatorId}/register-oup")]
+    public async Task<IActionResult> RegisterOup(string creatorId, CreateOupRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Oup))
         {
             return BadRequest("OUP cannot be empty.");
         }
 
-        var cacheKey = $"oup:{roomId}:{request.Oup}";
+        var cacheKey = $"oup:{creatorId}:{request.Oup}";
 
         var options = new DistributedCacheEntryOptions
         {
@@ -389,8 +389,8 @@ public class RoomController : ControllerBase
 
         await cache.SetStringAsync(cacheKey, "valid", options);
 
-        logger.LogDebug("OUP registered for room {RoomId} with TTL {TTL} min", 
-            roomId, request.ExpirationMinutes);
+        logger.LogDebug("OUP registered for creator {CreatorId} with TTL {TTL} min",
+            creatorId, request.ExpirationMinutes);
 
         return Ok(new { message = "OUP successfully registered" });
     }

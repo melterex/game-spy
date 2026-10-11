@@ -28,6 +28,18 @@ namespace RoomService
                 );
         }
 
+        public bool DeleteRoom(Guid roomId)
+        {
+            if (_rooms.TryRemove(roomId, out var _))
+            {
+                logger.LogInformation("Room {RoomId} successfully deleted", roomId);
+                return true;
+            }
+
+            logger.LogInformation("Failed to delete Room {RoomId}", roomId);
+            return false;
+        }
+
         public Room? GetRoomByUserId(UserId id)
         {
             foreach (var room in _rooms.Values)
