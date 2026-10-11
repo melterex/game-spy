@@ -55,6 +55,7 @@
     position: absolute;
     top: 14px;
     right: 16px;
+    z-index: 1;
     width: 36px;
     height: 36px;
     border-radius: 50%;

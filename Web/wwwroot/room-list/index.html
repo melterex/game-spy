@@ -8,13 +8,17 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/room-list.css">
+    <link rel="stylesheet" href="../css/settings.css">
 </head>
 <body>
 
 <div class="page container">
     <div class="top header">
         <div class="logo">Шпион</div>
-        <button class="link-btn exit-btn" onclick="exitRoomList()">Выйти</button>
+        <div class="header-right">
+            <button class="link-btn exit-btn" onclick="exitRoomList()">Выйти</button>
+            <button id="settingsAvatarBtn" class="avatar-btn" onclick="openSettings()" aria-label="Настройки профиля"></button>
+        </div>
     </div>
 
     <h1 class="h">Выберите стол</h1>
@@ -103,5 +107,6 @@
 <script src="../js/room-list/render-room.js"></script>
 <script src="../js/room-list/create-room.js"></script>
 <script src="../js/room-list/enter-room.js"></script>
+<script src="../js/settings/settings.js"></script>
 </body>
 </html>
