@@ -98,6 +98,65 @@
     color: var(--chip-2) !important;
 }
 
+.room-card.mine {
+    background: var(--ink);
+    color: var(--white);
+}
+
+.room-card.mine small {
+    color: rgba(255, 255, 255, .7) !important;
+}
+
+.mine-badge {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.my-room-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 22px;
+    box-shadow: 0 5px 0 #000;
+}
+
+.my-room-banner.hidden {
+    display: none;
+}
+
+.my-room-banner-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.my-room-banner-name {
+    font-size: 19px;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.my-room-banner-btn {
+    flex-shrink: 0;
+    width: auto;
+    height: auto;
+    padding: 10px 18px;
+    font-size: 15px;
+}
+
 .bottom-bar {
     position: sticky;
     bottom: 0;

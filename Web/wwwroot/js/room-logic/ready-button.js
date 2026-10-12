@@ -37,7 +37,6 @@ function updateReadyButtonVisual(isReady) {
     if (!btn) return;
 
     if (isReady) {
-        btn.innerText = "ОЖИДАНИЕ ИГРОКОВ...";
         btn.disabled = true;
         btn.classList.add('active');
     } else {

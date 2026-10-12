@@ -4,7 +4,7 @@ public class BotFactory : IBotFactory
 {
     private readonly string _openRouterApiKey;
     private readonly string _model;
-    public BotFactory(string apiKey, string model = "openrouter/free")
+    public BotFactory(string apiKey, string model = "deepseek/deepseek-v4-flash@provider=streamlake/fp8")
     {
         _openRouterApiKey = apiKey;
         _model = model;
@@ -14,9 +14,15 @@ public class BotFactory : IBotFactory
     {
         if (string.IsNullOrWhiteSpace(_openRouterApiKey))
         {
-            return new DummyBot();
+            Console.Write("nooooo");
+            return new DictionaryBot();
         }
 
-        return new OpenRouterBot(_openRouterApiKey, _model);
+        if (Random.Shared.Next(2) == 0)
+        {
+            return new PolzaBot(_openRouterApiKey, _model);
+        }
+
+        return new DictionaryBot();
     }
 }

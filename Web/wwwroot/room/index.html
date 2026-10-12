@@ -29,16 +29,29 @@
         <div class="game-info">
             <div id="turnStatus" class="turn-status-banner hidden">Ожидание начала игры...</div>
 
-            <div class="card word-card">
-                <div class="info-item hidden" id="themeBlock">
-                    <span class="label">Тема</span>
-                    <span id="themeValue" class="value"></span>
-                </div>
-                <div class="info-item hidden" id="wordBlock">
-                    <span class="label">Ваше слово</span>
-                    <span id="wordValue" class="value"></span>
-                </div>
-            </div>
+            <label class="word-card" for="peekCard">
+                <input type="checkbox" id="peekCard" class="peek-toggle" autocomplete="off" aria-label="Показать или скрыть слово">
+                <span class="word-card-inner">
+                    <span class="word-face word-cover">
+                        <span class="word-cover-head">
+                            <span class="card-label">Карта игрока</span>
+                            <span class="hand word-cover-note">только вам!</span>
+                        </span>
+                        <span class="info-item hidden" id="themeBlock">
+                            <span class="label">Тема</span>
+                            <span id="themeValue" class="value"></span>
+                        </span>
+                        <span class="word-cover-hint">Нажмите, чтобы подсмотреть слово</span>
+                    </span>
+                    <span class="word-face word-reveal">
+                        <span class="info-item hidden" id="wordBlock">
+                            <span class="label">Ваше слово</span>
+                            <span id="wordValue" class="value"></span>
+                        </span>
+                        <span class="word-cover-hint">Нажмите, чтобы спрятать</span>
+                    </span>
+                </span>
+            </label>
 
             <div class="lobby-buttons">
                 <button id="readyBtn" class="cta ink ready-btn">ГОТОВ</button>

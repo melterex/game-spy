@@ -50,6 +50,7 @@ select {
 .page {
     max-width: 430px;
     min-height: 100vh;
+    min-height: 100dvh;
     margin: 0 auto;
     padding: 20px 20px 28px;
     display: flex;

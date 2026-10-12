@@ -47,6 +47,21 @@ async function startSignalR(token) {
 
         renderRoom(roomData.players);
     });
+    window.connection.on("KickUser", (userId) => {
+        if (String(userId) === String(window.myId)) {
+            if (window.leavingByHistory) return;
+            window.location.href = "../";
+            return;
+        }
+
+        if (!isRoomPage()) return;
+
+        roomData.players = roomData.players.filter(player => {
+            const existingId = player.player?.id ?? player.id;
+            return String(existingId) !== String(userId);
+        });
+        renderRoom(roomData.players);
+    });
 
     window.connection.on("Ready", (id, isReady) => {
         if (!isRoomPage()) return;
