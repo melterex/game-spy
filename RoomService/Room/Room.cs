@@ -6,7 +6,7 @@ namespace RoomService
     {
         public UserId CreatorId { get; } = creatorId;
         public RoomType Type { get; } = type;
-        public RoomServiceLobbySession Session { get; init; }
+        public RoomServiceLobbySession Session { get; set; }
 
         public Guid RoomId { get; } = Guid.NewGuid();
         public RoomStatus Status => Session?.Settings.Status ?? RoomStatus.Waiting;
