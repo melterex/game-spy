@@ -9,13 +9,15 @@ using Microsoft.Extensions.Logging;
 namespace RoomService
 {
     public class RoomServiceLobbySession(
-        UserId creatorId, ILogger<RoomServiceLobbySession> logger, IDistributedCache cache)
+        Guid roomId,
+        UserId creatorId, ILogger<RoomServiceLobbySession> logger, IOupService oupService)
         : LobbySession
     {
         private ConcurrentDictionary<UserId, User> _players = new();
         private Dictionary<UserId, PlayerStatus> _statuses = new();
 
         public UserId CreatorId { get; private set; } = creatorId;
+        public Guid RoomId { get; } = roomId;
         public bool IsStartingNewGame { get; private set; } = false;
         public GameSession? Session { get; private set; }
 
@@ -55,13 +57,10 @@ namespace RoomService
 
             if (!string.IsNullOrEmpty(inputPassword))
             {
-                var cacheKey = $"oup:{CreatorId}:{inputPassword}";
-                var cachedValue = cache.GetString(cacheKey);
-
-                if (cachedValue == "valid")
+                var oupValue = oupService.ConsumeOup(RoomId, inputPassword).Result;
+                if (oupValue == "valid")
                 {
                     isOup = true;
-                    cache.Remove(cacheKey);
                 }
             }
             if (!isOup && !string.IsNullOrEmpty(Settings.Password))
@@ -79,7 +78,6 @@ namespace RoomService
                     return false;
                 }
             }
-
 
             _players[user.Id] = user;
             _statuses[user.Id] = PlayerStatus.Waiting;

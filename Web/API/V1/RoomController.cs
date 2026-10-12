@@ -22,6 +22,8 @@ public class RoomId
 {
     public string Id { get; set; }
 }
+public record EnterByOupRequest(string Oup);
+
 public class RoomSettings
 {
     public string Name { get; set; }
@@ -79,11 +81,6 @@ public class Message
     
 }
 
-public record CreateOupRequest(
-    string Oup, 
-    int ExpirationMinutes = 15
-);
-
 [ApiController]
 [Authorize]
 [Route("api/v1/rooms")]
@@ -93,19 +90,16 @@ public class RoomController : ControllerBase
     private readonly ILobbyService lobbyService;
     private readonly IGameService gameService;
     private readonly IGetUser getUserService;
-    private readonly IDistributedCache cache;
-    private readonly ILogger<RoomController> logger;
+    private readonly IOupService oupService;
 
     public RoomController(IRoomService _roomService, ILobbyService _lobbyService,
-        IGameService _gameService, IGetUser _getUserService,
-        IDistributedCache _cache, ILogger<RoomController> _logger)
+        IGameService _gameService, IGetUser _getUserService, IOupService _oupService)
     {
         roomService = _roomService;
         lobbyService = _lobbyService;
         gameService = _gameService;
         getUserService = _getUserService;
-        cache = _cache;
-        logger = _logger;
+        oupService = _oupService;
     }
     [HttpGet]
     public ActionResult<Room[]> RoomList()
@@ -372,26 +366,70 @@ public class RoomController : ControllerBase
         return Ok(status);
     }
 
-    [HttpPost("{creatorId}/register-oup")]
-    public async Task<IActionResult> RegisterOup(string creatorId, CreateOupRequest request)
+    [HttpPost("{roomId}/create-oup")]
+    public async Task<IActionResult> RegisterOup(Guid roomId)
     {
-        if (string.IsNullOrWhiteSpace(request.Oup))
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString))
         {
-            return BadRequest("OUP cannot be empty.");
+            return Unauthorized();
         }
 
-        var cacheKey = $"oup:{creatorId}:{request.Oup}";
+        var user = getUserService.GetUser(UserId.FromString(userIdString));
+        var room = roomService.GetRoomByRoomId(roomId);
 
-        var options = new DistributedCacheEntryOptions
+        if (room == null)
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(request.ExpirationMinutes)
-        };
+            return NotFound();
+        }
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        if (room.Status != RoomService.RoomStatus.Waiting)
+        {
+            return BadRequest(new { message = "OUP can only be created while the room is waiting." });
+        }
+        if (!room.Session.HasPlayer(user.Id))
+        {
+            return Forbid();
+        }
 
-        await cache.SetStringAsync(cacheKey, "valid", options);
+        var oup = await oupService.CreateOup(roomId);
+        return Ok(new { oup, expiresInMinutes = 15 });
+    }
 
-        logger.LogDebug("OUP registered for creator {CreatorId} with TTL {TTL} min",
-            creatorId, request.ExpirationMinutes);
+    [HttpPost("{roomId}/enter-by-oup")]
+    public IActionResult RoomEnterByOup(Guid roomId, [FromBody] EnterByOupRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Oup))
+        {
+            return BadRequest(new { message = "OUP cannot be empty." });
+        }
 
-        return Ok(new { message = "OUP successfully registered" });
+        var room = roomService.GetRoomByRoomId(roomId);
+        if (room == null)
+        {
+            return NotFound();
+        }
+
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            return Unauthorized();
+        }
+
+        var user = getUserService.GetUser(UserId.FromString(userIdString));
+        if (user == null)
+        {
+                return Unauthorized();
+        }
+
+        if (!lobbyService.TryToEnter(room.Session, user, request.Oup))
+        {
+            return BadRequest(new { message = "Invalid or expired OUP." });
+        }
+
+        return Ok();
     }
 }

@@ -16,6 +16,7 @@ using ImageService;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IRoomService, RoomService.RoomService>();
+builder.Services.AddSingleton<IOupService, OupService>();
 builder.Services.AddSingleton<IBotFactory>(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();

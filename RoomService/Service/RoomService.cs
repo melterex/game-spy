@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace RoomService
 {
     public class RoomService(
-        ILogger<RoomService> logger, ILoggerFactory loggerFactory, IDistributedCache cache) 
+            ILogger<RoomService> logger, ILoggerFactory loggerFactory, IOupService oupService)
         : IRoomService
     {
         private ConcurrentDictionary<Guid, Room> _rooms = new();
@@ -15,10 +15,8 @@ namespace RoomService
         {
             var sessionLogger = loggerFactory.CreateLogger<RoomServiceLobbySession>();
             
-            var room = new Room(creator.Id, type)
-            {
-                Session = new RoomServiceLobbySession(creator.Id, sessionLogger, cache)
-            };
+            var room = new Room(creator.Id, type);
+            room.Session = new RoomServiceLobbySession(room.RoomId, creator.Id, sessionLogger, oupService);
             _rooms[room.RoomId] = room;
 
             room.Session.AddPlayerByUser(creator);
