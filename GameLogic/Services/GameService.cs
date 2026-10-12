@@ -32,23 +32,23 @@ namespace GameLogic.Services
             _gameWorker = gameWorker;
             _logger = logger;
         }
-        public Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings)
+        public Guid CreateGameSession(List<User> playersIDs, GameSettings settings)
         {
             List<PlayerSlot> PlayerSlots = new List<PlayerSlot>();
             Dictionary<UserId, SlotID> PlayerIDs = new Dictionary<UserId, SlotID>();
             Dictionary<SlotID, IDecisionMaker> Bots = new Dictionary<SlotID, IDecisionMaker>();
 
             int currentSlotCounter = 0;
-            foreach (UserId userId in playersIDs)
+            foreach (User user in playersIDs)
             {
                 PlayerSlot pSlot = new PlayerSlot
                 {
                     Id = new SlotID { Id = currentSlotCounter },
-                    Username = userId.ToString(),
+                    Username = user.Username,
                     IsBot = false
                 };
                 PlayerSlots.Add(pSlot);
-                PlayerIDs[userId] = pSlot.Id;
+                PlayerIDs[user.Id] = pSlot.Id;
                 currentSlotCounter++;
             }
 
@@ -269,7 +269,7 @@ namespace GameLogic.Services
             var botCard = session.PlayerCards[botId];
 
             var safePlayersList = session.PlayerSlots
-                .Select(slot => new PlayerPublicInfo(slot.Id, "Игрок_" + slot.Id.ToString(), session.PlayerComments[slot.Id]))
+                .Select(slot => new PlayerPublicInfo(slot.Id, slot.Username, session.PlayerComments[slot.Id]))
                 .ToList();
 
             return new GameContext(

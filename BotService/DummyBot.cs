@@ -7,23 +7,19 @@ using GameLogic.Interfaces;
 
 namespace BotService
 {
-    internal class DummyBot : IDecisionMaker
+    internal class DummyMessageMaker : IMessageMaker
     {
         public string MakeMessage(GameContext context)
         {
             return "Я ботик";
         }
+    }
 
-        public SlotID MakeVote(GameContext context)
+    internal class DummyBot : CompositeBot
+    {
+        public DummyBot()
+            : base(new RandomVoteMaker(), new DummyMessageMaker())
         {
-            var candidates = context.Players
-                .Where(p => p.Id != context.MyId)
-                .ToList();
-
-            if (candidates.Count == 0)
-                throw new InvalidOperationException("Нет игроков, за кого можно голосовать");
-
-            return candidates[Random.Shared.Next(candidates.Count)].Id;
         }
     }
 }

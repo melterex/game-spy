@@ -20,7 +20,7 @@ namespace GameLogic.Interfaces
         void MessageReceived(GameSession session, String message);
         Task ProcessBotActionsAsync(Guid roomId, GameSession session);
         IVotingService GetVoteService(GameSession session);
-        Guid CreateGameSession(List<UserId> playersIDs, GameSettings settings);
+        Guid CreateGameSession(List<User> playersIDs, GameSettings settings);
         GameSession GetGameSessionById (Guid GameSessionId);
         Task StartVotingAsync(Guid roomId, GameSession session);
         List<SlotID> GetPlayerOrder(GameSession session);

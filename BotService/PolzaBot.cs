@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace BotService
 {
@@ -63,22 +64,29 @@ namespace BotService
         private string BuildSystemPrompt(GameContext context)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("Ты играешь в текстовую игру 'Шпион' (Spyfall) вместе с другими игроками.");
+            sb.AppendLine($"Ты играешь в текстовую игру 'Шпион' (Spyfall) вместе с другими игроками. Ты игрок с ником {context.Players.FirstOrDefault(p => p.Id == context.MyId)?.Username ?? $"Игрок {context.MyId}"}");
 
             if (context.IsSpy)
             {
                 sb.AppendLine("ТВОЯ РОЛЬ: ШПИОН.");
                 sb.AppendLine($"Ты НЕ ЗНАЕШЬ загаданное слово, но знаешь тему: {context.Theme}. Твоя задача — не выдать себя и попытаться понять, что за слово, анализируя сообщения других.");
-                sb.AppendLine("Отвечай уклончиво, задавай общие, но логичные вопросы.");
+                sb.AppendLine("Отвечай уклончиво, делай логичные, но очень абстрактные утверждения.");
             }
             else
             {
                 sb.AppendLine("ТВОЯ РОЛЬ: МИРНЫЙ ИГРОК.");
                 sb.AppendLine($"ЗАГАДАННОЕ СЛОВО: {context.Word}");
-                sb.AppendLine("Твоя задача — доказать другим, что ты знаешь слово, но при этом НЕ НАЗЫВАТЬ его напрямую, чтобы шпион не догадался.");
+                sb.AppendLine("Твоя задача — доказать другим, что ты знаешь слово, но при этом НЕ НАЗЫВАТЬ его напрямую, чтобы шпион не догадался. Отвечай сильно абстрактно.");
             }
 
-            sb.AppendLine("Будь краток, веди себя как реальный человек в чате.");
+            sb.AppendLine("Будь краток, изучай сообщения игроков и старайся быть крайне похожим на них. Но НЕ ПОВТОРЯЙ ПРОШЛЫЕ СООБЩЕНИЯ");
+
+            if (context.Messages.Count >= context.Players.Count * 2)
+            {
+                sb.AppendLine("ВНИМАНИЕ: Это уже поздняя стадия игры (ты пишешь 3-е сообщение).");
+                sb.AppendLine("В этом сообщении ты ОБЯЗАН выдвинуть конкретное подозрение или обвинение против одного из игроков. Укажи его ник и объясни, почему ты так считаешь.");
+            }
+
             return sb.ToString();
         }
 
@@ -93,6 +101,7 @@ namespace BotService
             foreach (var msg in context.Messages)
             {
                 var senderName = context.Players.FirstOrDefault(p => p.Id.Equals(msg.Id))?.Username ?? $"Игрок {msg.Id.ToString()}";
+                
 
                 sb.AppendLine($"{senderName}: {msg.MessageBody}");
             }
@@ -101,38 +110,45 @@ namespace BotService
 
         private string SendToPolza(string systemPrompt, string userPrompt)
         {
-            var requestBody = new
+            try
             {
-                model = _model,
-                messages = new[]
+                var requestBody = new
                 {
-                    new { role = "system", content = systemPrompt },
-                    new { role = "user", content = userPrompt }
-                }
-            };
+                    model = _model,
+                    messages = new[]
+                    {
+                new { role = "system", content = systemPrompt },
+                new { role = "user", content = userPrompt }
+            }
+                };
 
-            var jsonContent = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                var jsonContent = JsonSerializer.Serialize(requestBody);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.polza.ai/v1/chat/completions")
-            {
-                Content = content
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+                var request = new HttpRequestMessage(HttpMethod.Post, "https://api.polza.ai/v1/chat/completions")
+                {
+                    Content = content
+                };
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
-            var response = _httpClient.Send(request);
-            response.EnsureSuccessStatusCode();
+                var response = _httpClient.Send(request);
+                response.EnsureSuccessStatusCode();
 
-            var responseJson = response.Content.ReadAsStringAsync().Result;
+                var responseJson = response.Content.ReadAsStringAsync().Result;
 
-            using var doc = JsonDocument.Parse(responseJson);
-            var reply = doc.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString();
+                using var doc = JsonDocument.Parse(responseJson);
+                var reply = doc.RootElement
+                    .GetProperty("choices")[0]
+                    .GetProperty("message")
+                    .GetProperty("content")
+                    .GetString();
 
-            return reply?.Trim() ?? "Я пропущу ход.";
+                return reply?.Trim() ?? "Я пропущу ход.";
+            }
+            catch (Exception ex)
+            { 
+                return "Я пропущу ход.";
+            }
         }
     }
 }

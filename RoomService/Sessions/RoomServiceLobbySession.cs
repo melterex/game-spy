@@ -152,7 +152,7 @@ namespace RoomService
                 BotCount = finalBotCount
             };
 
-            var guid = gameService.CreateGameSession(_players.Keys.ToList(), gameSettings);
+            var guid = gameService.CreateGameSession(_players.Values.ToList(), gameSettings);
             return gameService.GetGameSessionById(guid);
         }
 
