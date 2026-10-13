@@ -10,6 +10,12 @@ namespace RoomService
 
         public Guid RoomId { get; } = Guid.NewGuid();
         public RoomStatus Status => Session?.Settings.Status ?? RoomStatus.Waiting;
-        public string Title => "Room #" + RoomId.ToString()[..4];
+        private string _title = string.Empty;
+
+        public string Title
+        {
+            get => string.IsNullOrEmpty(_title) ? $"Room #{RoomId.ToString()[..4]}" : _title;
+            set => _title = value;
+        }
     }
 }
