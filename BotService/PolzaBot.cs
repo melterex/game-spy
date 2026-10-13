@@ -16,6 +16,7 @@ namespace BotService
         private readonly string _apiKey;
         private readonly string _model;
         private static readonly HttpClient _httpClient = new HttpClient();
+
         public PolzaBot(string apiKey, string model = "deepseek/deepseek-v4-flash@provider=streamlake/fp8")
         {
             _apiKey = apiKey;
@@ -26,7 +27,7 @@ namespace BotService
         {
             var systemPrompt = BuildSystemPrompt(context);
             var chatHistory = BuildChatHistory(context);
-            var userPrompt = $"{chatHistory}\nТвоя очередь писать сообщение в чат. Напиши ОДНУ короткую реплику (вопрос или ответ). Не пиши ничего кроме самой реплики.";
+            var userPrompt = $"{chatHistory}\nТвоя очередь писать в чат. Напиши ОДНУ короткую реплику (можешь задать вопрос или просто ответить). Пиши как обычный чел в телеге: без точек в конце, можно с мелкими опечатками, без заумных слов. Выдай ТОЛЬКО сам текст сообщения, без кавычек и прочего мусора.";
 
             return SendToPolza(systemPrompt, userPrompt);
         }
@@ -44,9 +45,9 @@ namespace BotService
             var chatHistory = BuildChatHistory(context);
             var candidatesText = string.Join("\n", candidates.Select(c => $"ID: {c.Id.ToString()}, Имя: {c.Username}"));
 
-            var userPrompt = $"{chatHistory}\nВремя голосовать! Кто по твоему мнению шпион? (Если ты сам шпион — голосуй за любого другого игрока, чтобы отвести подозрения).\n" +
-                             $"Список кандидатов:\n{candidatesText}\n\n" +
-                             $"В ответ напиши ТОЛЬКО ID выбранного игрока. Никаких других слов или символов.";
+            var userPrompt = $"{chatHistory}\nВремя голосовать! Кто по твоему шпик? (Если ты сам шпион — просто слей голос на кого-то другого, чтоб не палиться).\n" +
+                             $"Кого подозреваешь из этих:\n{candidatesText}\n\n" +
+                             $"В ответ напиши ТОЛЬКО ID этого чела. Вообще больше ни одного символа, только цифры.";
 
             string response = SendToPolza(systemPrompt, userPrompt);
 
@@ -64,27 +65,30 @@ namespace BotService
         private string BuildSystemPrompt(GameContext context)
         {
             var sb = new StringBuilder();
-            sb.AppendLine($"Ты играешь в текстовую игру 'Шпион' (Spyfall) вместе с другими игроками. Ты игрок с ником {context.Players.FirstOrDefault(p => p.Id == context.MyId)?.Username ?? $"Игрок {context.MyId}"}");
+            var myName = context.Players.FirstOrDefault(p => p.Id == context.MyId)?.Username ?? $"Игрок {context.MyId}";
+
+            sb.AppendLine($"Ты играешь в шпиона (Spyfall) в чатике. Твой ник {myName}.");
+            sb.AppendLine("ТВОЙ СТИЛЬ ОБЩЕНИЯ: ты обычный пользователь интернета. Пиши неформально, сленгом (типа 'хз', 'чел', 'лол', 'всм'), забей на пунктуацию, можешь делать мелкие опечатки. Не используй длинные сложные предложения. Будь на чилле, общайся как с кентами.");
 
             if (context.IsSpy)
             {
                 sb.AppendLine("ТВОЯ РОЛЬ: ШПИОН.");
-                sb.AppendLine($"Ты НЕ ЗНАЕШЬ загаданное слово, но знаешь тему: {context.Theme}. Твоя задача — не выдать себя и попытаться понять, что за слово, анализируя сообщения других.");
-                sb.AppendLine("Отвечай уклончиво, делай логичные, но очень абстрактные утверждения.");
+                sb.AppendLine($"Ты НЕ ЗНАЕШЬ загаданное слово, но знаешь, что тема: {context.Theme}. Твоя цель — не спалиться и попробовать выкупить слово по базару остальных.");
+                sb.AppendLine("Отвечай обтекаемо, лей воду, но чтоб звучало правдоподобно. Соглашайся с другими, задавай встречные вопросы типа 'а ты сам как думаешь?'.");
             }
             else
             {
-                sb.AppendLine("ТВОЯ РОЛЬ: МИРНЫЙ ИГРОК.");
+                sb.AppendLine("ТВОЯ РОЛЬ: МИРНЫЙ.");
                 sb.AppendLine($"ЗАГАДАННОЕ СЛОВО: {context.Word}");
-                sb.AppendLine("Твоя задача — доказать другим, что ты знаешь слово, но при этом НЕ НАЗЫВАТЬ его напрямую, чтобы шпион не догадался. Отвечай сильно абстрактно.");
+                sb.AppendLine("Твоя цель — показать своим, что ты в теме, но НЕ НАЗЫВАТЬ слово прямо, чтоб шпик не догадался. Описывай какими-то абстрактными ассоциациями, но понятно для тех, кто знает слово.");
             }
 
-            sb.AppendLine("Будь краток, изучай сообщения игроков и старайся быть крайне похожим на них. Но НЕ ПОВТОРЯЙ ПРОШЛЫЕ СООБЩЕНИЯ");
+            sb.AppendLine("Короче, пиши коротко, читай че пишут другие и подстраивайся под их вайб. НЕ ПОВТОРЯЙ то, что уже писали.");
 
             if (context.Messages.Count >= context.Players.Count * 2)
             {
-                sb.AppendLine("ВНИМАНИЕ: Это уже поздняя стадия игры (ты пишешь 3-е сообщение).");
-                sb.AppendLine("В этом сообщении ты ОБЯЗАН выдвинуть конкретное подозрение или обвинение против одного из игроков. Укажи его ник и объясни, почему ты так считаешь.");
+                sb.AppendLine("ВНИМАНИЕ: Игра уже идет давно.");
+                sb.AppendLine("В этом сообщении тебе надо прям наехать на кого-то. Выбери ник из чата и скажи, что он мутный и походу он шпион. Объясни свою предъяву, но по-простому.");
             }
 
             return sb.ToString();
@@ -93,16 +97,14 @@ namespace BotService
         private string BuildChatHistory(GameContext context)
         {
             if (context.Messages == null || context.Messages.Count == 0)
-                return "Чат пока пуст. Ты начинаешь первым.";
+                return "Чат пока пуст. Ты пишешь первым, го.";
 
             var sb = new StringBuilder();
-            sb.AppendLine("История чата:");
+            sb.AppendLine("Вот че писали в чате:");
 
             foreach (var msg in context.Messages)
             {
                 var senderName = context.Players.FirstOrDefault(p => p.Id.Equals(msg.Id))?.Username ?? $"Игрок {msg.Id.ToString()}";
-                
-
                 sb.AppendLine($"{senderName}: {msg.MessageBody}");
             }
             return sb.ToString();
@@ -117,9 +119,9 @@ namespace BotService
                     model = _model,
                     messages = new[]
                     {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = userPrompt }
-            }
+                        new { role = "system", content = systemPrompt },
+                        new { role = "user", content = userPrompt }
+                    }
                 };
 
                 var jsonContent = JsonSerializer.Serialize(requestBody);
@@ -143,11 +145,11 @@ namespace BotService
                     .GetProperty("content")
                     .GetString();
 
-                return reply?.Trim() ?? "Я пропущу ход.";
+                return reply?.Trim() ?? "хз че сказать, пасс";
             }
             catch (Exception ex)
-            { 
-                return "Я пропущу ход.";
+            {
+                return "чет лагает, пропуск";
             }
         }
     }
