@@ -1,10 +1,13 @@
 using System.Collections.Concurrent;
 using authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace RoomService
 {
-    public class RoomService(ILogger<RoomService> logger, ILoggerFactory loggerFactory) : IRoomService
+    public class RoomService(
+            ILogger<RoomService> logger, ILoggerFactory loggerFactory, IOupService oupService)
+        : IRoomService
     {
         private ConcurrentDictionary<Guid, Room> _rooms = new();
 
@@ -12,10 +15,8 @@ namespace RoomService
         {
             var sessionLogger = loggerFactory.CreateLogger<RoomServiceLobbySession>();
             
-            var room = new Room(creator.Id, type)
-            {
-                Session = new RoomServiceLobbySession(creator.Id, sessionLogger)
-            };
+            var room = new Room(creator.Id, type);
+            room.Session = new RoomServiceLobbySession(room.RoomId, creator.Id, sessionLogger, oupService);
             _rooms[room.RoomId] = room;
 
             room.Session.AddPlayerByUser(creator);
@@ -23,6 +24,18 @@ namespace RoomService
                 "Room {RoomId} successfully created with creatorId {CreatorId}",
                 room.RoomId, creator.Id
                 );
+        }
+
+        public bool DeleteRoom(Guid roomId)
+        {
+            if (_rooms.TryRemove(roomId, out var _))
+            {
+                logger.LogInformation("Room {RoomId} successfully deleted", roomId);
+                return true;
+            }
+
+            logger.LogInformation("Failed to delete Room {RoomId}", roomId);
+            return false;
         }
 
         public Room? GetRoomByUserId(UserId id)
