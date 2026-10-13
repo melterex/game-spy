@@ -14,11 +14,10 @@ public class BotFactory : IBotFactory
     {
         if (string.IsNullOrWhiteSpace(_openRouterApiKey))
         {
-            Console.Write("nooooo");
             return new DictionaryBot();
         }
 
-        if (Random.Shared.Next(2) == 0)
+        if (Random.Shared.Next(1) == 0)
         {
             return new PolzaBot(_openRouterApiKey, _model);
         }
