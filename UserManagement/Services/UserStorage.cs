@@ -73,6 +73,16 @@ public static class UserStorage
         return !string.IsNullOrEmpty(hash) && Hasher.Verify(password, hash);
     }
 
+    public static void SetAvatarHash(UserId id, string avatarHash)
+    {
+        using var db = new UserDbContext();
+        var record = db.Users.SingleOrDefault(x => x.Id == id.Id);
+        if (record == null)
+            return;
+        record.AvatarHash = avatarHash;
+        db.SaveChanges();
+    }
+
     public static void RecordGameResult(long userId, string gameId, GameRole role, bool isWinner) =>
         RecordGameResults([new GameResult(userId, gameId, role, isWinner)]);
 

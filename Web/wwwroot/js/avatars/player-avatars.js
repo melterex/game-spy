@@ -14,11 +14,13 @@ async function loadMyAvatar() {
     const me = await response.json();
     myAvatar = {
         userId: String(me.id),
-        hash: localStorage.getItem(`avatar_${me.id}`)
+        hash: me.avatarHash || localStorage.getItem(`avatar_${me.id}`)
     };
     return myAvatar;
 }
 
+// TODO: crop=center зашит. Видимую часть выбирать в настройках, см. TODO в settings.js.
+// Этот запрос должен использовать тот же выбор, иначе в комнате и на голосовании кадр будет другим.
 function playerAvatarUrl(hash) {
     if (!playerAvatarUrls.has(hash)) {
         const request = fetch(`/api/images/${encodeURIComponent(hash)}/file?size=128x128&crop=center`, {
@@ -55,16 +57,32 @@ function playerAvatarTargets() {
     return targets;
 }
 
+function hashForPlayerId(id) {
+    const lists = [];
+    if (typeof roomData !== 'undefined' && roomData?.players) lists.push(roomData.players);
+    if (typeof votingData !== 'undefined' && votingData?.players) lists.push(votingData.players);
+
+    for (const players of lists) {
+        for (const player of players) {
+            const playerId = player.player?.id ?? player.id;
+            if (String(playerId) !== String(id)) continue;
+            return player.player?.avatarHash ?? player.avatarHash ?? null;
+        }
+    }
+    return null;
+}
+
 async function decoratePlayerAvatars() {
     const me = await loadMyAvatar();
-    if (!me?.hash) return;
-
-    const mine = new Set([me.userId, window.mySlotId ? String(window.mySlotId) : null]);
-    const url = await playerAvatarUrl(me.hash);
-    if (!url) return;
 
     for (const target of playerAvatarTargets()) {
-        if (mine.has(target.id)) target.apply(url);
+        let hash = hashForPlayerId(target.id);
+        const isMe = me && (target.id === me.userId || (window.mySlotId && target.id === String(window.mySlotId)));
+        if (!hash && isMe) hash = me.hash;
+        if (!hash) continue;
+
+        const url = await playerAvatarUrl(hash);
+        if (url) target.apply(url);
     }
 }
 

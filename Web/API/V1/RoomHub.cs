@@ -46,7 +46,7 @@ public class RoomHub : Hub
         }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, room.RoomId.ToString());
-        await Clients.Group(room.RoomId.ToString()).SendAsync("EnteredRoom", user.Id.ToString(), user.Username);
+        await Clients.Group(room.RoomId.ToString()).SendAsync("EnteredRoom", user.Id.ToString(), user.Username, user.AvatarHash);
     }
 
     public async Task MakeReady(bool isReady)

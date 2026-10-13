@@ -39,6 +39,7 @@ public class PlayerLobbyData
     public string Nickname { get; set; }
     public string Id { get; set; }
     public bool Ready { get; set; }
+    public string AvatarHash { get; set; }
 }
 public class LobbyStatus
 {
@@ -53,6 +54,7 @@ public class PlayerData
     public string Nickname { get; set; }
     public string Id { get; set; }
     public bool IsBot { get; set; }
+    public string? AvatarHash { get; set; }
 }
 public class GameStatus
 {
@@ -244,7 +246,8 @@ public class RoomController : ControllerBase
             {
                 Id = user.Id.ToString(),
                 Nickname = user.Username,
-                Ready = status == PlayerStatus.Ready
+                Ready = status == PlayerStatus.Ready,
+                AvatarHash = user.AvatarHash
             });
         }
 
@@ -302,6 +305,7 @@ public class RoomController : ControllerBase
                 Nickname = user?.Username ?? slot.Username,
                 ReadyToEndVoting = readyPlayers.TryGetValue(slot.Id, out var isReady) && isReady,
                 IsBot = slot.IsBot,
+                AvatarHash = user?.AvatarHash
             });
         }
 

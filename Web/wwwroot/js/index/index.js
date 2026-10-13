@@ -20,6 +20,7 @@ window.onclick = (event) => {
 }
 
 function setPlayButton(isLoggedIn) {
+    document.body.classList.toggle('logged-in', isLoggedIn);
     if (isLoggedIn) {
         playBtn.innerText = "Играть";
         playBtn.onclick = () => {
@@ -31,27 +32,36 @@ function setPlayButton(isLoggedIn) {
     }
 }
 
+let authCheckId = 0;
+
 async function checkAuth() {
     const token = localStorage.getItem('jwt_token');
+    const checkId = ++authCheckId;
     if (!token) {
         setPlayButton(false);
         return;
     }
 
-    setPlayButton(true);
     try {
         const response = await fetch('/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
+        if (checkId !== authCheckId || localStorage.getItem('jwt_token') !== token) return;
         setPlayButton(response.ok);
+        if (!response.ok) localStorage.removeItem('jwt_token');
     } catch (error) {
+        if (checkId !== authCheckId) return;
         console.error("Ошибка проверки авторизации:", error);
+        setPlayButton(false);
     }
 }
 
 checkAuth();
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) checkAuth();
+});
 
 
 function openTab(evt, tabName) {

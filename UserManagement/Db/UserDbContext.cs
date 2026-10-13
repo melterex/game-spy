@@ -37,6 +37,7 @@ public class UserDbContext : DbContext
             entity.Property(x => x.PasswordHash).HasColumnName("password_hash");
             entity.Property(x => x.Provider).HasColumnName("provider");
             entity.Property(x => x.ProviderKey).HasColumnName("provider_key");
+            entity.Property(x => x.AvatarHash).HasColumnName("avatar_hash");
             entity.HasIndex(x => x.Username).IsUnique().HasDatabaseName("ux_users_username");
             entity.HasIndex(x => new { x.Provider, x.ProviderKey }).IsUnique()
                 .HasFilter("provider IS NOT NULL AND provider_key IS NOT NULL")

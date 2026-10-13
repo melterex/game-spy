@@ -27,7 +27,7 @@ async function startSignalR(token) {
         .withAutomaticReconnect()
         .build();
 
-    window.connection.on("EnteredRoom", (id, nickname) => {
+    window.connection.on("EnteredRoom", (id, nickname, avatarHash) => {
         if (!isRoomPage()) return;
 
         const playerExists = roomData.players.some(p => {
@@ -40,7 +40,8 @@ async function startSignalR(token) {
         roomData.players.push({
             player: {
                 id: id.toString(),
-                nickname: nickname
+                nickname: nickname,
+                avatarHash: avatarHash
             },
             ready: false
         });

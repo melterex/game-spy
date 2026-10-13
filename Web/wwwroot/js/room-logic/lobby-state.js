@@ -1,6 +1,10 @@
 function toLobbyPlayers(players) {
     return (players || []).map(p => ({
-        player: { id: p.id ?? p.player?.id, nickname: p.nickname ?? p.player?.nickname },
+        player: {
+            id: p.id ?? p.player?.id,
+            nickname: p.nickname ?? p.player?.nickname,
+            avatarHash: p.avatarHash ?? p.player?.avatarHash ?? null
+        },
         ready: false
     }));
 }
@@ -23,7 +27,6 @@ function applyLobbyAfterVoting(players) {
     const themeBlock = document.getElementById('themeBlock');
     const wordBlock = document.getElementById('wordBlock');
     const turnStatus = document.getElementById('turnStatus');
-    const timer = document.getElementById('timer');
     const chat = document.getElementById('chatArea');
     const chatInput = document.getElementById('chatInput');
     const chatWrap = document.querySelector('.chat-input-wrap');
@@ -43,7 +46,7 @@ function applyLobbyAfterVoting(players) {
     if (themeBlock) themeBlock.classList.add('hidden');
     if (wordBlock) wordBlock.classList.add('hidden');
     if (turnStatus) turnStatus.classList.add('hidden');
-    if (timer) timer.innerText = '';
+    if (typeof stopTimer === 'function') stopTimer();
 
     if (chat) {
         chat.innerHTML = '<div class="message"><span>Система:</span> Ожидание начала...</div>';
