@@ -48,7 +48,7 @@ namespace ImageService
                 byte[] fileBytes = memoryStream.ToArray();
 
                 var hash = hasher.ComputeSha256Hash(fileBytes);
-                var relativePath = $"/samples/{fileName}";
+                var relativePath = $"/samples/{hash}{extension}";
 
                 logger.LogDebug("Image with image hash {Hash} successfully created", hash);
                 return new ImageModel
