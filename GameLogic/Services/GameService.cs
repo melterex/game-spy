@@ -279,7 +279,15 @@ namespace GameLogic.Services
                 safePlayersList,
                 session.MessagesList.ToList(),
                 session.GameSettings.Theme
-            );
+            )
+            {
+                Stage = session.CurrentStage,
+                CurrentRound = session.CurrentRound,
+                TotalRounds = session.GameSettings.TotalRounds,
+                TurnNumber = session.CurrentStage == GameStage.Round ? session.CurrentTurnNumber + 1 : null,
+                PositionInRound = session.CurrentStage == GameStage.Round ? session.CurrentPlayerIndex + 1 : null,
+                PlayerOrder = session.CurrentPlayerOrder.ToList()
+            };
         }
         public async Task ProcessBotActionsAsync(Guid roomId, GameSession session)
         {
