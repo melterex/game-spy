@@ -44,7 +44,7 @@ namespace RoomService
                 if (room.Session.GetPlayers().TryGetValue(id, out var _))
                     return room;
 
-            logger.LogInformation("Haven`t found Player with id {Id}", id);
+            logger.LogDebug("Haven`t found Player with id {Id}", id);
             return null;
         }
 
