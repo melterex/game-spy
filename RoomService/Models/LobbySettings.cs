@@ -2,7 +2,7 @@ namespace RoomService
 {
     public record LobbySettings(
         string Name, 
-        string PasswordHash, 
+        string Password, 
         int MaxPlayers, 
         int BotCount,
         RoomStatus Status, 

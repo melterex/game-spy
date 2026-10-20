@@ -59,11 +59,7 @@ namespace RoomService
         {
             var serviceSession = GetSession(session);
 
-            if (Equals(initiator, target))
-            {
-                return serviceSession.KickPlayer(target);
-            }
-            if (!Equals(serviceSession.CreatorId, initiator))
+            if (!Equals(serviceSession.CreatorId, initiator) && !Equals(target, initiator) )
             {
                 logger.LogInformation(
                     "Failed to kick user by userId: user {initiator} is not creator",
