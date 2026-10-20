@@ -31,7 +31,7 @@ namespace CardsService
                 var jsonParsed = JsonSerializer.Deserialize<ThemeModel>(jsonText, options);
 
                 if (jsonParsed != null && jsonParsed.Words != null)
-                    themes[jsonParsed.Theme] = jsonParsed.Words;
+                    themes[jsonParsed.Theme] = jsonParsed.Words.Select(w => w.Word).ToList();
 
                 else
                 {

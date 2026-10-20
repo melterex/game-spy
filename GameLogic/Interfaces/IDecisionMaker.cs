@@ -5,10 +5,18 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace GameLogic.Interfaces{
-   public interface IDecisionMaker
+   public interface IVoteMaker
+    {
+        public SlotID MakeVote(GameContext context);
+    }
+
+    public interface IMessageMaker
     {
         public string MakeMessage(GameContext context);
-        public SlotID MakeVote(GameContext context);
+    }
+
+    public interface IDecisionMaker : IVoteMaker, IMessageMaker
+    {
     }
 
     public interface IBotFactory

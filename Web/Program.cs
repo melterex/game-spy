@@ -40,6 +40,7 @@ builder.Services.AddTransient<IProvider<ImageModel>, LocalImageProvider>();
 builder.Services.AddTransient<IProvider<ImageModel>, UrlImageProvider>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddHostedService<TurnWorker>();
+builder.Services.AddHostedService<RoomCleanupWorker>();
 builder.Services.AddTransient(sp =>
 {
     var factory = new DbConnectionFactory
