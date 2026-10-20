@@ -170,6 +170,7 @@ select {
     padding: 4px 0 8px;
     outline: none;
     width: 100%;
+    transition: background-color 99999s ease-out;
 }
 
 .line-input::placeholder {
@@ -178,6 +179,31 @@ select {
 
 .line-input:focus {
     border-bottom-color: var(--white);
+}
+
+/* Жёлтую заливку автозаполнения браузер не отключает. Закрываем её цветом карточки. */
+.line-input:-webkit-autofill,
+.line-input:-webkit-autofill:hover,
+.line-input:-webkit-autofill:focus,
+.line-input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--white);
+    caret-color: var(--white);
+    border: 0;
+    border-bottom: 3px solid rgba(255, 255, 255, .55);
+    -webkit-box-shadow: 0 0 0 1000px var(--blue) inset;
+    box-shadow: 0 0 0 1000px var(--blue) inset;
+    transition: background-color 99999s ease-out;
+}
+
+.line-input:-webkit-autofill:focus {
+    border-bottom-color: var(--white);
+}
+
+.line-input:autofill {
+    background-color: var(--blue) !important;
+    color: var(--white);
+    -webkit-text-fill-color: var(--white);
+    box-shadow: 0 0 0 1000px var(--blue) inset;
 }
 
 /* Модалки: JS показывает их через style.display = 'block' */

@@ -114,6 +114,16 @@
     gap: 6px;
 }
 
+#login .field,
+#register .field {
+    gap: 10px;
+}
+
+#login .line-input,
+#register .line-input {
+    padding: 10px 8px 12px 14px;
+}
+
 .submit-btn {
     margin-top: 6px;
 }
