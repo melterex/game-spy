@@ -34,10 +34,14 @@ public class User
 {
     public string Username { get; }
     public UserId Id { get; }
+    public string Provider { get; }
+    public string ProviderKey { get; }
     
-    public User(string name, UserId id)
+    public User(string name, UserId id, string provider = "", string providerKey = "")
     {
         Username = name;
         Id = id;
+        Provider = provider;
+        ProviderKey = providerKey;
     }
 }

@@ -2,7 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -24,6 +27,8 @@ public class User
 {
     public string Id { get; set; }
     public string Username { get; set; }
+    public string? Provider { get; set; }
+    public string? ProviderKey { get; set; }
 }
 [ApiController]
 [Route("api/v1/auth")]
@@ -33,7 +38,7 @@ public class AuthController : ControllerBase
     private readonly ILoginService _loginService;
     private readonly IRegistrationService _registrationService;
     private readonly IGetUser _getUser;
-    public AuthController(IConfiguration configuration,  ILoginService loginService, IRegistrationService registrationService, IGetUser getUser)
+    public AuthController(IConfiguration configuration, ILoginService loginService, IRegistrationService registrationService, IGetUser getUser)
     {
         _configuration = configuration;
         _loginService = loginService;
@@ -62,19 +67,85 @@ public class AuthController : ControllerBase
             case Status.UsernameExists:
                 return Conflict("Username already exists");
             case Status.Error:
-            {
-                return BadRequest();
-            }
+                {
+                    return BadRequest();
+                }
             case Status.Ok:
-            {
-                var user = _loginService.Login(new authorization.LoginData(data.Username, data.Password));
-                return Ok(GenerateJwtToken(user.Id.ToString()));
-            }
+                {
+                    var user = _loginService.Login(new authorization.LoginData(data.Username, data.Password));
+                    return Ok(GenerateJwtToken(user.Id.ToString()));
+                }
             default:
+                {
+                    return BadRequest();
+                }
+        }
+    }
+
+    [HttpGet("login/{provider}")]
+    public IActionResult ChallengeProvider(string provider, [FromQuery] string returnUrl = "/")
+    {
+        var redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { provider, returnUrl });
+        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+
+        return Challenge(properties, provider);
+    }
+
+    [HttpGet("signin-callback")]
+    public async Task<IActionResult> ExternalLoginCallback(string provider, string returnUrl = "/")
+    {
+        var result = await HttpContext.AuthenticateAsync(provider);
+        if (!result.Succeeded || result.Principal == null)
+        {
+            return BadRequest("Error during external authentication.");
+        }
+
+        var providerKey = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var name = result.Principal.FindFirstValue(ClaimTypes.Name) ?? "Player";
+
+        var providerName = result.Properties?.Items.ContainsKey(".AuthScheme") == true
+            ? result.Properties.Items[".AuthScheme"]
+            : "Unknown";
+
+        var res = _getUser.GetUserByProvider(providerName, providerKey);
+        var dummyPassword = Guid.NewGuid().ToString();
+
+        if (res == null)
+        {
+            var userId = new UserId(UserStorage.GetNextId());
+            var user1 = new User
             {
-                return BadRequest();
+                Id = userId.ToString(),
+                Username = name,
+                Provider = providerName,
+                ProviderKey = providerKey
+            };
+
+            var status = _registrationService.Register(
+                new RegistrationData(user1.Username, dummyPassword, provider, providerKey
+                ));
+                
+            if (status != Status.Ok)
+            {
+                return BadRequest("Error during user registration.");
+            }
+            res = _getUser.GetUserByProvider(providerName, providerKey);
+            if (res == null)
+            {
+                return BadRequest("User registration failed to persist.");
             }
         }
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, res.Id.ToString()),
+            new Claim(ClaimTypes.Name, res.Username)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+        return LocalRedirect(returnUrl);
     }
 
     [Authorize]
@@ -82,9 +153,9 @@ public class AuthController : ControllerBase
     public ActionResult<User> GetMe()
     {
         var user = _getUser.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
-        return Ok(new User{Id = user.Id.ToString(), Username = user.Username});
+        return Ok(new User { Id = user.Id.ToString(), Username = user.Username });
     }
-    
+
     private string GenerateJwtToken(string id)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
