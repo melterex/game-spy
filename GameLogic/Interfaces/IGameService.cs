@@ -15,6 +15,7 @@ namespace GameLogic.Interfaces
         Card GetPlayerCardBySlotID(GameSession session, SlotID slotID);
         SlotID GetSlotIDByUserID(GameSession session, UserId userId);
         UserId? GetUserIDBySlotID(GameSession session, SlotID slotID);
+        bool KickPlayerFromGameSession(GameSession session, SlotID slotID);
         SlotID WhoseTurn(GameSession session);
         // Records a human turn. Notify clients before awaiting ProcessBotActionsAsync.
         void MessageReceived(GameSession session, String message);

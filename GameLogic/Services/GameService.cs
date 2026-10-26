@@ -306,6 +306,49 @@ namespace GameLogic.Services
                 await StartVotingAsync(roomId, session);
         }
 
+        public bool KickPlayerFromGameSession(GameSession session, SlotID slotId)
+        {
+            var player = session.PlayerSlots.FirstOrDefault(slot => slot.Id == slotId);
+            if (player == null || session.PlayerSlots.Count <= 1)
+                return false;
+
+            int orderIndex = session.CurrentPlayerOrder.IndexOf(slotId);
+            bool wasCurrentPlayer = session.CurrentStage == GameStage.Round
+                && session.CurrentPlayerIndex >= 0
+                && session.CurrentPlayerIndex < session.CurrentPlayerOrder.Count
+                && session.CurrentPlayerOrder[session.CurrentPlayerIndex] == slotId;
+
+            session.PlayerSlots.Remove(player);
+            session.CurrentPlayerOrder.Remove(slotId);
+            session.PlayerCards.Remove(slotId);
+            session.Bots.Remove(slotId);
+            session.PlayerComments.Remove(slotId);
+
+            var userId = session.PlayerIDs
+                .Where(pair => pair.Value == slotId)
+                .Select(pair => pair.Key)
+                .FirstOrDefault();
+            if (userId != null)
+                session.PlayerIDs.Remove(userId);
+
+            if (session.CurrentStage == GameStage.Round && session.CurrentPlayerIndex >= 0)
+            {
+                if (wasCurrentPlayer && session.CurrentPlayerIndex >= session.CurrentPlayerOrder.Count)
+                {
+                    session.CurrentPlayerIndex = session.CurrentPlayerOrder.Count - 1;
+                    AdvanceTurn(session);
+                }
+                else if (!wasCurrentPlayer && orderIndex >= 0 && orderIndex < session.CurrentPlayerIndex)
+                {
+                    session.CurrentPlayerIndex--;
+                }
+            }
+
+            _logger.LogInformation(
+                "Player {SlotId} was removed from game session {GameId}", slotId, session.GameId);
+            return true;
+        }
+
         public UserId? GetUserIDBySlotID(GameSession session, SlotID slotID)
         {
             foreach (UserId key in session.PlayerIDs.Keys)
