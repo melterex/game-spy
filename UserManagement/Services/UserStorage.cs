@@ -17,7 +17,9 @@ public static class UserStorage
             CREATE TABLE IF NOT EXISTS Users (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 Username TEXT NOT NULL UNIQUE,
-                PasswordHash TEXT NOT NULL
+                PasswordHash TEXT NOT NULL,
+                Provider TEXT,
+                ProviderKey TEXT
             )
         ";
         command.ExecuteNonQuery();
@@ -29,7 +31,7 @@ public static class UserStorage
         connection.Open();
         
         var command = connection.CreateCommand();
-        command.CommandText = "SELECT Id, Username FROM Users WHERE Username = $username";
+        command.CommandText = "SELECT Id, Username, Provider, ProviderKey FROM Users WHERE Username = $username";
         command.Parameters.AddWithValue("$username", username);
         
         using var reader = command.ExecuteReader();
@@ -47,8 +49,27 @@ public static class UserStorage
         connection.Open();
         
         var command = connection.CreateCommand();
-        command.CommandText = "SELECT Id, Username FROM Users WHERE Id = $id";
+        command.CommandText = "SELECT Id, Username, Provider, ProviderKey FROM Users WHERE Id = $id";
         command.Parameters.AddWithValue("$id", id.Id);
+        
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
+        {
+            return new User(reader.GetString(1), new UserId(reader.GetInt64(0)));
+        }
+        
+        return null;
+    }
+
+    public static User? FindByProvider(string provider, string providerKey)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT Id, Username, Provider, ProviderKey FROM Users WHERE Provider = $provider AND ProviderKey = $providerKey";
+        command.Parameters.AddWithValue("$provider", provider);
+        command.Parameters.AddWithValue("$providerKey", providerKey);
         
         using var reader = command.ExecuteReader();
         if (reader.Read())
@@ -71,12 +92,14 @@ public static class UserStorage
         
         var command = connection.CreateCommand();
         command.CommandText = @"
-            INSERT INTO Users (Username, PasswordHash)
-            VALUES ($username, $passwordHash)
+            INSERT INTO Users (Username, PasswordHash, Provider, ProviderKey)
+            VALUES ($username, $passwordHash, $provider, $providerKey)
         ";
         command.Parameters.AddWithValue("$username", user.Username);
         command.Parameters.AddWithValue("$passwordHash", _hasher.Hash(password));
-        
+        command.Parameters.AddWithValue("$provider", user.Provider);
+        command.Parameters.AddWithValue("$providerKey", user.ProviderKey);
+
         command.ExecuteNonQuery();
     }
 

@@ -12,6 +12,7 @@ using WebAPI.API.V1;
 using Serilog;
 using DbConnection;
 using ImageService;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -21,7 +22,7 @@ builder.Services.AddSingleton<IBotFactory>(provider =>
     var config = provider.GetRequiredService<IConfiguration>();
     string apiKey = config["OpenRouterApiKey"];
     return new BotFactory(apiKey);
-}); 
+});
 builder.Services.AddTransient<ILobbyService, LobbyService>();
 builder.Services.AddTransient<CardsService.IThemesService, ThemesService>();
 builder.Services.AddTransient<IVotingService, VotingService>();
@@ -108,6 +109,26 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAuthorization();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie()
+    .AddYandex(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Yandex:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Yandex:ClientSecret"]!;
+        options.CallbackPath = "/api/v1/auth/signin-callback/Yandex";
+    })
+    .AddVkontakte(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Vkontakte:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Vkontakte:ClientSecret"]!;
+        options.CallbackPath = "/api/v1/auth/signin-callback/Vkontakte";
+
+        options.AuthorizationEndpoint = "https://oauth.vk.com/authorize";
+        options.TokenEndpoint = "https://oauth.vk.com/access_token";
+        options.UserInformationEndpoint = "https://api.vk.com/method/users.get";
+    });
+
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();

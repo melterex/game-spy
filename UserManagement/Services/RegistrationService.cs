@@ -18,7 +18,7 @@ public class RegistrationService(ILogger<RegistrationService> logger) : IRegistr
         }
 
         var userId = new UserId(UserStorage.GetNextId());
-        var user = new User(regData.Username, userId);
+        var user = new User(regData.Username, userId, regData.Provider, regData.ProviderKey);
 
         UserStorage.Add(user, regData.Password);
 
