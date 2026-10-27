@@ -209,6 +209,9 @@ public class RoomHub : Hub
             throw new HubException("Not inside game");
         }
 
+        if (gameSession.VotingEnded)
+            throw new HubException("Voting is closed");
+
         if (room.Status != RoomStatus.InGame)
         {
             logger.LogWarning(
@@ -243,6 +246,9 @@ public class RoomHub : Hub
                 );
             throw new HubException("Not inside game");
         }
+
+        if (gameSession.VotingEnded)
+            throw new HubException("Voting is closed");
 
         if (!int.TryParse(slotId, out var targetSlotValue))
         {

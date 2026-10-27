@@ -1,4 +1,5 @@
 using GameLogic.Entities;
+using GameLogic.Enums;
 using GameLogic.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using WebAPI.API.V1;
@@ -51,34 +52,42 @@ public class GameWorker : IGameWorker
 
     public async Task MakeReadyEndVoteAsync(Guid roomId, GameSession gameSession, SlotID slotId, bool isReady)
     {
-        var readyPlayers = votingService.GetIsPlayerReadyToEndVotingDict(gameSession);
-        if (readyPlayers[slotId] == isReady)
+        bool wasEveryoneReady;
+        bool isEveryoneReady;
+        DateTime votingEnd;
+        lock (gameSession)
         {
-            logger.LogWarning("Slot {SlotId} in room {RoomId} already has voting readiness {IsReady}",
-                slotId, roomId, isReady);
-            return;
-        }
+            if (gameSession.CurrentStage != GameStage.Voting || gameSession.VotingEnded)
+                return;
+            var readyPlayers = votingService.GetIsPlayerReadyToEndVotingDict(gameSession);
+            if (readyPlayers[slotId] == isReady)
+            {
+                logger.LogWarning("Slot {SlotId} in room {RoomId} already has voting readiness {IsReady}",
+                    slotId, roomId, isReady);
+                return;
+            }
 
-        var wasEveryoneReady = votingService.IsEveryoneReadyToEndVoting(gameSession);
-        votingService.SetPlayerReadyToEndVoting(gameSession, slotId, isReady);
-        var isEveryoneReady = votingService.IsEveryoneReadyToEndVoting(gameSession);
-        var votingEnd = gameSession.VotingStartTime + TimeSpan.FromMinutes(5);
+            wasEveryoneReady = votingService.IsEveryoneReadyToEndVoting(gameSession);
+            votingService.SetPlayerReadyToEndVoting(gameSession, slotId, isReady);
+            isEveryoneReady = votingService.IsEveryoneReadyToEndVoting(gameSession);
+            votingEnd = gameSession.VotingStartTime + TimeSpan.FromMinutes(5);
 
-        if (!isReady && wasEveryoneReady)
-        {
-            turnStorage.RemoveVotingEnd(roomId);
-            turnStorage.AddVotingEnd(votingEnd, roomId);
-            gameSession.IsUsingExtraTime = false;
-            logger.LogInformation("Slot {SlotId} cancelled early vote end. Timer reset to default for room {RoomId}",
-                slotId, roomId);
-        }
-        else if (isEveryoneReady)
-        {
-            var extraTimeEnd = DateTime.Now + TimeSpan.FromSeconds(10);
-            turnStorage.RemoveVotingEnd(roomId);
-            turnStorage.AddVotingEnd(extraTimeEnd, roomId);
-            gameSession.IsUsingExtraTime = true;
-            gameSession.ExtraTime = extraTimeEnd;
+            if (!isReady && wasEveryoneReady)
+            {
+                turnStorage.RemoveVotingEnd(roomId);
+                turnStorage.AddVotingEnd(votingEnd, roomId);
+                gameSession.IsUsingExtraTime = false;
+                logger.LogInformation("Slot {SlotId} cancelled early vote end. Timer reset to default for room {RoomId}",
+                    slotId, roomId);
+            }
+            else if (isEveryoneReady)
+            {
+                var extraTimeEnd = DateTime.Now + TimeSpan.FromSeconds(10);
+                turnStorage.RemoveVotingEnd(roomId);
+                turnStorage.AddVotingEnd(extraTimeEnd, roomId);
+                gameSession.IsUsingExtraTime = true;
+                gameSession.ExtraTime = extraTimeEnd;
+            }
         }
 
         var clients = hubContext.Clients.Group(roomId.ToString());

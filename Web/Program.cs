@@ -31,6 +31,7 @@ builder.Services.AddTransient<IParser, ThemesJsonParser>();
 builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IGetUser, GetUserService>();
+builder.Services.AddTransient<IGameStatsService, GameStatsService>();
 builder.Services.AddSingleton<ITurnStorage, TurnStorage>();
 builder.Services.AddScoped<IGameWorker, GameWorker>();
 builder.Services.AddTransient<IRepository<ImageModel>, ImageDbRepository>();
@@ -76,7 +77,7 @@ var secretKey = jwtSettings["Key"];
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration));
 
-builder.Services.AddAuthentication(options =>
+var authentication = builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -106,10 +107,52 @@ builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         }
     };
+}).AddCookie(ExternalAuthentication.CookieScheme, options =>
+{
+    options.Cookie.Name = "GameSpy.ExternalLogin";
+    options.Cookie.Path = "/api/v1/auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+    options.SlidingExpiration = false;
 });
+
+var yandex = builder.Configuration.GetSection("Authentication:Yandex");
+if (!string.IsNullOrWhiteSpace(yandex["ClientId"]) && !string.IsNullOrWhiteSpace(yandex["ClientSecret"]))
+{
+    authentication.AddYandex(options =>
+    {
+        options.ClientId = yandex["ClientId"]!;
+        options.ClientSecret = yandex["ClientSecret"]!;
+        options.SignInScheme = ExternalAuthentication.CookieScheme;
+        options.CallbackPath = "/api/v1/auth/signin-callback/Yandex";
+    });
+}
+
+var vkontakte = builder.Configuration.GetSection("Authentication:Vkontakte");
+if (!string.IsNullOrWhiteSpace(vkontakte["ClientId"]) && !string.IsNullOrWhiteSpace(vkontakte["ClientSecret"]))
+{
+    authentication.AddVkontakte(options =>
+    {
+        options.ClientId = vkontakte["ClientId"]!;
+        options.ClientSecret = vkontakte["ClientSecret"]!;
+        options.SignInScheme = ExternalAuthentication.CookieScheme;
+        options.CallbackPath = "/api/v1/auth/signin-callback/Vkontakte";
+    });
+}
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAuthorization();
 var app = builder.Build();
+try
+{
+    UserStorage.Initialize();
+}
+catch (Exception exception)
+{
+    app.Logger.LogCritical(exception, "Could not initialize UserManagement in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
+    throw;
+}
 app.UseAuthentication();
 app.UseAuthorization();
 if (app.Environment.IsDevelopment())

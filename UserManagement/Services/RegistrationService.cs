@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace authorization;
 
@@ -9,7 +11,10 @@ public class RegistrationService(ILogger<RegistrationService> logger) : IRegistr
         if (string.IsNullOrWhiteSpace(regData.Username))
             return Status.Error;
 
-        if (string.IsNullOrWhiteSpace(regData.Password))
+        var hasProvider = !string.IsNullOrWhiteSpace(regData.Provider);
+        if (hasProvider != !string.IsNullOrWhiteSpace(regData.ProviderKey))
+            return Status.Error;
+        if (!hasProvider && string.IsNullOrWhiteSpace(regData.Password))
             return Status.Error;
 
         if (UserStorage.UsernameExists(regData.Username)){
@@ -17,13 +22,16 @@ public class RegistrationService(ILogger<RegistrationService> logger) : IRegistr
             return Status.UsernameExists;
         }
 
-        var userId = new UserId(UserStorage.GetNextId());
-        var user = new User(regData.Username, userId);
-
-        UserStorage.Add(user, regData.Password);
-
-        logger.LogInformation("User {Username} successfully registered with ID {UserId}", regData.Username, userId);
-
-        return Status.Ok;
+        try
+        {
+            var user = UserStorage.Add(regData.Username, regData.Password, regData.Provider, regData.ProviderKey);
+            logger.LogInformation("User {Username} successfully registered with ID {UserId}", user.Username, user.Id);
+            return Status.Ok;
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+               { SqlState: PostgresErrorCodes.UniqueViolation } conflict)
+        {
+            return conflict.ConstraintName == "ux_users_username" ? Status.UsernameExists : Status.Error;
+        }
     }
 }

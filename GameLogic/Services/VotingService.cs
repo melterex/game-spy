@@ -13,28 +13,33 @@ namespace GameLogic.Services
     {
         public void Vote(GameSession session, SlotID voterId, SlotID targetId)
         {
-            if (session.CurrentStage != GameStage.Voting)
+            lock (session)
             {
-                logger.LogWarning("It is not the voting stage right now.");
-                throw new InvalidOperationException("Сейчас не этап голосования");
-            }
-            if (voterId == targetId)
-            {
-                logger.LogWarning("Player {PlayerId} attempted to vote for themselves", voterId);
-                throw new ArgumentException("Нельзя голосовать за себя");
-            }
-            if (!session.PlayerSlots.Any(s => s.Id == targetId))
-            {
-                logger.LogWarning(
-                    "Player {VoterId} attempted to vote for non-existing player {TargetId}", voterId, targetId
-                    );
-                throw new ArgumentException("Игрок не в игре");
-            }
+                EnsureVotingOpen(session);
+                if (voterId == targetId)
+                {
+                    logger.LogWarning("Player {PlayerId} attempted to vote for themselves", voterId);
+                    throw new ArgumentException("Нельзя голосовать за себя");
+                }
+                if (!session.PlayerSlots.Any(s => s.Id == targetId))
+                {
+                    logger.LogWarning(
+                        "Player {VoterId} attempted to vote for non-existing player {TargetId}", voterId, targetId
+                        );
+                    throw new ArgumentException("Игрок не в игре");
+                }
 
-            session.Votes[voterId] = targetId;
-            logger.LogInformation(
-                "Player {VoterId} voted for {TargetId} in session {GameId}", voterId, targetId, session.GameId
-                );
+                session.Votes[voterId] = targetId;
+                logger.LogInformation(
+                    "Player {VoterId} voted for {TargetId} in session {GameId}", voterId, targetId, session.GameId
+                    );
+            }
+        }
+
+        private static void EnsureVotingOpen(GameSession session)
+        {
+            if (session.CurrentStage != GameStage.Voting || session.VotingEnded)
+                throw new InvalidOperationException("Голосование уже завершено или ещё не началось");
         }
 
         public bool IsVotingEnded(GameSession session) =>
@@ -83,16 +88,23 @@ namespace GameLogic.Services
 
         public VotingReport GetVotingReport(GameSession session)
         {
-            return new VotingReport(
-                session.Votes.Values
-                    .GroupBy(id => id)
-                    .ToDictionary(g => g.Key, g => g.Count())
-            );
+            lock (session)
+            {
+                return new VotingReport(
+                    session.Votes.Values
+                        .GroupBy(id => id)
+                        .ToDictionary(g => g.Key, g => g.Count())
+                );
+            }
         }
 
         public void SetPlayerReadyToEndVoting(GameSession session, SlotID slotId, bool isReady)
         {
-            session.IsPlayerReadyToEndVotingDict[slotId] = isReady;
+            lock (session)
+            {
+                EnsureVotingOpen(session);
+                session.IsPlayerReadyToEndVotingDict[slotId] = isReady;
+            }
         }
 
         public bool IsEveryoneReadyToEndVoting(GameSession session)
