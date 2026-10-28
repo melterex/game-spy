@@ -27,7 +27,7 @@ builder.Services.AddTransient<CardsService.IThemesService, ThemesService>();
 builder.Services.AddTransient<IVotingService, VotingService>();
 builder.Services.AddTransient<IGameService, GameService>();
 builder.Services.AddTransient<IGameWorker, GameWorker>();
-builder.Services.AddTransient<IParser, ThemesJsonParser>();
+builder.Services.AddTransient<IThemesRepository, ThemesDbRepository>();
 builder.Services.AddTransient<IRegistrationService, RegistrationService>();
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<IGetUser, GetUserService>();
@@ -147,10 +147,11 @@ var app = builder.Build();
 try
 {
     UserStorage.Initialize();
+    ThemeStorage.Initialize();
 }
 catch (Exception exception)
 {
-    app.Logger.LogCritical(exception, "Could not initialize UserManagement in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
+    app.Logger.LogCritical(exception, "Could not initialize users and themes in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
     throw;
 }
 app.UseAuthentication();
