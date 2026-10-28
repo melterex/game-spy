@@ -57,11 +57,7 @@ namespace RoomService
 
             if (!string.IsNullOrEmpty(inputPassword))
             {
-                var oupValue = oupService.ConsumeOup(RoomId, inputPassword).Result;
-                if (oupValue == "valid")
-                {
-                    isOup = true;
-                }
+                isOup = oupService.ConsumeOup(RoomId, inputPassword).GetAwaiter().GetResult();
             }
             if (!isOup && !string.IsNullOrEmpty(Settings.Password))
             {

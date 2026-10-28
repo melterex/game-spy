@@ -30,18 +30,18 @@ namespace RoomService
             return oup;
         }
 
-        public async Task<string> ConsumeOup(Guid roomId, string oup)
+        public async Task<bool> ConsumeOup(Guid roomId, string oup)
         {
             if (string.IsNullOrWhiteSpace(oup))
-                return string.Empty;
+                return false;
 
             var cacheKey = $"oup:{roomId}:{oup}";
             var cachedValue = await cache.GetStringAsync(cacheKey);
             if (cachedValue != "valid")
-                return string.Empty;
+                return false;
 
             await cache.RemoveAsync(cacheKey);
-            return cachedValue;
+            return true;
         }
     }
 }
