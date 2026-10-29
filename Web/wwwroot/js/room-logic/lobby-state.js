@@ -43,6 +43,8 @@ function applyLobbyAfterVoting(players) {
         startGameBtn.style.opacity = '0.5';
         startGameBtn.style.cursor = 'not-allowed';
     }
+    const inviteBtn = document.getElementById('inviteBtn');
+    if (inviteBtn) inviteBtn.hidden = false;
     if (themeBlock) themeBlock.classList.add('hidden');
     if (wordBlock) wordBlock.classList.add('hidden');
     if (turnStatus) turnStatus.classList.add('hidden');

@@ -31,6 +31,12 @@ public class RoomSettings
     public int MaxBots { get; set; }
     public string Theme { get; set; }
     public int UserMaxCount { get; set; }
+    public string Password { get; set; }
+}
+
+public class EnterRoomRequest
+{
+    public string Password { get; set; }
 }
 
 
@@ -142,13 +148,19 @@ public class RoomController : ControllerBase
             return BadRequest();
         }
 
-        var newLobbySettings = new LobbySettings(roomSettings.Name, "", roomSettings.UserMaxCount, roomSettings.MaxBots, RoomService.RoomStatus.Waiting, roomSettings.Theme, ThemesMode.Fixed, new TimeSpan(60));
+        if (!string.IsNullOrWhiteSpace(roomSettings.Name))
+        {
+            newRoom.Title = roomSettings.Name.Trim();
+        }
+
+        var password = roomSettings.Password?.Trim() ?? "";
+        var newLobbySettings = new LobbySettings(roomSettings.Name, password, roomSettings.UserMaxCount, roomSettings.MaxBots, RoomService.RoomStatus.Waiting, roomSettings.Theme, ThemesMode.Fixed, new TimeSpan(60));
         lobbyService.SetLobbySettings(newLobbySettings, newRoom.Session);
         return Ok(newRoom.RoomId.ToString());
     }
 
     [HttpPost("{roomId}/enter")]
-    public IActionResult RoomEnter(string roomId)
+    public IActionResult RoomEnter(string roomId, [FromBody] EnterRoomRequest request)
     {
         var room = roomService.GetRoomByRoomId(Guid.Parse(roomId));
         if (room == null)
@@ -156,7 +168,8 @@ public class RoomController : ControllerBase
             return NotFound();
         }
         var user = getUserService.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
-        var stat = lobbyService.TryToEnter(room.Session, user);
+        var password = request?.Password?.Trim() ?? "";
+        var stat = lobbyService.TryToEnter(room.Session, user, password);
         if (stat == false)
         {
             return BadRequest();
@@ -174,7 +187,7 @@ public class RoomController : ControllerBase
         var room = roomService.GetRoomByUserId(user_req.Id);
         if (room == null)
         {
-            return NotFound();
+            return new JsonResult(null) { StatusCode = StatusCodes.Status200OK };
         }
         var playerStatuses = lobbyService.GetPlayersStatuses(room.Session);
         var lobbySettings = lobbyService.GetLobbySettings(room.Session);

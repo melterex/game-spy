@@ -25,13 +25,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function createNewRoom() {
+    const nameInput = document.getElementById('roomNameInput');
     const selectTheme = document.getElementById('roomTheme');
     const limitSelect = document.getElementById('playerLimit');
     const botSelect = document.getElementById('botCount');
+    const passwordInput = document.getElementById('roomPassword');
 
+    const roomName = nameInput ? nameInput.value.trim() : '';
     const roomTheme = selectTheme.value;
     const maxCount = limitSelect ? parseInt(limitSelect.value, 10) : 10;
     const maxBots = botSelect ? parseInt(botSelect.value, 10) : 0;
+    const password = passwordInput ? passwordInput.value.trim() : '';
 
     console.log(roomTheme);
     console.log(maxCount);
@@ -52,10 +56,11 @@ async function createNewRoom() {
                 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
             },
             body: JSON.stringify({
-                name: '',
+                name: roomName,
                 theme: roomTheme,
                 userMaxCount: maxCount,
                 maxBots: maxBots,
+                password: password,
             })
         });
         console.log(response);
