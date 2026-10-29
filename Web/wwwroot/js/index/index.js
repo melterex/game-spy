@@ -7,17 +7,24 @@ function openAuthModal() {
     modal.style.display = "block";
 }
 
-loginBtn.onclick = openAuthModal;
-
-closeBtn.onclick = () => {
+function closeAuthModal() {
     modal.style.display = "none";
 }
 
-window.onclick = (event) => {
-    if (event.target === modal) {
-        modal.style.display = "none";
-    }
-}
+loginBtn.onclick = openAuthModal;
+
+closeBtn.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+});
+closeBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    closeAuthModal();
+});
+
+modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeAuthModal();
+});
 
 function setPlayButton(isLoggedIn) {
     document.body.classList.toggle('logged-in', isLoggedIn);
