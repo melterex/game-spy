@@ -5,6 +5,7 @@ function updateChatInputForTurn() {
     const myTurn = window.mySlotId && String(window.mySlotId) === String(idTurn);
     input.disabled = !myTurn;
     input.placeholder = myTurn ? 'Ваше сообщение...' : 'Сейчас ход другого игрока';
+    if (!myTurn) input.value = '';
 }
 
 async function sendMessage() {
@@ -13,16 +14,19 @@ async function sendMessage() {
     const input = document.getElementById('chatInput');
     if (!input || input.value.trim() === "") return;
 
+    const text = input.value;
+    input.value = '';
+
     if (window.isBackendReady && window.connection) {
         try {
-            await window.connection.invoke("MakeTurn", input.value);
-            input.value = '';
+            await window.connection.invoke("MakeTurn", text);
         } catch (err) {
             console.error("Ошибка отправки хода:", err);
+            if (String(window.mySlotId) === String(idTurn) && input.value === '')
+                input.value = text;
         }
     } else {
-        addMessage("1", input.value);
-        input.value = '';
+        addMessage("1", text);
     }
 }
 

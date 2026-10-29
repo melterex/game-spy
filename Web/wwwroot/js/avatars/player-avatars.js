@@ -77,7 +77,11 @@ async function decoratePlayerAvatars() {
 
     for (const target of playerAvatarTargets()) {
         let hash = hashForPlayerId(target.id);
-        const isMe = me && (target.id === me.userId || (window.mySlotId && target.id === String(window.mySlotId)));
+        const idsAreSlots = (typeof roomStatus !== 'undefined' && roomStatus === 'ingame')
+            || (typeof votingData !== 'undefined' && votingData?.players);
+        const isMe = me && (idsAreSlots
+            ? window.mySlotId && target.id === String(window.mySlotId)
+            : target.id === me.userId);
         if (!hash && isMe) hash = me.hash;
         if (!hash) continue;
 

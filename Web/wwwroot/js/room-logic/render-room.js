@@ -1,15 +1,17 @@
 const startGameBtn = document.getElementById('startGameBtn');
+let roomTitle = '';
 
 function showRoomId(roomId) {
     const label = document.getElementById('roomIdLabel');
-    if (!label || !roomId) return;
+    if (!label || !roomId || roomTitle) return;
     label.textContent = `Room #${String(roomId).slice(0, 4)}`;
 }
 
 function showRoomTitle(name) {
     const label = document.getElementById('roomIdLabel');
-    if (!label || !name) return;
-    label.textContent = name;
+    if (!name) return;
+    roomTitle = name;
+    if (label) label.textContent = name;
 }
 
 function humanPlayers(players) {
