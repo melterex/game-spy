@@ -181,23 +181,18 @@
     box-shadow: 0 2px 0 rgba(0, 0, 0, .35);
 }
 
-.oauth-btn--yandex {
+.oauth-btn--yandex,
+.oauth-btn--yandex:visited,
+.oauth-btn--yandex:hover {
     background: var(--white);
     color: var(--ink);
 }
 
-#vkid-container {
-    width: 100%;
-}
-
-.oauth-status {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.35;
-}
-
-.oauth-status:empty {
-    display: none;
+.oauth-btn--vk,
+.oauth-btn--vk:visited,
+.oauth-btn--vk:hover {
+    background: #0077FF;
+    color: #fff;
 }
 
 .oauth-mark {
@@ -216,4 +211,10 @@
     background: #FC3F1D;
     color: var(--white);
     font-size: 15px;
+}
+
+.oauth-btn--vk .oauth-mark {
+    background: #fff;
+    color: #0077FF;
+    font-size: 11px;
 }
