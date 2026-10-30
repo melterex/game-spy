@@ -3,9 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using authorization;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -27,23 +25,25 @@ public class User
 {
     public string Id { get; set; }
     public string Username { get; set; }
-    public string? Provider { get; set; }
-    public string? ProviderKey { get; set; }
 }
 [ApiController]
 [Route("api/v1/auth")]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
     private readonly ILoginService _loginService;
     private readonly IRegistrationService _registrationService;
     private readonly IGetUser _getUser;
-    public AuthController(IConfiguration configuration, ILoginService loginService, IRegistrationService registrationService, IGetUser getUser)
+    private readonly IAuthenticationSchemeProvider _schemes;
+    public AuthController(IConfiguration configuration, ILoginService loginService,
+        IRegistrationService registrationService, IGetUser getUser, IAuthenticationSchemeProvider schemes)
     {
         _configuration = configuration;
         _loginService = loginService;
         _registrationService = registrationService;
         _getUser = getUser;
+        _schemes = schemes;
     }
 
     [HttpPost("login")]
@@ -67,95 +67,137 @@ public class AuthController : ControllerBase
             case Status.UsernameExists:
                 return Conflict("Username already exists");
             case Status.Error:
-                {
-                    return BadRequest();
-                }
+            {
+                return BadRequest();
+            }
             case Status.Ok:
-                {
-                    var user = _loginService.Login(new authorization.LoginData(data.Username, data.Password));
-                    return Ok(GenerateJwtToken(user.Id.ToString()));
-                }
+            {
+                var user = _loginService.Login(new authorization.LoginData(data.Username, data.Password));
+                return user == null ? BadRequest() : Ok(GenerateJwtToken(user.Id.ToString()));
+            }
             default:
-                {
-                    return BadRequest();
-                }
+            {
+                return BadRequest();
+            }
         }
+    }
+
+    [HttpGet("providers")]
+    public async Task<ActionResult<string[]>> GetProviders()
+    {
+        var schemes = await _schemes.GetAllSchemesAsync();
+        return Ok(schemes.Select(scheme => scheme.Name)
+            .Where(name => ExternalAuthentication.Providers.Contains(name)).ToArray());
     }
 
     [HttpGet("login/{provider}")]
-    public IActionResult ChallengeProvider(string provider, [FromQuery] string returnUrl = "/")
+    public async Task<IActionResult> ChallengeProvider(string provider, [FromQuery] string returnUrl = "/room-list/index.html")
     {
-        var redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { provider, returnUrl });
-        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        var canonicalProvider = ExternalAuthentication.Providers.FirstOrDefault(
+            name => string.Equals(name, provider, StringComparison.OrdinalIgnoreCase));
+        if (canonicalProvider == null || await _schemes.GetSchemeAsync(canonicalProvider) == null)
+            return BadRequest("External authentication provider is not configured.");
 
-        return Challenge(properties, provider);
+        await HttpContext.SignOutAsync(ExternalAuthentication.CookieScheme);
+        var properties = new AuthenticationProperties
+        {
+            RedirectUri = Url.Action(nameof(ExternalLoginCallback)),
+            Items =
+            {
+                [ExternalAuthentication.ProviderItem] = canonicalProvider,
+                [ExternalAuthentication.ReturnUrlItem] = SafeReturnUrl(returnUrl)
+            }
+        };
+        return Challenge(properties, canonicalProvider);
     }
 
     [HttpGet("signin-callback")]
-    public async Task<IActionResult> ExternalLoginCallback(string provider, string returnUrl = "/")
+    public async Task<IActionResult> ExternalLoginCallback()
     {
-        var result = await HttpContext.AuthenticateAsync(provider);
-        if (!result.Succeeded || result.Principal == null)
-        {
-            return BadRequest("Error during external authentication.");
-        }
+        var result = await HttpContext.AuthenticateAsync(ExternalAuthentication.CookieScheme);
+        await HttpContext.SignOutAsync(ExternalAuthentication.CookieScheme);
+        if (!result.Succeeded || result.Principal == null || result.Properties == null
+            || result.Principal.HasClaim(ExternalAuthentication.CompletedClaim, "true"))
+            return Unauthorized("External authentication failed. Please sign in again.");
 
+        result.Properties.Items.TryGetValue(ExternalAuthentication.ProviderItem, out var provider);
         var providerKey = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        var name = result.Principal.FindFirstValue(ClaimTypes.Name) ?? "Player";
+        if (provider == null || !ExternalAuthentication.Providers.Contains(provider)
+            || await _schemes.GetSchemeAsync(provider) == null || string.IsNullOrWhiteSpace(providerKey))
+            return BadRequest("The provider did not return a valid user identity.");
 
-        var providerName = result.Properties?.Items.ContainsKey(".AuthScheme") == true
-            ? result.Properties.Items[".AuthScheme"]
-            : "Unknown";
-
-        var res = _getUser.GetUserByProvider(providerName, providerKey);
-        var dummyPassword = Guid.NewGuid().ToString();
-
-        if (res == null)
+        var user = _getUser.GetUserByProvider(provider, providerKey);
+        if (user == null)
         {
-            var userId = new UserId(UserStorage.GetNextId());
-            var user1 = new User
+            var displayName = result.Principal.FindFirstValue(ClaimTypes.Name)?.Trim();
+            var baseUsername = string.IsNullOrWhiteSpace(displayName) ? "Player" : displayName;
+            var username = baseUsername;
+            for (var attempt = 0; attempt < 3 && user == null; attempt++)
             {
-                Id = userId.ToString(),
-                Username = name,
-                Provider = providerName,
-                ProviderKey = providerKey
-            };
-
-            var status = _registrationService.Register(
-                new RegistrationData(user1.Username, dummyPassword, provider, providerKey
-                ));
-                
-            if (status != Status.Ok)
-            {
-                return BadRequest("Error during user registration.");
-            }
-            res = _getUser.GetUserByProvider(providerName, providerKey);
-            if (res == null)
-            {
-                return BadRequest("User registration failed to persist.");
+                var status = _registrationService.Register(new RegistrationData(username, "", provider, providerKey));
+                user = _getUser.GetUserByProvider(provider, providerKey);
+                if (user != null)
+                    break;
+                if (status != Status.UsernameExists)
+                    return BadRequest("External user registration failed.");
+                username = $"{baseUsername} ({provider}-{Guid.NewGuid():N})";
             }
         }
+        if (user == null)
+            return Conflict("Could not select a unique username. Please sign in again.");
 
-        var claims = new List<Claim>
+        result.Properties.Items.TryGetValue(ExternalAuthentication.ReturnUrlItem, out var returnUrl);
+        var properties = new AuthenticationProperties
         {
-            new Claim(ClaimTypes.NameIdentifier, res.Id.ToString()),
-            new Claim(ClaimTypes.Name, res.Username)
+            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(1),
+            IsPersistent = false,
+            Items = { [ExternalAuthentication.ReturnUrlItem] = SafeReturnUrl(returnUrl) }
         };
-
-        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-
-        return LocalRedirect(returnUrl);
+        var identity = new ClaimsIdentity([
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ExternalAuthentication.CompletedClaim, "true")
+        ], ExternalAuthentication.CookieScheme);
+        await HttpContext.SignInAsync(ExternalAuthentication.CookieScheme, new ClaimsPrincipal(identity), properties);
+        return LocalRedirect("/oauth-complete.html");
     }
+
+    [HttpPost("external-token")]
+    public async Task<IActionResult> CompleteExternalLogin()
+    {
+        if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+            return BadRequest("Complete the external login from this site.");
+
+        var result = await HttpContext.AuthenticateAsync(ExternalAuthentication.CookieScheme);
+        await HttpContext.SignOutAsync(ExternalAuthentication.CookieScheme);
+        if (!result.Succeeded || result.Principal == null
+            || !result.Principal.HasClaim(ExternalAuthentication.CompletedClaim, "true")
+            || !long.TryParse(result.Principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized("External login expired. Please sign in again.");
+
+        var user = _getUser.GetUser(new UserId(userId));
+        if (user == null)
+            return Unauthorized();
+        string? returnUrl = null;
+        result.Properties?.Items.TryGetValue(ExternalAuthentication.ReturnUrlItem, out returnUrl);
+        return Ok(new { token = GenerateJwtToken(user.Id.ToString()), returnUrl = SafeReturnUrl(returnUrl) });
+    }
+
+    private string SafeReturnUrl(string? returnUrl) =>
+        !string.IsNullOrWhiteSpace(returnUrl) && returnUrl.StartsWith('/') && Url.IsLocalUrl(returnUrl)
+            ? returnUrl : "/room-list/index.html";
 
     [Authorize]
     [HttpGet("/me")]
     public ActionResult<User> GetMe()
     {
-        var user = _getUser.GetUser(UserId.FromString(User.FindFirstValue(ClaimTypes.NameIdentifier)));
-        return Ok(new User { Id = user.Id.ToString(), Username = user.Username });
+        if (!long.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+        var user = _getUser.GetUser(new UserId(userId));
+        if (user == null)
+            return Unauthorized();
+        return Ok(new User{Id = user.Id.ToString(), Username = user.Username});
     }
-
+    
     private string GenerateJwtToken(string id)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
@@ -173,7 +215,7 @@ public class AuthController : ControllerBase
             issuer: jwtSettings["Issuer"],
             audience: jwtSettings["Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(2),
+            expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
