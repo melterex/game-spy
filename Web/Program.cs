@@ -152,10 +152,11 @@ try
 {
     UserStorage.Initialize();
     ThemeStorage.Initialize();
+    ImageStorage.Initialize();
 }
 catch (Exception exception)
 {
-    app.Logger.LogCritical(exception, "Could not initialize users and themes in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
+    app.Logger.LogCritical(exception, "Could not initialize users, themes and images in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
     throw;
 }
 app.UseAuthentication();

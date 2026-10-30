@@ -21,7 +21,7 @@ namespace ImageService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("RoomService.ImageModel", b =>
+            modelBuilder.Entity("ImageService.ImageModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -54,7 +54,7 @@ namespace ImageService.Migrations
                             Id = 1,
                             Extension = "png",
                             Hash = "5405d77c51fb46a0cbf26cb96fe4da4d",
-                            Path = "/Samples/default.png",
+                            Path = "/samples/default.png",
                             Source = 1
                         });
                 });
