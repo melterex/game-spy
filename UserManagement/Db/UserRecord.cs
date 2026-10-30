@@ -7,7 +7,8 @@ public class UserRecord
     public string? PasswordHash { get; set; }
     public string? Provider { get; set; }
     public string? ProviderKey { get; set; }
+    public string? AvatarHash { get; set; }
     public List<GameResult> GameResults { get; set; } = [];
 
-    public User ToUser() => new(Username, new UserId(Id), Provider ?? "", ProviderKey ?? "");
+    public User ToUser() => new(Username, new UserId(Id), Provider ?? "", ProviderKey ?? "", AvatarHash);
 }

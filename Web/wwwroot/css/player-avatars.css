@@ -1,0 +1,11 @@
+.side-players .player-tag.has-avatar[data-id]::before {
+    background: var(--player-avatar) center / cover no-repeat;
+    box-shadow: none;
+}
+
+.user-card .avatar-placeholder.has-avatar {
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    box-shadow: none;
+}

@@ -1,0 +1,14 @@
+.oauth-status-card .h {
+    margin: 0;
+    font-size: 32px;
+}
+
+#login-status {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.page > .link-btn {
+    align-self: center;
+}

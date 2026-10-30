@@ -14,13 +14,13 @@
     min-width: 76px;
     padding: 8px 14px;
     border-radius: 14px;
-    background: var(--ink);
-    color: var(--yellow);
+    background: var(--fill);
+    color: var(--on-fill);
     font-size: 20px;
     font-weight: 700;
     text-align: center;
     font-variant-numeric: tabular-nums;
-    box-shadow: 0 4px 0 #000;
+    box-shadow: 0 4px 0 var(--shadow-deep);
 }
 
 .voting-sub {
@@ -39,7 +39,7 @@
     content: 'Загружаем игроков…';
     display: block;
     padding: 26px 20px;
-    border: 3px dashed rgba(30, 26, 58, .35);
+    border: 3px dashed var(--line);
     border-radius: 22px;
     text-align: center;
     font-weight: 500;
@@ -51,9 +51,10 @@
     align-items: center;
     gap: 14px;
     padding: 12px 14px 12px 12px;
-    background: var(--white);
+    background: var(--surface);
+    color: var(--text);
     border-radius: 22px;
-    box-shadow: 0 5px 0 var(--ink);
+    box-shadow: 0 5px 0 var(--shadow);
     cursor: pointer;
     user-select: none;
     transition: transform .12s, box-shadow .12s, background .15s, color .15s;
@@ -61,19 +62,19 @@
 
 .user-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 7px 0 var(--ink);
+    box-shadow: 0 7px 0 var(--shadow);
 }
 
 .user-card:active {
     transform: translateY(3px);
-    box-shadow: 0 2px 0 var(--ink);
+    box-shadow: 0 2px 0 var(--shadow);
 }
 
 .user-card.selected {
     background: var(--blue);
     color: var(--white);
     transform: rotate(-1.5deg);
-    box-shadow: 0 6px 0 var(--ink);
+    box-shadow: 0 6px 0 var(--shadow);
 }
 
 .user-card.is-self,
@@ -81,9 +82,9 @@
 .user-card.is-self:active {
     cursor: default;
     transform: none;
-    background: rgba(255, 255, 255, .45);
+    background: var(--self-bg);
     box-shadow: none;
-    outline: 3px dashed rgba(30, 26, 58, .3);
+    outline: 3px dashed var(--line-soft);
     outline-offset: -3px;
 }
 
@@ -96,7 +97,7 @@
     justify-content: center;
     border-radius: 50%;
     background: var(--chip-1);
-    box-shadow: inset 0 -5px 0 rgba(30, 26, 58, .18);
+    box-shadow: inset 0 -5px 0 var(--chip-shade);
     font-size: 22px;
 }
 
@@ -109,7 +110,7 @@
 .user-card:nth-child(8n+8) .avatar-placeholder { background: var(--chip-8); }
 
 .user-card.selected .avatar-placeholder {
-    box-shadow: 0 0 0 3px var(--white), inset 0 -5px 0 rgba(30, 26, 58, .18);
+    box-shadow: 0 0 0 3px var(--white), inset 0 -5px 0 var(--chip-shade);
 }
 
 .user-info {
@@ -154,7 +155,7 @@
     padding: 6px 10px;
     flex-shrink: 0;
     border-radius: 14px;
-    background: var(--ink);
+    background: var(--counter-bg);
     color: var(--yellow);
 }
 
@@ -186,7 +187,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: linear-gradient(to bottom, rgba(255, 207, 63, 0), var(--yellow) 30%);
+    background: linear-gradient(to bottom, transparent, var(--bg) 30%);
 }
 
 .finish-vote-hint {
@@ -198,7 +199,7 @@
 .finish-vote-btn.active {
     background: var(--blue);
     color: var(--white);
-    box-shadow: 0 5px 0 var(--ink);
+    box-shadow: 0 5px 0 var(--shadow);
 }
 
 /* Итог раунда */
@@ -210,7 +211,7 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: rgba(30, 26, 58, .55);
+    background: var(--scrim);
     backdrop-filter: blur(2px);
 }
 
@@ -248,7 +249,7 @@
 
 .vote-result-modal.vote-result-lose {
     background: var(--ink);
-    box-shadow: 0 8px 0 #000;
+    box-shadow: 0 8px 0 var(--shadow-deep);
 }
 
 .vote-result-modal.vote-result-lose .vote-result-title {
@@ -261,6 +262,6 @@
 }
 
 .vote-result-modal.vote-result-tie {
-    background: var(--white);
-    color: var(--ink);
+    background: var(--surface);
+    color: var(--text);
 }

@@ -55,12 +55,19 @@
     position: absolute;
     top: 14px;
     right: 16px;
+    z-index: 3;
     width: 36px;
     height: 36px;
+    margin: 0;
+    padding: 0;
+    border: 0;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    appearance: none;
+    color: inherit;
+    font: inherit;
     font-size: 26px;
     line-height: 1;
     cursor: pointer;
@@ -113,6 +120,101 @@
     gap: 6px;
 }
 
+#login .field,
+#register .field {
+    gap: 10px;
+}
+
+#login .line-input,
+#register .line-input {
+    padding: 10px 8px 12px 14px;
+}
+
 .submit-btn {
     margin-top: 6px;
+}
+
+.external-logins {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.external-logins[hidden] {
+    display: none;
+}
+
+.oauth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    color: rgba(255, 255, 255, .72);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.oauth-divider::before,
+.oauth-divider::after {
+    content: "";
+    height: 2px;
+    flex: 1;
+    background: rgba(255, 255, 255, .28);
+}
+
+.oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 52px;
+    border-radius: 16px;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 700;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, .35);
+    transition: transform .08s, box-shadow .08s;
+}
+
+.oauth-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .35);
+}
+
+.oauth-btn--yandex,
+.oauth-btn--yandex:visited,
+.oauth-btn--yandex:hover {
+    background: var(--white);
+    color: var(--ink);
+}
+
+.oauth-btn--vk,
+.oauth-btn--vk:visited,
+.oauth-btn--vk:hover {
+    background: #0077FF;
+    color: #fff;
+}
+
+.oauth-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.oauth-btn--yandex .oauth-mark {
+    background: #FC3F1D;
+    color: var(--white);
+    font-size: 15px;
+}
+
+.oauth-btn--vk .oauth-mark {
+    background: #fff;
+    color: #0077FF;
+    font-size: 11px;
 }

@@ -4,17 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Шпион — Комнаты</title>
+    <script src="../js/theme.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/room-list.css">
+    <link rel="stylesheet" href="../css/settings.css">
+    <link rel="icon" href="/icon.png" type="image/png">
 </head>
 <body>
 
 <div class="page container">
     <div class="top header">
         <div class="logo">Шпион</div>
-        <button class="link-btn exit-btn" onclick="exitRoomList()">Выйти</button>
+        <div class="header-right">
+            <button class="link-btn exit-btn" onclick="exitRoomList()">Выйти</button>
+            <button id="settingsAvatarBtn" class="avatar-btn" onclick="openSettings()" aria-label="Настройки профиля"></button>
+        </div>
     </div>
 
     <h1 class="h">Выберите стол</h1>
@@ -30,7 +36,10 @@
     <div class="room-list" id="roomsContainer"></div>
 
     <div class="bottom-bar">
-        <button class="cta ink create-btn" onclick="openModal('createModal')">Создать комнату</button>
+        <div class="bottom-actions">
+            <button class="cta ink create-btn" onclick="openModal('createModal')">Создать комнату</button>
+            <button class="cta blue join-code-btn" onclick="openOupModal()">Войти по коду</button>
+        </div>
         <div class="muted hint">Список обновляется сам каждые пару секунд.</div>
     </div>
 </div>
@@ -42,6 +51,11 @@
             <span class="hand card-note">свой!</span>
         </div>
         <h2 class="card-title">Настройте игру</h2>
+
+        <label class="field" for="roomNameInput">
+            <span class="card-label">Название</span>
+            <input id="roomNameInput" class="line-input" type="text" maxlength="40" autocomplete="off" placeholder="необязательно">
+        </label>
 
         <label class="field" for="roomTheme">
             <span class="card-label">Тема</span>
@@ -74,8 +88,35 @@
             </label>
         </div>
 
+        <label class="field" for="roomPassword">
+            <span class="card-label">Пароль</span>
+            <input id="roomPassword" class="line-input" type="password" autocomplete="new-password" placeholder="необязательно">
+        </label>
+        <p class="card-desc">Пустое поле оставляет стол открытым.</p>
+
         <button class="cta ink confirm-btn" onclick="createNewRoom()">Создать</button>
         <button class="link-btn cancel-link" onclick="closeModal('createModal')">Отмена</button>
+    </div>
+</div>
+
+<div id="oupModal" class="modal">
+    <div class="modal-content card">
+        <span class="card-label">Одноразовый код</span>
+        <h2 class="card-title">Сесть за закрытый стол</h2>
+        <p class="card-desc">Код и номер комнаты присылает тот, кто уже сидит за столом.</p>
+
+        <label class="field" for="joinRoomId">
+            <span class="card-label">Номер комнаты</span>
+            <input id="joinRoomId" class="line-input code-input" autocomplete="off" spellcheck="false" placeholder="идентификатор">
+        </label>
+        <label class="field" for="joinOup">
+            <span class="card-label">Код</span>
+            <input id="joinOup" class="line-input code-input" autocomplete="off" spellcheck="false" placeholder="одноразовый код">
+        </label>
+        <p id="oupJoinError" class="form-error" hidden></p>
+
+        <button class="cta ink confirm-btn" onclick="enterRoomByOup()">Сесть за стол</button>
+        <button class="link-btn cancel-link" onclick="closeModal('oupModal')">Назад</button>
     </div>
 </div>
 
@@ -84,6 +125,10 @@
         <span class="card-label">Присоединиться</span>
         <h2 id="joinRoomTitle" class="card-title">Название</h2>
         <p id="joinRoomDesc" class="card-desc"></p>
+        <label class="field" for="joinPassword">
+            <span class="card-label">Пароль</span>
+            <input id="joinPassword" class="line-input" type="password" autocomplete="off" placeholder="если стол закрыт">
+        </label>
         <button class="cta ink confirm-btn" onclick="enterRoom()">Сесть за стол</button>
         <button class="link-btn cancel-link" onclick="closeModal('joinModal')">Назад</button>
     </div>
@@ -101,7 +146,9 @@
 
 <script src="../js/config.js"></script>
 <script src="../js/room-list/render-room.js"></script>
+<script src="../js/room-list/pretty-select.js"></script>
 <script src="../js/room-list/create-room.js"></script>
 <script src="../js/room-list/enter-room.js"></script>
+<script src="../js/settings/settings.js"></script>
 </body>
 </html>

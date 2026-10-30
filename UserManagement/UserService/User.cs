@@ -1,3 +1,5 @@
+using ImageService;
+
 namespace authorization;
 
 public class UserId
@@ -36,12 +38,16 @@ public class User
     public UserId Id { get; }
     public string Provider { get; }
     public string ProviderKey { get; }
-    
-    public User(string name, UserId id, string provider = "", string providerKey = "")
+    public string AvatarHash { get; }
+
+    public User(string name, UserId id, string provider = "", string providerKey = "", string? avatarHash = null)
     {
         Username = name;
         Id = id;
         Provider = provider;
         ProviderKey = providerKey;
+        AvatarHash = string.IsNullOrWhiteSpace(avatarHash)
+            ? ImageConstants.DefaultAvatarHash
+            : avatarHash;
     }
 }

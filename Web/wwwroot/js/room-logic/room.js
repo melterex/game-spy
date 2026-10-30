@@ -25,6 +25,7 @@ async function loadRoomTitle(token) {
         if (!response.ok) return;
 
         const room = await response.json();
+        if (!room) return;
         window.isRoomCreator = room.isCreator === true;
         showRoomTitle(room.name);
     } catch (error) {

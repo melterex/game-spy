@@ -33,6 +33,8 @@ function hideLobbyControls() {
 
     if (readyBtn) readyBtn.style.display = 'none';
     if (startBtn) startBtn.style.display = 'none';
+    const inviteBtn = document.getElementById('inviteBtn');
+    if (inviteBtn) inviteBtn.hidden = true;
     if (themeBlock) themeBlock.classList.remove('hidden');
     if (wordBlock) wordBlock.classList.remove('hidden');
     if (chatInput) {

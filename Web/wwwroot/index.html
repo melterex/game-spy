@@ -4,17 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Шпион — Главная</title>
+    <script src="js/theme.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="icon" href="/icon.png" type="image/png">
 </head>
-<body>
+<body data-auth="optional">
 
 <div class="page">
     <div class="top">
         <div class="logo">Шпион</div>
-        <button id="loginBtn" class="link-btn">Вход</button>
+        <div class="header-right">
+            <button id="loginBtn" class="link-btn">Вход</button>
+            <button id="settingsAvatarBtn" class="avatar-btn" onclick="openSettings()" aria-label="Настройки профиля"></button>
+        </div>
     </div>
 
     <div class="main-container">
@@ -40,7 +46,7 @@
 
 <div id="authModal" class="modal">
     <div class="modal-content card">
-        <span class="close" role="button" aria-label="Закрыть">&times;</span>
+        <button type="button" class="close" aria-label="Закрыть">&times;</button>
         <span class="card-label">Карта игрока</span>
 
         <div class="auth-tabs">
@@ -58,7 +64,6 @@
                 <input class="line-input" name="logPass" type="password" placeholder="••••••" autocomplete="current-password" required>
             </label>
             <button type="submit" class="cta ink submit-btn">Войти</button>
-            <div id="external-logins"></div>
         </form>
 
         <form id="register" class="tab-content">
@@ -70,8 +75,10 @@
                 <span class="card-label">Пароль</span>
                 <input class="line-input" name="regPass" type="password" placeholder="Придумайте пароль" autocomplete="new-password" required>
             </label>
-            <button type="submit" class="cta ink submit-btn">Сесть за стол</button>
+            <button type="submit" class="cta ink submit-btn">Зарегистрироваться</button>
         </form>
+
+        <div id="external-logins" class="external-logins" hidden></div>
     </div>
 </div>
 
@@ -79,5 +86,6 @@
 <script src="js/index/register.js"></script>
 <script src="js/index/index.js"></script>
 <script src="js/index/external-login.js"></script>
+<script src="js/settings/settings.js"></script>
 </body>
 </html>

@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Шпион — Стол</title>
+    <script src="../js/theme.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&family=Caveat:wght@700&display=swap">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/room.css">
+    <link rel="stylesheet" href="../css/player-avatars.css">
+    <link rel="icon" href="/icon.png" type="image/png">
 </head>
 <body>
 
@@ -18,7 +21,8 @@
             <div id="roomIdLabel" class="room-id-label"></div>
         </div>
         <div class="top-ui-right">
-            <div id="timer" class="timer" aria-live="polite">05:00</div>
+            <div id="timer" class="timer" aria-live="polite"></div>
+            <button id="inviteBtn" class="link-btn invite-btn" type="button" onclick="openInviteModal()">Пригласить</button>
             <button class="link-btn exit-btn" onclick="exitRoom()">Выйти</button>
         </div>
     </div>
@@ -71,6 +75,29 @@
     <div class="side-players right" id="rightSide"></div>
 </div>
 
+<div id="inviteModal" class="modal">
+    <div class="modal-content card invite-modal">
+        <span class="card-label">Одноразовый код</span>
+        <h2 class="card-title">Пригласить за стол</h2>
+        <p class="card-desc">Код сгорает после одного входа и живёт 15 минут. Каждому гостю нужен свой.</p>
+
+        <div class="field">
+            <span class="card-label">Номер комнаты</span>
+            <div id="inviteRoomId" class="invite-value">…</div>
+            <button class="link-btn copy-link" type="button" onclick="copyInvite('room')">Скопировать номер</button>
+        </div>
+        <div class="field">
+            <span class="card-label">Код</span>
+            <div id="inviteOup" class="invite-value">…</div>
+            <button class="link-btn copy-link" type="button" onclick="copyInvite('oup')">Скопировать код</button>
+        </div>
+        <p id="inviteError" class="form-error" hidden></p>
+
+        <button class="cta ink confirm-btn" type="button" onclick="createInviteCode()">Новый код</button>
+        <button class="link-btn cancel-link" type="button" onclick="closeInviteModal()">Закрыть</button>
+    </div>
+</div>
+
 <script src="../js/config.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
@@ -83,6 +110,8 @@
 <script src="../js/room-logic/chat/chat.js"></script>
 <script src="../js/room-logic/start-game.js"></script>
 <script src="../js/room-logic/room.js"></script>
+<script src="../js/room-logic/invite.js"></script>
 <script src="../js/room-logic/ready-button.js"></script>
+<script src="../js/avatars/player-avatars.js"></script>
 </body>
 </html>

@@ -36,6 +36,8 @@ builder.Services.AddTransient<IGameStatsService, GameStatsService>();
 builder.Services.AddSingleton<ITurnStorage, TurnStorage>();
 builder.Services.AddScoped<IGameWorker, GameWorker>();
 builder.Services.AddTransient<IRepository<ImageModel>, ImageDbRepository>();
+builder.Services.AddTransient<FileHasher>();
+builder.Services.AddTransient<ImageProcessor>();
 builder.Services.AddTransient<ImageProviderFactory>();
 builder.Services.AddTransient<IProvider<ImageModel>, LocalImageProvider>();
 builder.Services.AddTransient<IProvider<ImageModel>, UrlImageProvider>();

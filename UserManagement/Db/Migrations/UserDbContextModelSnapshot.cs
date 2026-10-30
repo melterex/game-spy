@@ -78,6 +78,10 @@ namespace UserManagement.Db.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("AvatarHash")
+                        .HasColumnType("text")
+                        .HasColumnName("avatar_hash");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text")
                         .HasColumnName("password_hash");

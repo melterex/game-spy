@@ -2,6 +2,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using authorization;
+using DbConnection;
+using ImageService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +27,12 @@ public class User
 {
     public string Id { get; set; }
     public string Username { get; set; }
+    public string AvatarHash { get; set; }
+}
+
+public class AvatarData
+{
+    public string Hash { get; set; }
 }
 [ApiController]
 [Route("api/v1/auth")]
@@ -36,14 +44,17 @@ public class AuthController : ControllerBase
     private readonly IRegistrationService _registrationService;
     private readonly IGetUser _getUser;
     private readonly IAuthenticationSchemeProvider _schemes;
+    private readonly IRepository<ImageModel> _images;
     public AuthController(IConfiguration configuration, ILoginService loginService,
-        IRegistrationService registrationService, IGetUser getUser, IAuthenticationSchemeProvider schemes)
+        IRegistrationService registrationService, IGetUser getUser, IAuthenticationSchemeProvider schemes,
+        IRepository<ImageModel> images)
     {
         _configuration = configuration;
         _loginService = loginService;
         _registrationService = registrationService;
         _getUser = getUser;
         _schemes = schemes;
+        _images = images;
     }
 
     [HttpPost("login")]
@@ -195,7 +206,27 @@ public class AuthController : ControllerBase
         var user = _getUser.GetUser(new UserId(userId));
         if (user == null)
             return Unauthorized();
-        return Ok(new User{Id = user.Id.ToString(), Username = user.Username});
+        return Ok(new User{Id = user.Id.ToString(), Username = user.Username, AvatarHash = user.AvatarHash});
+    }
+
+    [Authorize]
+    [HttpPut("/me/avatar")]
+    public ActionResult SetAvatar([FromBody] AvatarData data)
+    {
+        if (data == null || string.IsNullOrWhiteSpace(data.Hash))
+            return BadRequest("Hash is required");
+
+        if (_images.Get(data.Hash) == null)
+            return NotFound("Image not found");
+
+        if (!long.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+        var id = new UserId(userId);
+        if (_getUser.GetUser(id) == null)
+            return Unauthorized();
+
+        UserStorage.SetAvatarHash(id, data.Hash);
+        return Ok(new { hash = data.Hash });
     }
     
     private string GenerateJwtToken(string id)

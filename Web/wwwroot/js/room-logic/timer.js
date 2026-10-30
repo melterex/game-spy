@@ -7,6 +7,16 @@ function formatTime(timeLeft) {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
+function stopTimer() {
+    if (timerIntervalId !== null) {
+        clearInterval(timerIntervalId);
+        timerIntervalId = null;
+    }
+
+    const timerElement = document.getElementById('timer');
+    if (timerElement) timerElement.innerText = '';
+}
+
 function startTimer(timeLeft) {
     const timerElement = document.getElementById('timer');
     if (!timerElement) return;

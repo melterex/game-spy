@@ -5,14 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <title>Шпион — Вход</title>
+    <script src="/js/theme.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap">
     <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/oauth-complete.css">
     <script src="/js/index/oauth-complete.js" defer></script>
 </head>
 <body>
     <main class="page">
-        <h1>Вход в игру</h1>
-        <p id="login-status" role="status">Завершаем вход…</p>
-        <a href="/">Вернуться на главную</a>
+        <div class="logo">Шпион</div>
+        <section class="card oauth-status-card">
+            <span class="card-label">Вход</span>
+            <h1 class="h">Вход в игру</h1>
+            <p id="login-status" role="status">Завершаем вход…</p>
+        </section>
+        <a class="link-btn" href="/">Вернуться на главную</a>
     </main>
 </body>
 </html>
