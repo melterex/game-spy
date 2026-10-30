@@ -4,6 +4,7 @@ using CardsService;
 using GameLogic.Interfaces;
 using GameLogic.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -138,12 +139,16 @@ if (!string.IsNullOrWhiteSpace(yandex["ClientId"]) && !string.IsNullOrWhiteSpace
 var vkontakte = builder.Configuration.GetSection("Authentication:Vkontakte");
 if (!string.IsNullOrWhiteSpace(vkontakte["ClientId"]) && !string.IsNullOrWhiteSpace(vkontakte["ClientSecret"]))
 {
-    authentication.AddVkontakte(options =>
+    authentication.AddOAuth<OAuthOptions, VkIdAuthenticationHandler>("Vkontakte", options =>
     {
         options.ClientId = vkontakte["ClientId"]!;
-        options.ClientSecret = vkontakte["ClientSecret"]!;
+        options.ClientSecret = vkontakte["ClientSecret"] ?? "";
         options.SignInScheme = ExternalAuthentication.CookieScheme;
         options.CallbackPath = "/api/v1/auth/signin-callback/Vkontakte";
+        options.AuthorizationEndpoint = "https://id.vk.ru/authorize";
+        options.TokenEndpoint = "https://id.vk.ru/oauth2/auth";
+        options.UserInformationEndpoint = "https://id.vk.ru/oauth2/user_info";
+        options.UsePkce = true;
     });
 }
 builder.Services.AddEndpointsApiExplorer();

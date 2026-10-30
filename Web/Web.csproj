@@ -15,7 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AspNet.Security.OAuth.Vkontakte" Version="10.0.0" />
       <PackageReference Include="AspNet.Security.OAuth.Yandex" Version="10.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
       <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
