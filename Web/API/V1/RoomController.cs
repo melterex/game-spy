@@ -5,6 +5,7 @@ using GameLogic.Enums;
 using GameLogic.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using RoomService;
 
 namespace WebAPI.API.V1;
@@ -22,6 +23,8 @@ public class RoomId
 {
     public string Id { get; set; }
 }
+public record EnterByOupRequest(string Oup);
+
 public class RoomSettings
 {
     public string Name { get; set; }
@@ -78,6 +81,7 @@ public class Message
     public string PlayerId { get; set; }
     
 }
+
 [ApiController]
 [Authorize]
 [Route("api/v1/rooms")]
@@ -87,14 +91,16 @@ public class RoomController : ControllerBase
     private readonly ILobbyService lobbyService;
     private readonly IGameService gameService;
     private readonly IGetUser getUserService;
+    private readonly IOupService oupService;
 
     public RoomController(IRoomService _roomService, ILobbyService _lobbyService,
-        IGameService _gameService, IGetUser _getUserService)
+        IGameService _gameService, IGetUser _getUserService, IOupService _oupService)
     {
         roomService = _roomService;
         lobbyService = _lobbyService;
         gameService = _gameService;
         getUserService = _getUserService;
+        oupService = _oupService;
     }
     [HttpGet]
     public ActionResult<Room[]> RoomList()
@@ -361,5 +367,71 @@ public class RoomController : ControllerBase
 
         return Ok(status);
     }
-    
+
+    [HttpPost("{roomId}/create-oup")]
+    public async Task<IActionResult> RegisterOup(Guid roomId)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            return Unauthorized();
+        }
+
+        var user = getUserService.GetUser(UserId.FromString(userIdString));
+        var room = roomService.GetRoomByRoomId(roomId);
+
+        if (room == null)
+        {
+            return NotFound();
+        }
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        if (room.Status != RoomService.RoomStatus.Waiting)
+        {
+            return BadRequest(new { message = "OUP can only be created while the room is waiting." });
+        }
+        if (!room.Session.HasPlayer(user.Id))
+        {
+            return Forbid();
+        }
+
+        var oup = await oupService.CreateOup(roomId);
+        return Ok(new { oup, expiresInMinutes = 15 });
+    }
+
+    [HttpPost("{roomId}/enter-by-oup")]
+    public IActionResult RoomEnterByOup(Guid roomId, [FromBody] EnterByOupRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Oup))
+        {
+            return BadRequest(new { message = "OUP cannot be empty." });
+        }
+
+        var room = roomService.GetRoomByRoomId(roomId);
+        if (room == null)
+        {
+            return NotFound();
+        }
+
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdString))
+        {
+            return Unauthorized();
+        }
+
+        var user = getUserService.GetUser(UserId.FromString(userIdString));
+        if (user == null)
+        {
+                return Unauthorized();
+        }
+
+        if (!lobbyService.TryToEnter(room.Session, user, request.Oup))
+        {
+            return BadRequest(new { message = "Invalid or expired OUP." });
+        }
+
+        return Ok();
+    }
 }

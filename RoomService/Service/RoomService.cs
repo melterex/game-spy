@@ -1,10 +1,13 @@
 using System.Collections.Concurrent;
 using authorization;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace RoomService
 {
-    public class RoomService(ILogger<RoomService> logger, ILoggerFactory loggerFactory) : IRoomService
+    public class RoomService(
+            ILogger<RoomService> logger, ILoggerFactory loggerFactory, IOupService oupService)
+        : IRoomService
     {
         private ConcurrentDictionary<Guid, Room> _rooms = new();
 
@@ -12,10 +15,8 @@ namespace RoomService
         {
             var sessionLogger = loggerFactory.CreateLogger<RoomServiceLobbySession>();
             
-            var room = new Room(creator.Id, type)
-            {
-                Session = new RoomServiceLobbySession(creator.Id, sessionLogger)
-            };
+            var room = new Room(creator.Id, type);
+            room.Session = new RoomServiceLobbySession(room.RoomId, creator.Id, sessionLogger, oupService);
             _rooms[room.RoomId] = room;
 
             room.Session.AddPlayerByUser(creator);
@@ -43,7 +44,7 @@ namespace RoomService
                 if (room.Session.GetPlayers().TryGetValue(id, out var _))
                     return room;
 
-            logger.LogInformation("Haven`t found Player with id {Id}", id);
+            logger.LogDebug("Haven`t found Player with id {Id}", id);
             return null;
         }
 

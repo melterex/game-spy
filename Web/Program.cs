@@ -16,6 +16,7 @@ using ImageService;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSingleton<IRoomService, RoomService.RoomService>();
+builder.Services.AddSingleton<IOupService, OupService>();
 builder.Services.AddSingleton<IBotFactory>(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
@@ -38,6 +39,7 @@ builder.Services.AddTransient<IRepository<ImageModel>, ImageDbRepository>();
 builder.Services.AddTransient<ImageProviderFactory>();
 builder.Services.AddTransient<IProvider<ImageModel>, LocalImageProvider>();
 builder.Services.AddTransient<IProvider<ImageModel>, UrlImageProvider>();
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddHostedService<TurnWorker>();
 builder.Services.AddHostedService<RoomCleanupWorker>();
 builder.Services.AddTransient(sp =>
