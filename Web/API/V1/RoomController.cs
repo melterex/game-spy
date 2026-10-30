@@ -159,7 +159,8 @@ public class RoomController : ControllerBase
         return Ok(newRoom.RoomId.ToString());
     }
 
-    [HttpPost("{roomId}/enter")]
+
+    [HttpGet("{roomId}/enter")]
     public IActionResult RoomEnter(string roomId, [FromBody] EnterRoomRequest request)
     {
         var room = roomService.GetRoomByRoomId(Guid.Parse(roomId));
@@ -307,10 +308,14 @@ public class RoomController : ControllerBase
         var currentSlotId = gameService.GetSlotIDByUserID(gameSession, currentUserId);
         var votingService = gameService.GetVoteService(gameSession);
         var readyPlayers = votingService.GetIsPlayerReadyToEndVotingDict(gameSession);
+        var roomPlayers = lobbyService.GetPlayersStatuses(room.Session);
         var playersList = new List<PlayerData>();
         foreach (var slot in gameSession.PlayerSlots)
         {
             var userId = gameService.GetUserIDBySlotID(gameSession, slot.Id);
+            if (userId != null && !roomPlayers.ContainsKey(userId))
+                continue;
+
             var user = userId == null ? null : getUserService.GetUser(userId);
             playersList.Add(new PlayerData
             {
@@ -449,6 +454,6 @@ public class RoomController : ControllerBase
             return BadRequest(new { message = "Invalid or expired OUP." });
         }
 
-        return Ok();
+        return Redirect("https://game-spy.duckdns.org/room/index.html");
     }
 }
