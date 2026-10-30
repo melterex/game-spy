@@ -97,7 +97,10 @@ window.onclick = function(event) {
 }
 
 async function renderRoomWithTimeout(){
-    await renderRooms();
+    try {
+        await renderRooms();
+    } catch (error) {
+    }
     setInterval(async () => {
         try {
             await renderRooms();

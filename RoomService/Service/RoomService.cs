@@ -1,12 +1,13 @@
 using System.Collections.Concurrent;
 using authorization;
+using GameLogic.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace RoomService
 {
     public class RoomService(
-            ILogger<RoomService> logger, ILoggerFactory loggerFactory, IOupService oupService)
+            ILogger<RoomService> logger, ILoggerFactory loggerFactory, IOupService oupService, IGameService gameService)
         : IRoomService
     {
         private ConcurrentDictionary<Guid, Room> _rooms = new();
@@ -16,7 +17,7 @@ namespace RoomService
             var sessionLogger = loggerFactory.CreateLogger<RoomServiceLobbySession>();
             
             var room = new Room(creator.Id, type);
-            room.Session = new RoomServiceLobbySession(room.RoomId, creator.Id, sessionLogger, oupService);
+            room.Session = new RoomServiceLobbySession(room.RoomId, creator.Id, sessionLogger, oupService, gameService);
             _rooms[room.RoomId] = room;
 
             room.Session.AddPlayerByUser(creator);

@@ -10,7 +10,8 @@ namespace RoomService
 {
     public class RoomServiceLobbySession(
         Guid roomId,
-        UserId creatorId, ILogger<RoomServiceLobbySession> logger, IOupService oupService)
+        UserId creatorId, ILogger<RoomServiceLobbySession> logger, 
+        IOupService oupService, IGameService gameService)
         : LobbySession
     {
         private ConcurrentDictionary<UserId, User> _players = new();
@@ -85,7 +86,8 @@ namespace RoomService
 
         public bool KickPlayer(UserId id)
         {
-            if (_statuses.Remove(id, out _) && _players.Remove(id, out _))
+            if (_statuses.Remove(id, out _) && _players.Remove(id, out _) && 
+                gameService.KickPlayerFromGameSession(Session!, gameService.GetSlotIDByUserID(Session!, id)))
             {
                 logger.LogInformation("Player {UserId} was successfully removed from the lobby", id);
                 return true;
