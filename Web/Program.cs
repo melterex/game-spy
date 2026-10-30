@@ -12,6 +12,7 @@ using WebAPI.API.V1;
 using Serilog;
 using DbConnection;
 using ImageService;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
@@ -152,10 +153,12 @@ try
 {
     UserStorage.Initialize();
     ThemeStorage.Initialize();
+    using var imageContext = new ImageContext();
+    imageContext.Database.Migrate();
 }
 catch (Exception exception)
 {
-    app.Logger.LogCritical(exception, "Could not initialize users and themes in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
+    app.Logger.LogCritical(exception, "Could not initialize users, themes and images in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
     throw;
 }
 app.UseAuthentication();
