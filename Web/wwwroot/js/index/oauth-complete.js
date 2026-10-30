@@ -14,7 +14,7 @@
             throw new Error('Не удалось завершить вход. Вернитесь на главную страницу.');
         }
         localStorage.setItem('jwt_token', result.token);
-        window.location.replace(destination.href);
+        setTimeout(() => window.location.replace(destination.href), 0);
     } catch (error) {
         document.getElementById('login-status').textContent = error.message;
     }

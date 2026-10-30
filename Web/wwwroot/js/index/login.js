@@ -20,12 +20,16 @@ async function loginUser(username, password) {
         }
 
         const result = await response.text();
-
-        window.location.href = '/room-list/index.html';
+        storeTokenAndGo(result.trim().replace(/^"|"$/g, ''), '/room-list/index.html');
     } catch (error) {
         console.error("Ошибка входа ", error.message);
         alert("Ошибка авторизации! Неверный логин/пароль.");
     }
+}
+
+function storeTokenAndGo(token, url) {
+    localStorage.setItem('jwt_token', token);
+    setTimeout(() => window.location.assign(url), 0);
 }
 
 const loginForm = document.getElementById('login');

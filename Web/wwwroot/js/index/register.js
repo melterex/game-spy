@@ -18,11 +18,8 @@ async function registerUser(username, password) {
         }
 
         const result = await response.text();
-
-        console.log("Token: ", result);
-
-        localStorage.setItem('jwt_token', result);
-        window.location.href = '/room-list/index.html';
+        localStorage.setItem('jwt_token', result.trim().replace(/^"|"$/g, ''));
+        setTimeout(() => window.location.assign('/room-list/index.html'), 0);
 
     } catch (error) {
         console.error("Ошибка регистрации ", error.message);
