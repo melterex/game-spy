@@ -4,6 +4,7 @@ using CardsService;
 using GameLogic.Interfaces;
 using GameLogic.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using RoomService;
@@ -147,6 +148,12 @@ if (!string.IsNullOrWhiteSpace(vkontakte["ClientId"]) && !string.IsNullOrWhiteSp
 }
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAuthorization();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 var app = builder.Build();
 try
 {
@@ -159,6 +166,7 @@ catch (Exception exception)
     app.Logger.LogCritical(exception, "Could not initialize users, themes and images in PostgreSQL. Check DB_TYPE and CONNECTION_STRING.");
     throw;
 }
+app.UseForwardedHeaders();
 app.UseAuthentication();
 app.UseAuthorization();
 if (app.Environment.IsDevelopment())
