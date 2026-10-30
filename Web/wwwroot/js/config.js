@@ -1,1 +1,1 @@
-window.isBackendReady = true; // TODO: убрать, когда будет настроен backend
+window.isBackendReady = true;

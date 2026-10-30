@@ -19,8 +19,6 @@ async function loadMyAvatar() {
     return myAvatar;
 }
 
-// TODO: crop=center зашит. Видимую часть выбирать в настройках, см. TODO в settings.js.
-// Этот запрос должен использовать тот же выбор, иначе в комнате и на голосовании кадр будет другим.
 function playerAvatarUrl(hash) {
     if (!playerAvatarUrls.has(hash)) {
         const request = fetch(`/api/images/${encodeURIComponent(hash)}/file?size=128x128&crop=center`, {

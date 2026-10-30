@@ -10,19 +10,6 @@ function authHeaders() {
     return { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` };
 }
 
-// TODO: выбор видимой части аватарки. Код не писать, пока не решено, где хранить выбор.
-// Сервер PR #20 область не запоминает: GET /api/images/{hash}/file режет файл только на выдаче.
-// size=ШxВ обязателен, иначе отдаётся исходник. crop — только center | top | bottom | left | right.
-// Другое значение не кропает. Своего прямоугольника и координат в API нет.
-// Сейчас crop=center зашит здесь и в player-avatars.js (playerAvatarUrl). Хэш — от целого файла,
-// чужой клиент видит только его, поэтому выбор из localStorage остальные не узнают.
-// Лучше резать квадрат в этой модалке (renderSettingsModal) до POST /api/images/upload
-// и загружать уже кадр: тогда отдельное поле не нужно, а crop=center можно оставить.
-// Минус: исходник не хранится, рамку можно сдвинуть только новой загрузкой, GIF станет одним кадром.
-// Пять якорных слов имеют смысл, только если свой прямоугольник не нужен. Тогда слово надо
-// хранить рядом с avatarHash и отдавать тем же путём (PUT /me/avatar, GET /me, лобби, игра, EnteredRoom).
-// Решить заранее: свой прямоугольник или пять положений; видят ли тот же фрагмент другие;
-// можно ли при смене рамки заново отправлять файл.
 async function loadAvatarBlobUrl(hash) {
     const response = await fetch(`/api/images/${encodeURIComponent(hash)}/file?size=256x256&crop=center`, {
         headers: authHeaders()
