@@ -48,7 +48,7 @@ async function startSignalR(token) {
 
         renderRoom(roomData.players);
     });
-    window.connection.on("KickUser", (userId) => {
+    window.connection.on("KickUser", async (userId) => {
         if (String(userId) === String(window.myId)) {
             if (window.leavingByHistory) return;
             window.location.href = "../";
@@ -56,6 +56,15 @@ async function startSignalR(token) {
         }
 
         if (!isRoomPage()) return;
+
+        if (roomStatus === 'ingame') {
+            const data = await fetchGameData();
+            if (data) {
+                roomData.players = data.players;
+                renderRoom(roomData.players);
+            }
+            return;
+        }
 
         roomData.players = roomData.players.filter(player => {
             const existingId = player.player?.id ?? player.id;
