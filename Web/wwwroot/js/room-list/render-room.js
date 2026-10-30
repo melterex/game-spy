@@ -38,6 +38,7 @@ function renderMyRoomBanner() {
 function showAlreadyInRoom() {
     closeModal('joinModal');
     closeModal('createModal');
+    closeModal('oupModal');
     document.getElementById('alreadyRoomName').textContent = myRoom?.name ?? '';
     openModal('alreadyInRoomModal');
 }

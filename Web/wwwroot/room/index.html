@@ -79,8 +79,13 @@
     <div class="modal-content card invite-modal">
         <span class="card-label">Одноразовый код</span>
         <h2 class="card-title">Пригласить за стол</h2>
-        <p class="card-desc">Код сгорает после одного входа и живёт 15 минут. Каждому гостю нужен свой.</p>
+        <p class="card-desc">Ссылка сажает за стол. Код сгорает после одного входа и живёт 15 минут. Каждому гостю нужен свой.</p>
 
+        <div class="field">
+            <span class="card-label">Ссылка</span>
+            <a id="inviteLink" class="invite-value" target="_blank" rel="noopener">…</a>
+            <button class="link-btn copy-link" type="button" onclick="copyInvite('link')">Скопировать ссылку</button>
+        </div>
         <div class="field">
             <span class="card-label">Номер комнаты</span>
             <div id="inviteRoomId" class="invite-value">…</div>
@@ -98,6 +103,7 @@
     </div>
 </div>
 
+<script src="../js/auth-token.js"></script>
 <script src="../js/config.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>

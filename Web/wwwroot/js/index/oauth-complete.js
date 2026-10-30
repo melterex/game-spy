@@ -13,7 +13,7 @@
         if (!result.token || destination.origin !== window.location.origin) {
             throw new Error('Не удалось завершить вход. Вернитесь на главную страницу.');
         }
-        localStorage.setItem('jwt_token', result.token);
+        rememberJwt(result.token);
         setTimeout(() => window.location.replace(destination.href), 0);
     } catch (error) {
         document.getElementById('login-status').textContent = error.message;

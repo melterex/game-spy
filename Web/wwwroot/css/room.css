@@ -68,9 +68,19 @@
     padding: 10px 12px;
     border-radius: 14px;
     background: rgba(255, 255, 255, .14);
+    color: inherit;
     font: 700 15px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     line-height: 1.35;
     word-break: break-all;
+}
+
+a.invite-value,
+a.invite-value:link,
+a.invite-value:visited {
+    display: block;
+    color: var(--yellow);
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .invite-modal .form-error {

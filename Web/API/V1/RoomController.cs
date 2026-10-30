@@ -160,7 +160,7 @@ public class RoomController : ControllerBase
     }
 
 
-    [HttpGet("{roomId}/enter")]
+    [HttpPost("{roomId}/enter")]
     public IActionResult RoomEnter(string roomId, [FromBody] EnterRoomRequest request)
     {
         var room = roomService.GetRoomByRoomId(Guid.Parse(roomId));
@@ -423,10 +423,10 @@ public class RoomController : ControllerBase
         return Ok(new { oup, expiresInMinutes = 15 });
     }
 
-    [HttpPost("{roomId}/enter-by-oup")]
-    public IActionResult RoomEnterByOup(Guid roomId, [FromBody] EnterByOupRequest request)
+    [HttpGet("{roomId}/enter-by-oup")]
+    public IActionResult RoomEnterByOup(Guid roomId, string request)
     {
-        if (request == null || string.IsNullOrWhiteSpace(request.Oup))
+        if (request == null || string.IsNullOrWhiteSpace(request))
         {
             return BadRequest(new { message = "OUP cannot be empty." });
         }
@@ -449,11 +449,11 @@ public class RoomController : ControllerBase
                 return Unauthorized();
         }
 
-        if (!lobbyService.TryToEnter(room.Session, user, request.Oup))
+        if (!lobbyService.TryToEnter(room.Session, user, request))
         {
             return BadRequest(new { message = "Invalid or expired OUP." });
         }
 
-        return Redirect("https://game-spy.duckdns.org/room/index.html");
+        return LocalRedirect("/room/index.html");
     }
 }

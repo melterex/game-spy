@@ -16,11 +16,26 @@ function showInviteError(message) {
     error.textContent = message || '';
 }
 
+function inviteUrl(roomId, oup) {
+    const url = new URL(`/api/v1/rooms/${roomId}/enter-by-oup`, window.location.origin);
+    url.searchParams.set('request', oup);
+    return url.toString();
+}
+
 function renderInvite(invite) {
     const roomNode = document.getElementById('inviteRoomId');
     const codeNode = document.getElementById('inviteOup');
+    const linkNode = document.getElementById('inviteLink');
     if (roomNode) roomNode.textContent = invite?.roomId || '…';
     if (codeNode) codeNode.textContent = invite?.oup || '…';
+    if (linkNode) {
+        const href = invite?.roomId && invite?.oup
+            ? inviteUrl(invite.roomId, invite.oup)
+            : '';
+        linkNode.textContent = href || '…';
+        if (href) linkNode.href = href;
+        else linkNode.removeAttribute('href');
+    }
 }
 
 async function openInviteModal() {
@@ -54,7 +69,9 @@ async function createInviteCode() {
 
     showInviteError('');
     const codeNode = document.getElementById('inviteOup');
+    const linkNode = document.getElementById('inviteLink');
     if (codeNode) codeNode.textContent = '…';
+    if (linkNode) linkNode.textContent = '…';
 
     try {
         const response = await fetch(`/api/v1/rooms/${roomId}/create-oup`, {
@@ -83,7 +100,13 @@ async function createInviteCode() {
 }
 
 async function copyInvite(part) {
-    const value = part === 'room' ? currentInvite?.roomId : currentInvite?.oup;
+    const value = part === 'room'
+        ? currentInvite?.roomId
+        : part === 'oup'
+            ? currentInvite?.oup
+            : (currentInvite?.roomId && currentInvite?.oup
+                ? inviteUrl(currentInvite.roomId, currentInvite.oup)
+                : '');
     if (!value) return;
 
     try {

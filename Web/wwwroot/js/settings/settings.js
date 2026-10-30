@@ -60,7 +60,7 @@ async function loadSettingsUser() {
     if (!localStorage.getItem('jwt_token')) return;
 
     if (response.status === 401) {
-        localStorage.removeItem('jwt_token');
+        forgetJwt();
         if (!isAuthOptionalPage()) window.location.href = '/index.html';
         return;
     }
@@ -164,7 +164,7 @@ async function saveAvatar() {
 }
 
 function logoutAccount() {
-    localStorage.removeItem('jwt_token');
+    forgetJwt();
     document.body.classList.remove('logged-in');
     closeSettings();
 

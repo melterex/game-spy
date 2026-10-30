@@ -14,6 +14,7 @@ function showOupJoinError(message) {
         alert(message);
         return;
     }
+    openModal('oupModal');
     error.hidden = false;
     error.textContent = message;
 }
@@ -45,6 +46,7 @@ async function enterRoomByOup() {
     try {
         const response = await fetch(`/api/v1/rooms/${roomId}/enter-by-oup`, {
             method: 'POST',
+            redirect: 'manual',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
@@ -52,7 +54,7 @@ async function enterRoomByOup() {
             body: JSON.stringify({ oup })
         });
 
-        if (response.ok) {
+        if (response.ok || response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400)) {
             window.location.href = '../room/index.html';
             return;
         }

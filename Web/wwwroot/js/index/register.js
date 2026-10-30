@@ -18,7 +18,7 @@ async function registerUser(username, password) {
         }
 
         const result = await response.text();
-        localStorage.setItem('jwt_token', result.trim().replace(/^"|"$/g, ''));
+        rememberJwt(result.trim().replace(/^"|"$/g, ''));
         setTimeout(() => window.location.assign('/room-list/index.html'), 0);
 
     } catch (error) {

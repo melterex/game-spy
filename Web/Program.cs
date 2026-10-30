@@ -107,6 +107,14 @@ var authentication = builder.Services.AddAuthentication(options =>
             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/room_hub"))
             {
                 context.Token = accessToken;
+                return Task.CompletedTask;
+            }
+
+            if (string.IsNullOrEmpty(context.Request.Headers.Authorization)
+                && context.Request.Cookies.TryGetValue("jwt_token", out var cookie)
+                && !string.IsNullOrEmpty(cookie))
+            {
+                context.Token = cookie;
             }
 
             return Task.CompletedTask;

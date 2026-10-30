@@ -28,7 +28,7 @@ async function loginUser(username, password) {
 }
 
 function storeTokenAndGo(token, url) {
-    localStorage.setItem('jwt_token', token);
+    rememberJwt(token);
     setTimeout(() => window.location.assign(url), 0);
 }
 

@@ -57,7 +57,7 @@ async function checkAuth() {
         });
         if (checkId !== authCheckId || localStorage.getItem('jwt_token') !== token) return;
         setPlayButton(response.ok);
-        if (!response.ok) localStorage.removeItem('jwt_token');
+        if (!response.ok) forgetJwt();
     } catch (error) {
         if (checkId !== authCheckId) return;
         console.error("Ошибка проверки авторизации:", error);
