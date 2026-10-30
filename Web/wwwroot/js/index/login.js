@@ -21,9 +21,6 @@ async function loginUser(username, password) {
 
         const result = await response.text();
 
-        console.log("Token: ", result);
-
-        localStorage.setItem('jwt_token', result);
         window.location.href = '/room-list/index.html';
     } catch (error) {
         console.error("Ошибка входа ", error.message);
@@ -40,9 +37,6 @@ if (loginForm) {
         const formData = new FormData(loginForm);
         const usernameInput = formData.get('logNick');
         const passwordInput = formData.get('logPass');
-
-        console.log(usernameInput);
-        console.log(passwordInput);
 
         await loginUser(usernameInput, passwordInput);
     });
