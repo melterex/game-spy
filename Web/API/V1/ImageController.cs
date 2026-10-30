@@ -45,7 +45,7 @@ public class ImageController(
         {
             success = true,
             hash = savedImage.Hash,
-            url = $"/api/images/{savedImage.Hash}",
+            url = $"/api/images/{savedImage.Hash}/file",
             path = savedImage.Path
         });
     }
