@@ -9,7 +9,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "DB_TYPE": "PostgreSQL",
-        "CONNECTION_STRING": "Host=localhost;Port=5432;Database=postgres;Username=postgres ;Password=Ozedubeze3"
+        "CONNECTION_STRING": "Host=localhost;Port=5432;Database=postgres;Username=postgres ;Password=postgres"
       }
     },
     "https": {
